@@ -23,7 +23,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-10">
@@ -34,14 +34,14 @@ export default function LoginForm() {
         </div>
 
         {/* Login Card */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-xl font-bold text-white mb-6">Sign In</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-xl">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Sign In</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="admin-email"
-                className="block text-sm font-medium text-gray-400 mb-2"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Email
               </label>
@@ -52,14 +52,14 @@ export default function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@7alm.com"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
               />
             </div>
 
             <div>
               <label
                 htmlFor="admin-password"
-                className="block text-sm font-medium text-gray-400 mb-2"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Password
               </label>
@@ -70,7 +70,7 @@ export default function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
               />
             </div>
 

@@ -42,34 +42,34 @@ export default function ProductList({
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-16 bg-gray-900 border border-gray-800 rounded-xl">
+      <div className="text-center py-16 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="text-gray-500 mb-4">
           <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
         </div>
-        <p className="text-gray-400 text-lg font-medium mb-2">No products yet</p>
+        <p className="text-gray-900 text-lg font-medium mb-2">No products yet</p>
         <p className="text-gray-500 text-sm">Create your first product to get started.</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto bg-gray-900 border border-gray-800 rounded-xl">
-      <table className="w-full text-left text-sm text-gray-400">
-        <thead className="bg-gray-800 text-gray-300">
+    <div className="overflow-x-auto bg-white border border-gray-200 shadow-sm rounded-xl">
+      <table className="w-full text-left text-sm text-gray-600">
+        <thead className="bg-gray-50 text-gray-700">
           <tr>
             <th className="px-6 py-4 font-medium">Product</th>
             <th className="px-6 py-4 font-medium">Price</th>
             <th className="px-6 py-4 font-medium">Stock</th>
             <th className="px-6 py-4 font-medium">Status</th>
-            <th className="px-6 py-4 font-medium">Landing Link</th>
+            <th className="px-6 py-4 font-medium">Share Links</th>
             <th className="px-6 py-4 font-medium">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-800">
+        <tbody className="divide-y divide-gray-200">
           {products.map((product) => (
-            <tr key={product.id} className="hover:bg-gray-800/50 transition-colors">
+            <tr key={product.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4 flex items-center gap-3">
                 {product.main_image ? (
                   <img
@@ -78,16 +78,16 @@ export default function ProductList({
                     className="w-10 h-10 rounded-md object-cover"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-md bg-gray-800 flex items-center justify-center text-xs text-gray-500">
+                  <div className="w-10 h-10 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400">
                     N/A
                   </div>
                 )}
                 <div>
-                  <div className="text-white font-medium">{product.name}</div>
+                  <div className="text-gray-900 font-medium">{product.name}</div>
                   <div className="text-xs text-gray-500">{product.slug}</div>
                 </div>
               </td>
-              <td className="px-6 py-4 text-white">
+              <td className="px-6 py-4 text-gray-900 font-medium">
                 EGP {product.price}
                 {product.compare_at_price && (
                   <span className="text-xs line-through text-gray-500 block">
@@ -108,43 +108,66 @@ export default function ProductList({
                 </span>
               </td>
               <td className="px-6 py-4">
-                <button
-                  onClick={() => handleCopyLink(product.slug, product.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    copiedId === product.id
-                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                      : "bg-gray-800 text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600"
-                  }`}
-                >
-                  {copiedId === product.id ? (
-                    <>
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                      Copy Link
-                    </>
-                  )}
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => handleCopyLink(`${product.slug}`, product.id)}
+                    className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all w-full ${
+                      copiedId === product.id
+                        ? "bg-green-50 text-green-600 border border-green-200"
+                        : "bg-white text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    {copiedId === product.id ? "Copied!" : "Copy URL"}
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleCopyLink(`${product.slug}?utm_source=facebook`, `${product.id}-fb`)}
+                      title="Copy Facebook Link"
+                      className={`flex-1 inline-flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        copiedId === `${product.id}-fb`
+                          ? "bg-green-50 text-green-600 border border-green-200"
+                          : "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
+                      }`}
+                    >
+                      {copiedId === `${product.id}-fb` ? "✓" : "FB"}
+                    </button>
+                    <button
+                      onClick={() => handleCopyLink(`${product.slug}?utm_source=instagram`, `${product.id}-ig`)}
+                      title="Copy Instagram Link"
+                      className={`flex-1 inline-flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        copiedId === `${product.id}-ig`
+                          ? "bg-green-50 text-green-600 border border-green-200"
+                          : "bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100"
+                      }`}
+                    >
+                      {copiedId === `${product.id}-ig` ? "✓" : "IG"}
+                    </button>
+                    <button
+                      onClick={() => handleCopyLink(`${product.slug}?utm_source=tiktok`, `${product.id}-tk`)}
+                      title="Copy TikTok Link"
+                      className={`flex-1 inline-flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        copiedId === `${product.id}-tk`
+                          ? "bg-green-50 text-green-600 border border-green-200"
+                          : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                      }`}
+                    >
+                      {copiedId === `${product.id}-tk` ? "✓" : "TK"}
+                    </button>
+                  </div>
+                </div>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onEdit(product)}
-                    className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                    className="text-blue-600 hover:text-blue-700 text-xs font-medium"
                   >
                     Edit
                   </button>
-                  <span className="text-gray-700">|</span>
+                  <span className="text-gray-300">|</span>
                   <button
                     onClick={() => handleDelete(product.id)}
-                    className="text-red-400 hover:text-red-300 text-xs font-medium"
+                    className="text-red-600 hover:text-red-700 text-xs font-medium"
                   >
                     Delete
                   </button>

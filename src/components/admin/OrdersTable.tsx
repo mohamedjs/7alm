@@ -29,7 +29,7 @@ export default function OrdersTable({
 
   if (loading) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-12">
         <div className="flex flex-col items-center justify-center text-gray-500">
           <svg
             className="animate-spin w-8 h-8 mb-4"
@@ -58,7 +58,7 @@ export default function OrdersTable({
 
   if (orders.length === 0) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-12">
         <div className="flex flex-col items-center justify-center text-gray-500">
           <svg
             className="w-16 h-16 mb-4"
@@ -83,12 +83,12 @@ export default function OrdersTable({
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+    <div className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
       {/* Desktop Table */}
       <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-800 text-gray-500 text-sm">
+            <tr className="border-b border-gray-200 text-gray-500 text-sm">
               <th className="text-left px-6 py-4 font-medium">Customer</th>
               <th className="text-left px-6 py-4 font-medium">Zone</th>
               <th className="text-left px-6 py-4 font-medium">IP Info</th>
@@ -103,11 +103,11 @@ export default function OrdersTable({
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
               >
                 <td className="px-6 py-4">
                   <div>
-                    <p className="text-white font-medium">
+                    <p className="text-gray-900 font-medium">
                       {order.customer.full_name}
                     </p>
                     <p className="text-gray-500 text-sm">
@@ -116,7 +116,7 @@ export default function OrdersTable({
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <p className="text-gray-300">
+                  <p className="text-gray-700">
                     {order.address?.zone?.english_name}
                   </p>
                   <p className="text-gray-600 text-xs">
@@ -140,7 +140,7 @@ export default function OrdersTable({
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="text-white font-medium">
+                  <span className="text-gray-900 font-medium">
                     {order.total_price} EGP
                   </span>
                 </td>
@@ -193,7 +193,7 @@ export default function OrdersTable({
       </div>
 
       {/* Mobile Cards */}
-      <div className="lg:hidden divide-y divide-gray-800">
+      <div className="lg:hidden divide-y divide-gray-200">
         {orders.map((order) => (
           <div key={order.id} className="p-4">
             <div
@@ -203,7 +203,7 @@ export default function OrdersTable({
               }
             >
               <div>
-                <p className="text-white font-medium">
+                <p className="text-gray-900 font-medium">
                   {order.customer.full_name}
                 </p>
                 <p className="text-gray-500 text-sm">
@@ -225,16 +225,16 @@ export default function OrdersTable({
             </div>
 
             {expandedId === order.id && (
-              <div className="mt-4 pt-4 border-t border-gray-800 space-y-3 text-sm">
+              <div className="mt-4 pt-4 border-t border-gray-200 space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Zone</span>
-                  <span className="text-gray-300">
+                  <span className="text-gray-700">
                     {order.address?.zone?.english_name}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Address</span>
-                  <span className="text-gray-300 text-right max-w-[200px]">
+                  <span className="text-gray-700 text-right max-w-[200px]">
                     {order.address?.street_details}
                   </span>
                 </div>
@@ -246,7 +246,7 @@ export default function OrdersTable({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Source</span>
-                  <span className="text-gray-300">
+                  <span className="text-gray-700">
                     {order.platform_source || "direct"}
                   </span>
                 </div>

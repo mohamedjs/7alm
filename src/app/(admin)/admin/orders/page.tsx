@@ -35,8 +35,8 @@ export default function OrdersPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Orders Management</h2>
-          <p className="text-gray-400">View and manage customer orders.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Orders Management</h2>
+          <p className="text-gray-600">View and manage customer orders.</p>
         </div>
       </div>
 
@@ -46,8 +46,8 @@ export default function OrdersPage() {
           onClick={() => setFilter("pending")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             filter === "pending"
-              ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-              : "bg-gray-900 text-gray-500 border border-gray-800 hover:text-gray-300"
+              ? "bg-amber-50 text-amber-600 border border-amber-200"
+              : "bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:bg-gray-50"
           }`}
         >
           Pending
@@ -56,8 +56,8 @@ export default function OrdersPage() {
           onClick={() => setFilter("all")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             filter === "all"
-              ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-              : "bg-gray-900 text-gray-500 border border-gray-800 hover:text-gray-300"
+              ? "bg-amber-50 text-amber-600 border border-amber-200"
+              : "bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:bg-gray-50"
           }`}
         >
           All Orders
@@ -65,7 +65,7 @@ export default function OrdersPage() {
 
         <button
           onClick={refetch}
-          className="ml-auto bg-gray-900 border border-gray-800 text-gray-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-2"
+          className="ml-auto bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-2 shadow-sm"
         >
           <svg
             className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}

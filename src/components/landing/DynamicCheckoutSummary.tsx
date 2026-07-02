@@ -3,6 +3,13 @@
 import Image from "next/image";
 import { useUrgencyBanner } from "@/features/checkout/checkout-summary.hooks";
 import { useState } from "react";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/free-mode';
+import 'swiper/css/navigation';
+import 'swiper/css/thumbs';
+import type { Swiper as SwiperType } from 'swiper';
 
 interface DynamicCheckoutSummaryProps {
   productName: string;
@@ -23,6 +30,7 @@ export default function DynamicCheckoutSummary({
 }: DynamicCheckoutSummaryProps) {
   const { time, viewers } = useUrgencyBanner();
   const [activeImage, setActiveImage] = useState(gallery[0] || "");
+  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
   const imageFallback = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
@@ -77,8 +85,68 @@ export default function DynamicCheckoutSummary({
       <div className="bg-white shadow-lg border border-gray-100 rounded-3xl p-6 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -z-10" />
 
-        {/* Main Image */}
-        {activeImage && (
+        {/* Main Image Swiper */}
+        {gallery.length > 0 ? (
+          <>
+            <div className="relative rounded-2xl overflow-hidden mb-4 border border-gray-100 group">
+              {discountPercent && (
+                <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg">
+                  خصم {discountPercent}%
+                </div>
+              )}
+              <Swiper
+                spaceBetween={10}
+                navigation={true}
+                thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
+                modules={[FreeMode, Navigation, Thumbs]}
+                className="w-full aspect-[4/3] rounded-2xl"
+              >
+                {gallery.map((img, idx) => (
+                  <SwiperSlide key={idx}>
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={img}
+                        alt={`${productName} ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        onError={imageFallback}
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+
+            {/* Thumbnails Swiper */}
+            {gallery.length > 1 && (
+              <div className="mb-6">
+                <Swiper
+                  onSwiper={setThumbsSwiper}
+                  spaceBetween={10}
+                  slidesPerView={4}
+                  freeMode={true}
+                  watchSlidesProgress={true}
+                  modules={[FreeMode, Navigation, Thumbs]}
+                  className="thumbs-swiper h-20"
+                >
+                  {gallery.map((img, idx) => (
+                    <SwiperSlide key={`thumb-${idx}`} className="opacity-60 transition-opacity cursor-pointer !w-20">
+                      <div className="relative w-full h-full rounded-xl overflow-hidden border-2 border-gray-200">
+                        <Image
+                          src={img}
+                          alt={`${productName} thumbnail ${idx + 1}`}
+                          fill
+                          className="object-cover"
+                          onError={imageFallback}
+                        />
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            )}
+          </>
+        ) : activeImage && (
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-gray-100 group">
             {discountPercent && (
               <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg">
@@ -92,31 +160,6 @@ export default function DynamicCheckoutSummary({
               className="object-cover transition-transform duration-700"
               onError={imageFallback}
             />
-          </div>
-        )}
-
-        {/* Thumbnails Gallery */}
-        {gallery.length > 1 && (
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-            {gallery.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImage(img)}
-                className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                  activeImage === img
-                    ? "border-brand-500 scale-105"
-                    : "border-gray-200 hover:border-brand-300 opacity-70 hover:opacity-100"
-                }`}
-              >
-                <Image
-                  src={img}
-                  alt={`${productName} ${idx + 1}`}
-                  fill
-                  className="object-cover"
-                  onError={imageFallback}
-                />
-              </button>
-            ))}
           </div>
         )}
 

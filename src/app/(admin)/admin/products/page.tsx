@@ -2,20 +2,12 @@
 
 import { useProductsManager } from "@/features/products/products.hooks";
 import ProductList from "@/components/admin/products/ProductList";
-import ProductForm from "@/components/admin/products/ProductForm";
 import Link from "next/link";
 
 export default function ProductsPage() {
   const {
     products,
     isLoading,
-    isModalOpen,
-    editingProduct,
-    formData,
-    setFormData,
-    openModal,
-    closeModal,
-    saveProduct,
     removeProduct,
   } = useProductsManager();
 
@@ -23,25 +15,25 @@ export default function ProductsPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Products Management
           </h2>
-          <p className="text-gray-400">
+          <p className="text-gray-500">
             Add, update, or remove products from the store.
           </p>
         </div>
-        <button
-          onClick={() => openModal()}
+        <Link
+          href="/admin/products/create"
           className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm transition-all font-bold"
         >
           + Add Product
-        </button>
+        </Link>
       </div>
 
       <ProductList
         products={products}
         isLoading={isLoading}
-        onEdit={(product) => openModal(product)}
+        onEdit={(product) => window.location.assign(`/admin/products/edit/${product.id}`)}
         onDelete={async (id) => {
           try {
             await removeProduct(id);
@@ -54,16 +46,6 @@ export default function ProductsPage() {
           }
         }}
       />
-
-      {isModalOpen && (
-        <ProductForm
-          formData={formData}
-          setFormData={setFormData}
-          editingProduct={editingProduct}
-          onSave={saveProduct}
-          onClose={closeModal}
-        />
-      )}
     </div>
   );
 }

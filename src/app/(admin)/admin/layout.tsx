@@ -23,7 +23,7 @@ export default function AdminLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-gray-950 text-gray-100 antialiased font-sans">
+      <body className="bg-dark-950 text-white antialiased antialiased font-sans">
         <AdminLayoutClient>{children}</AdminLayoutClient>
       </body>
     </html>
