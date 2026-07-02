@@ -2,7 +2,11 @@
 
 import { useCheckoutForm } from "@/features/checkout/checkout.hooks";
 
-export default function CheckoutForm() {
+interface CheckoutFormProps {
+  productId?: string;
+}
+
+export default function CheckoutForm({ productId }: CheckoutFormProps) {
   const {
     zones,
     fields,

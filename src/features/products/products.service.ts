@@ -10,6 +10,10 @@ export class ProductService {
     return productRepository.getProductById(id);
   }
 
+  async getProductBySlug(slug: string): Promise<Product | null> {
+    return productRepository.getProductBySlug(slug);
+  }
+
   async decrementStock(productId: string, quantity: number): Promise<boolean> {
     const product = await productRepository.getProductById(productId);
     if (!product) return false;
@@ -19,3 +23,4 @@ export class ProductService {
 }
 
 export const productService = new ProductService();
+
