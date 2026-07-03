@@ -3,6 +3,7 @@
 import type { ProductInput } from "@/features/products/products.api";
 import type { Product } from "@/features/products/products.api";
 import { useMediaUpload } from "@/features/media/media.hooks";
+import Image from "next/image";
 
 interface ProductFormProps {
   formData: ProductInput;
@@ -261,10 +262,14 @@ export default function ProductForm({
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.gallery?.map((img, i) => (
                 <div key={i} className="relative group">
-                  <img
-                    src={img}
-                    className="w-16 h-16 object-cover rounded border border-gray-300"
-                  />
+                  <div className="w-16 h-16 relative">
+                    <Image
+                      src={img}
+                      alt="Gallery"
+                      fill
+                      className="object-cover rounded border border-gray-300"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() =>

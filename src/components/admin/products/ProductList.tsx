@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Product } from "@/features/products/products.api";
 
 interface ProductListProps {
@@ -72,11 +73,14 @@ export default function ProductList({
             <tr key={product.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4 flex items-center gap-3">
                 {product.main_image ? (
-                  <img
-                    src={product.main_image}
-                    alt={product.name}
-                    className="w-10 h-10 rounded-md object-cover"
-                  />
+                  <div className="w-10 h-10 relative">
+                    <Image
+                      src={product.main_image}
+                      alt={product.name}
+                      fill
+                      className="rounded-md object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="w-10 h-10 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400">
                     N/A
