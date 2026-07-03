@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -38,17 +36,24 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Save locally in public/uploads
-    const uploadDir = join(process.cwd(), "public/uploads");
-    await mkdir(uploadDir, { recursive: true });
-
     const ext = file.name.split('.').pop();
-    const filename = `${crypto.randomUUID()}.${ext}`;
-    const filepath = join(uploadDir, filename);
+    const filename = `product/${crypto.randomUUID()}.${ext}`;
 
-    await writeFile(filepath, buffer);
+    const { data, error: uploadError } = await supabase.storage
+      .from('7alm')
+      .upload(filename, buffer, {
+        contentType: file.type,
+      });
 
-    const fileUrl = `/uploads/${filename}`;
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('7alm')
+      .getPublicUrl(filename);
+
+    const fileUrl = publicUrlData.publicUrl;
 
     return NextResponse.json({ success: true, url: fileUrl });
   } catch (error: any) {

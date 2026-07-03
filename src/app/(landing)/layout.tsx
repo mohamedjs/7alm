@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "@/app/globals.css";
+import ReduxProvider from "@/lib/redux/ReduxProvider";
 
 export const metadata: Metadata = {
   title: "حلم | اطلب الآن",
@@ -15,14 +17,16 @@ export default function LandingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="bg-dark-950 text-white antialiased">{children}</body>
+      <body className="bg-gray-50 text-gray-900 antialiased">
+        <ReduxProvider>{children}</ReduxProvider>
+      </body>
     </html>
   );
 }

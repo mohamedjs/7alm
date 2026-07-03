@@ -23,9 +23,9 @@ export default function CheckoutForm({ productId }: CheckoutFormProps) {
 
   if (success) {
     return (
-      <section id="checkout" className="py-24">
-        <div className="container mx-auto px-6">
-          <div className="max-w-lg mx-auto bg-white shadow-lg border border-gray-100 rounded-3xl p-10 text-center">
+      <section id="checkout" className="py-12 lg:py-24">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-lg mx-auto bg-white shadow-lg border border-gray-100 rounded-3xl p-6 sm:p-10 text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-10 h-10 text-green-500"
@@ -70,7 +70,7 @@ export default function CheckoutForm({ productId }: CheckoutFormProps) {
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white shadow-lg border border-gray-100 rounded-3xl p-8 lg:p-10 space-y-6"
+            className="bg-white shadow-lg border border-gray-100 rounded-3xl p-5 sm:p-8 lg:p-10 space-y-6"
           >
             {/* Full Name */}
             <div>

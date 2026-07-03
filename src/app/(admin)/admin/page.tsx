@@ -23,22 +23,22 @@ export default function AdminOverviewPage() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Overview</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm font-medium mb-1">Pending Orders</p>
-          <p className="text-3xl font-bold text-amber-500">{stats.pending}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+          <p className="text-gray-500 text-xs sm:text-sm font-medium mb-1">Pending Orders</p>
+          <p className="text-2xl sm:text-3xl font-bold text-amber-500">{stats.pending}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm font-medium mb-1">Total Orders</p>
-          <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+          <p className="text-gray-500 text-xs sm:text-sm font-medium mb-1">Total Orders</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.total}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm font-medium mb-1">Total Revenue</p>
-          <p className="text-3xl font-bold text-green-600">{stats.revenue.toFixed(0)} EGP</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+          <p className="text-gray-500 text-xs sm:text-sm font-medium mb-1">Total Revenue</p>
+          <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.revenue.toFixed(0)} EGP</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm font-medium mb-1">Approved Orders</p>
-          <p className="text-3xl font-bold text-blue-600">{stats.approved}</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+          <p className="text-gray-500 text-xs sm:text-sm font-medium mb-1">Approved Orders</p>
+          <p className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.approved}</p>
         </div>
       </div>
     </div>

@@ -24,8 +24,8 @@ export default function CreateProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">Create Product</h2>
-        <p className="text-gray-400">Fill in the details for a new product.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Product</h2>
+        <p className="text-gray-500">Fill in the details for a new product.</p>
       </div>
 
       <ProductForm

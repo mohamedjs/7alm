@@ -82,6 +82,7 @@ export function useProductsManager() {
     refetch,
     isModalOpen,
     editingProduct,
+    setEditingProduct,
     formData,
     setFormData,
     openModal,

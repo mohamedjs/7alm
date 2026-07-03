@@ -1,6 +1,6 @@
 "use client";
 
-import OrdersTable from "@/components/admin/OrdersTable";
+import OrdersTable from "@/components/admin/orders/OrdersTable";
 import { useAuth } from "@/features/auth/auth.hooks";
 import { useOrders } from "@/features/orders/orders.hooks";
 import type { OrderStatus } from "@/features/orders/orders.api";
@@ -33,7 +33,7 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Orders Management</h2>
           <p className="text-gray-600">View and manage customer orders.</p>
@@ -41,24 +41,22 @@ export default function OrdersPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         <button
           onClick={() => setFilter("pending")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            filter === "pending"
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "pending"
               ? "bg-amber-50 text-amber-600 border border-amber-200"
               : "bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:bg-gray-50"
-          }`}
+            }`}
         >
           Pending
         </button>
         <button
           onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            filter === "all"
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "all"
               ? "bg-amber-50 text-amber-600 border border-amber-200"
               : "bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:bg-gray-50"
-          }`}
+            }`}
         >
           All Orders
         </button>

@@ -56,7 +56,7 @@ export default function ProductForm({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 shadow-xl relative">
+    <div className="bg-white border border-gray-200 rounded-2xl w-full p-6 shadow-xl relative">
       <h3 className="text-xl font-bold text-gray-900 mb-6">
         {editingProduct ? "Edit Product" : "Add Product"}
       </h3>
