@@ -17,10 +17,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const product = await productService.getProductBySlug(slug);
   if (!product) return { title: "منتج غير موجود" };
 
+  const title = `${product.name} | حلم 7alm`;
+  const description = product.description || `اطلب ${product.name} الآن من حلم`;
+  const images = product.main_image ? [{ url: product.main_image }] : [];
+
   return {
-    title: `${product.name} | حلم 7alm`,
-    description: product.description || `اطلب ${product.name} الآن من حلم`,
+    title,
+    description,
     keywords: `حلم, 7alm, ${product.name}, ${product.slug}`,
+    openGraph: {
+      title,
+      description,
+      siteName: 'حلم 7alm',
+      images,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: product.main_image ? [product.main_image] : [],
+    },
   };
 }
 
