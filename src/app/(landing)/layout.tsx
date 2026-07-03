@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import ReduxProvider from "@/lib/redux/ReduxProvider";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://7alm.com'),
   title: "حلم | اطلب الآن",
   description: "منتج حلم - أفضل جودة بأفضل سعر. اطلب الآن واحصل على توصيل مجاني",
   keywords: "حلم, 7alm, منتج, مصر, توصيل مجاني",

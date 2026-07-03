@@ -21,16 +21,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = product.description || `اطلب ${product.name} الآن من حلم`;
   const images = product.main_image ? [{ url: product.main_image }] : [];
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://7alm.com';
+  const url = `${appUrl}/${product.slug}`;
+
   return {
     title,
     description,
     keywords: `حلم, 7alm, ${product.name}, ${product.slug}`,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title,
       description,
       siteName: 'حلم 7alm',
       images,
       type: 'website',
+      url,
     },
     twitter: {
       card: 'summary_large_image',
