@@ -5,6 +5,8 @@ import CheckoutForm from "@/components/landing/CheckoutForm";
 import Footer from "@/components/landing/Footer";
 import type { Metadata } from "next";
 
+export const revalidate = 1800; // 30 minutes in seconds
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -28,9 +30,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     keywords: `حلم, 7alm, ${product.name}, ${product.slug}`,
-    alternates: {
-      canonical: url,
-    },
     openGraph: {
       title,
       description,
