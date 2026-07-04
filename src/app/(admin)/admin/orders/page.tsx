@@ -22,6 +22,7 @@ export default function OrdersPage() {
   const { isConnected, notification } = useRealtime("orders", {
     event: "*",
     showNotification: true,
+    onEvent: () => refetch(),
   });
 
   if (!token) return null;

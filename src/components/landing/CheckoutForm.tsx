@@ -19,7 +19,7 @@ export default function CheckoutForm({ productId }: CheckoutFormProps) {
     error,
     loading,
     handleSubmit,
-  } = useCheckoutForm();
+  } = useCheckoutForm({ productId });
 
   if (success) {
     return (

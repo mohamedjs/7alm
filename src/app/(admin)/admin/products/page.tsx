@@ -9,11 +9,12 @@ export default function ProductsPage() {
   const {
     products,
     isLoading,
+    refetch,
     removeProduct,
   } = useProductsManager();
 
   // Realtime: auto-refresh on any change to the products table
-  useRealtime("products", { event: "*" });
+  useRealtime("products", { event: "*", onEvent: () => refetch() });
 
   return (
     <div>

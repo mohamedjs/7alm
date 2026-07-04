@@ -72,6 +72,8 @@ export interface CheckoutFormValues {
   email: string;
   zoneId: string;
   streetDetails: string;
+  productId?: string;
+  quantity?: number;
 }
 
 /**
@@ -92,6 +94,8 @@ export function useCheckout() {
         email: values.email || undefined,
         zone_id: values.zoneId,
         street_details: values.streetDetails,
+        product_id: values.productId,
+        quantity: values.quantity,
         platform_source: platformSource || undefined,
         ip_address: ipInfo?.ip,
         ip_country: ipInfo?.country,
@@ -115,7 +119,7 @@ export function useCheckout() {
  * Manages the checkout form field state + submission flow.
  * The component only renders — all state and logic lives here.
  */
-export function useCheckoutForm() {
+export function useCheckoutForm(options?: { productId?: string; quantity?: number }) {
   const { zones, isLoading: zonesLoading } = useZones();
   const { submitOrder, createOrderState } = useCheckout();
 
@@ -140,6 +144,8 @@ export function useCheckoutForm() {
           email,
           zoneId,
           streetDetails,
+          productId: options?.productId,
+          quantity: options?.quantity,
         });
         setSuccess(true);
       } catch (err: unknown) {
@@ -150,7 +156,7 @@ export function useCheckoutForm() {
         setError(message);
       }
     },
-    [submitOrder, fullName, phone, email, zoneId, streetDetails],
+    [submitOrder, fullName, phone, email, zoneId, streetDetails, options?.productId, options?.quantity],
   );
 
   return {
