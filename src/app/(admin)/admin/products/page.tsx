@@ -1,6 +1,7 @@
 "use client";
 
 import { useProductsManager } from "@/features/products/products.hooks";
+import { useRealtime } from "@/features/realtime/realtime.hooks";
 import ProductList from "@/components/admin/products/ProductList";
 import Link from "next/link";
 
@@ -10,6 +11,9 @@ export default function ProductsPage() {
     isLoading,
     removeProduct,
   } = useProductsManager();
+
+  // Realtime: auto-refresh on any change to the products table
+  useRealtime("products", { event: "*" });
 
   return (
     <div>

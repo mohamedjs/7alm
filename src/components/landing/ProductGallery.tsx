@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import FullscreenGallery from "./FullscreenGallery";
 
 interface ProductGalleryProps {
   gallery: string[];
@@ -17,6 +18,7 @@ export default function ProductGallery({
   discountPercent,
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
   const [mainRef, mainApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 5000, stopOnInteraction: true }),
@@ -47,6 +49,10 @@ export default function ProductGallery({
     mainApi.on("reInit", onSelect);
   }, [mainApi, onSelect]);
 
+  const openFullscreen = useCallback(() => {
+    setFullscreenOpen(true);
+  }, []);
+
   const imageFallback = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
     target.style.display = "none";
@@ -73,7 +79,18 @@ export default function ProductGallery({
               </div>
             )}
 
-            <div className="overflow-hidden" ref={mainRef} dir="ltr">
+            {/* Expand icon — visible on hover */}
+            <button
+              onClick={openFullscreen}
+              className="absolute top-3 right-3 z-10 w-9 h-9 bg-white/80 hover:bg-white text-gray-700 rounded-full flex items-center justify-center shadow-md transition-all"
+              aria-label="عرض الصورة بحجم كامل"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
+            </button>
+
+            <div className="overflow-hidden cursor-zoom-in" ref={mainRef} dir="ltr" onClick={openFullscreen}>
               <div className="flex touch-pan-y">
                 {gallery.map((img, idx) => (
                   <div className="flex-[0_0_100%] min-w-0 relative" key={idx}>
@@ -97,7 +114,7 @@ export default function ProductGallery({
             {gallery.length > 1 && (
               <>
                 <button
-                  onClick={() => mainApi?.scrollPrev()}
+                  onClick={(e) => { e.stopPropagation(); mainApi?.scrollPrev(); }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-amber-500 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all z-10"
                   aria-label="Previous image"
                 >
@@ -106,7 +123,7 @@ export default function ProductGallery({
                   </svg>
                 </button>
                 <button
-                  onClick={() => mainApi?.scrollNext()}
+                  onClick={(e) => { e.stopPropagation(); mainApi?.scrollNext(); }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-amber-500 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-all z-10"
                   aria-label="Next image"
                 >
@@ -151,12 +168,20 @@ export default function ProductGallery({
           )}
         </div>
       ) : activeImage ? (
-        <div className="relative w-full pt-[100%] sm:pt-[75%] rounded-2xl overflow-hidden mb-4 border border-gray-100 group bg-gray-50">
+        <div
+          className="relative w-full pt-[100%] sm:pt-[75%] rounded-2xl overflow-hidden mb-4 border border-gray-100 group bg-gray-50 cursor-zoom-in"
+          onClick={openFullscreen}
+        >
           {discountPercent && (
             <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg">
               خصم {discountPercent}%
             </div>
           )}
+          <div className="absolute top-3 right-3 z-10 w-9 h-9 bg-white/80 hover:bg-white text-gray-700 rounded-full flex items-center justify-center shadow-md transition-all">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>
+          </div>
           <Image
             src={activeImage}
             alt={productName}
@@ -169,6 +194,16 @@ export default function ProductGallery({
           />
         </div>
       ) : null}
+
+      {/* Fullscreen Lightbox */}
+      {fullscreenOpen && gallery.length > 0 && (
+        <FullscreenGallery
+          images={gallery}
+          productName={productName}
+          startIndex={selectedIndex}
+          onClose={() => setFullscreenOpen(false)}
+        />
+      )}
     </>
   );
 }

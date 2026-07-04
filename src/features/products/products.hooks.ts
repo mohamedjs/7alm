@@ -15,6 +15,7 @@ const EMPTY_FORM: ProductInput = {
   description: "",
   price: 0,
   compare_at_price: null,
+  quantity_prices: [],
   sku: "",
   quantity: 0,
   stock_status: "in_stock",

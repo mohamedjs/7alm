@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { OrderStateMachine } from "@/lib/orderStateMachine";
 import type { OrderStatus, OrderWithDetails } from "@/features/orders/orders.api";
+import OrderDetailsDrawer from "./OrderDetailsDrawer";
 
 interface OrdersTableProps {
   orders: OrderWithDetails[];
@@ -25,7 +26,7 @@ export default function OrdersTable({
   approvingId,
   onChangeStatus,
 }: OrdersTableProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(null);
 
   if (loading) {
     return (
@@ -103,7 +104,8 @@ export default function OrdersTable({
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => setSelectedOrder(order)}
               >
                 <td className="px-6 py-4">
                   <div>
@@ -161,8 +163,14 @@ export default function OrdersTable({
                     minute: "2-digit",
                   })}
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex gap-2 justify-end">
+                <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex gap-2 justify-end items-center">
+                    <button
+                      onClick={() => setSelectedOrder(order)}
+                      className="text-blue-600 hover:text-blue-700 text-xs font-medium px-2 py-1 rounded transition-colors"
+                    >
+                      View
+                    </button>
                     {OrderStateMachine[order.status]?.availableActions.map((action) => (
                       <button
                         key={action.action}
@@ -195,13 +203,12 @@ export default function OrdersTable({
       {/* Mobile Cards */}
       <div className="lg:hidden divide-y divide-gray-200">
         {orders.map((order) => (
-          <div key={order.id} className="p-4">
-            <div
-              className="flex items-center justify-between cursor-pointer"
-              onClick={() =>
-                setExpandedId(expandedId === order.id ? null : order.id)
-              }
-            >
+          <div
+            key={order.id}
+            className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            onClick={() => setSelectedOrder(order)}
+          >
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-900 font-medium">
                   {order.customer.full_name}
@@ -210,7 +217,7 @@ export default function OrdersTable({
                   {order.customer.phone}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-left">
                 <span
                   className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${
                     OrderStateMachine[order.status]?.colorClass || OrderStateMachine.pending.colorClass
@@ -223,56 +230,30 @@ export default function OrdersTable({
                 </p>
               </div>
             </div>
-
-            {expandedId === order.id && (
-              <div className="mt-4 pt-4 border-t border-gray-200 space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Zone</span>
-                  <span className="text-gray-700">
-                    {order.address?.zone?.english_name}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Address</span>
-                  <span className="text-gray-700 text-right max-w-[200px]">
-                    {order.address?.street_details}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">IP</span>
-                  <span className="text-gray-400 font-mono text-xs">
-                    {order.ip_address || "—"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Source</span>
-                  <span className="text-gray-700">
-                    {order.platform_source || "direct"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Date</span>
-                  <span className="text-gray-400">
-                    {new Date(order.created_at).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex gap-2 mt-3 flex-col">
-                  {OrderStateMachine[order.status]?.availableActions.map((action) => (
-                    <button
-                      key={action.action}
-                      onClick={() => onChangeStatus(order.id, action.nextStatus)}
-                      disabled={approvingId === order.id}
-                      className={`w-full ${action.style} py-2 rounded-lg text-sm font-medium`}
-                    >
-                      {approvingId === order.id ? "Processing..." : action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Quick address preview */}
+            <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              <span className="truncate">
+                {order.address?.street_details}, {order.address?.zone?.arabic_name || order.address?.zone?.english_name}
+              </span>
+            </div>
+            <div className="mt-2 text-xs text-blue-600 font-medium">
+              Tap to view full details →
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Details Drawer */}
+      <OrderDetailsDrawer
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+        onChangeStatus={onChangeStatus}
+        approvingId={approvingId}
+      />
     </div>
   );
 }

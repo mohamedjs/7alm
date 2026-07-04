@@ -2,6 +2,35 @@
 // Shared Types for all features
 // ============================================================
 
+// --- Quantity-Tier Pricing ---
+/**
+ * A quantity-based price tier — "buy X pieces, pay Y per piece".
+ * Stored as a JSONB array on the product row (`quantity_prices` column),
+ * ordered by `min_quantity` ascending.
+ *
+ * Example DB column value:
+ *   [
+ *     { "min_quantity": 1, "price": 299, "compare_at_price": 499, "label": "قطعة واحدة" },
+ *     { "min_quantity": 2, "price": 275, "compare_at_price": 499, "label": "قطعتين", "is_special": true },
+ *     { "min_quantity": 3, "price": 249, "compare_at_price": 499, "label": "3 قطع", "is_special": true }
+ *   ]
+ *
+ * The landing page renders these as visually distinct price cards;
+ * tiers with `is_special: true` get a highlighted "عرض خاص" badge.
+ */
+export interface QuantityPriceTier {
+  /** Minimum quantity to unlock this price (inclusive). */
+  min_quantity: number;
+  /** Price per unit at this tier. */
+  price: number;
+  /** Original/crossed-out price per unit for discount display. */
+  compare_at_price: number | null;
+  /** Arabic label, e.g. "قطعة واحدة", "قطعتين", "3 قطع". */
+  label: string;
+  /** If true, the tier card gets a "special offer" highlight design. */
+  is_special: boolean;
+}
+
 // --- Products ---
 export interface Product {
   id: string;
@@ -10,6 +39,8 @@ export interface Product {
   description: string | null;
   price: number;
   compare_at_price: number | null;
+  /** Quantity-tiered pricing — JSONB array of QuantityPriceTier. */
+  quantity_prices: QuantityPriceTier[] | null;
   sku: string | null;
   qrcode: string | null;
   quantity: number;

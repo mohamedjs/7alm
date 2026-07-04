@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
+/*
+ * ====================================================================
+ * Safari 15 / iOS 15 compatibility (iPhone 7 Plus and older devices)
+ * ====================================================================
+ * Tailwind CSS v4 defines its default color palette using oklch() and
+ * uses color-mix() for opacity modifiers. Safari 15 (the maximum
+ * version on iPhone 7 Plus / iOS 15) supports neither.
+ *
+ * We override every default color with the equivalent hex value so
+ * that `var(--color-gray-50)` etc. resolve to a concrete color instead
+ * of an oklch() call the browser can't parse.
+ *
+ * For opacity modifiers (bg-white/80, focus:ring-brand-500/20, …) we
+ * add explicit @supports fallbacks below.
+ */
 @theme {
+  /* --- Brand (already hex, kept as-is) --- */
   --color-brand-50: #fdf4f3;
   --color-brand-100: #fce8e6;
   --color-brand-200: #f9d5d1;
@@ -21,6 +37,87 @@
   --color-dark-900: #0f0f23;
   --color-dark-950: #080816;
 
+  /* --- Gray (override oklch → hex) --- */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* --- Red --- */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+
+  /* --- Green --- */
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+
+  /* --- Amber --- */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+
+  /* --- Blue --- */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+
+  /* --- Pink --- */
+  --color-pink-50: #fdf2f8;
+  --color-pink-100: #fce7f3;
+  --color-pink-200: #fbcfe8;
+  --color-pink-300: #f9a8d4;
+  --color-pink-400: #f472b6;
+  --color-pink-500: #ec4899;
+  --color-pink-600: #db2777;
+  --color-pink-700: #be185d;
+
+  /* --- Yellow --- */
+  --color-yellow-50: #fefce8;
+  --color-yellow-100: #fef9c3;
+  --color-yellow-200: #fef08a;
+  --color-yellow-300: #fde047;
+  --color-yellow-400: #facc15;
+  --color-yellow-500: #eab308;
+  --color-yellow-600: #ca8a04;
+
+  /* --- Fonts --- */
   --font-sans: "Inter", "Noto Sans Arabic", system-ui, sans-serif;
   --font-heading: "Cairo", "Inter", system-ui, sans-serif;
 }
@@ -159,5 +256,58 @@
 @media (min-width: 640px) {
   .product-image-container {
     aspect-ratio: 4 / 3;
+  }
+}
+
+/*
+ * ====================================================================
+ * Safari 15 fallbacks for color-mix() opacity modifiers
+ * ====================================================================
+ * Tailwind v4 compiles `bg-white/80` → `color-mix(in oklab, #fff 80%, transparent)`.
+ * Safari 15 doesn't support color-mix(), so these declarations are dropped
+ * entirely — elements become transparent/invisible. We provide rgba()
+ * fallbacks that only apply when color-mix() is NOT supported.
+ */
+@supports not (color: color-mix(in oklab, red, red)) {
+  /* Navigation / overlay buttons */
+  .bg-white\/80 { background-color: rgba(255, 255, 255, 0.8) !important; }
+  .bg-white\/90 { background-color: rgba(255, 255, 255, 0.9) !important; }
+
+  /* Brand color opacity modifiers */
+  .bg-brand-500\/10 { background-color: rgba(221, 98, 83, 0.1) !important; }
+  .bg-brand-500\/20 { background-color: rgba(221, 98, 83, 0.2) !important; }
+  .ring-brand-500\/20 { --tw-ring-color: rgba(221, 98, 83, 0.2) !important; }
+  .border-brand-500\/20 { border-color: rgba(221, 98, 83, 0.2) !important; }
+  .from-brand-500 { --tw-gradient-from: #dd6253 !important; }
+  .to-brand-600 { --tw-gradient-to: #c94535 !important; }
+  .to-brand-700 { --tw-gradient-to: #a93829 !important; }
+
+  /* Green status badges */
+  .bg-green-500\/10 { background-color: rgba(34, 197, 94, 0.1) !important; }
+  .text-green-400 { color: #4ade80 !important; }
+
+  /* Red status badges */
+  .bg-red-500\/10 { background-color: rgba(239, 68, 68, 0.1) !important; }
+  .text-red-400 { color: #f87171 !important; }
+
+  /* White opacity for borders/shadows */
+  .border-white\/5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+
+  /* Gradient text clip fallback */
+  .bg-clip-text {
+    -webkit-text-fill-color: var(--color-brand-500, #dd6253) !important;
+    color: var(--color-brand-500, #dd6253) !important;
+    background: none !important;
+  }
+
+  /* Gradient buttons — provide solid fallback */
+  .bg-gradient-to-l {
+    background-image: linear-gradient(to left, #dd6253, #c94535) !important;
+  }
+
+  /* Backdrop blur fallback (Safari 15 supports -webkit-backdrop-filter) */
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important;
   }
 }

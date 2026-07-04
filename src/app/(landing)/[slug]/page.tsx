@@ -94,6 +94,7 @@ export default async function ProductLandingPage({ params }: PageProps) {
                 discountPercent={discountPercent}
                 description={product.description}
                 gallery={gallery}
+                quantityPrices={product.quantity_prices}
               />
             </div>
 

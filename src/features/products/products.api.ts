@@ -2,7 +2,7 @@
 
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithAuth } from "@/lib/redux/api/baseQuery";
-import type { Product as SharedProduct } from "@/features/shared/types";
+import type { Product as SharedProduct, QuantityPriceTier } from "@/features/shared/types";
 
 export type Product = SharedProduct & { video_url?: string | null };
 
@@ -11,6 +11,7 @@ export type ProductInput = Partial<Product> & {
   slug: string;
   price: number;
   quantity: number;
+  quantity_prices?: QuantityPriceTier[] | null;
 };
 
 interface ApiEnvelope<T> {

@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useUrgencyBanner } from "@/features/checkout/checkout-summary.hooks";
 import ProductGallery from "./ProductGallery";
+import QuantityPricing from "./QuantityPricing";
+import type { QuantityPriceTier } from "@/features/shared/types";
 
 interface CheckoutSummaryProps {
   productName: string;
@@ -10,6 +13,9 @@ interface CheckoutSummaryProps {
   discountPercent: number | null;
   description: string | null;
   gallery: string[];
+  quantityPrices: QuantityPriceTier[] | null;
+  /** Notifies parent of the selected quantity (so CheckoutForm can use it). */
+  onSelectQuantity?: (quantity: number) => void;
 }
 
 export default function CheckoutSummary({
@@ -19,8 +25,21 @@ export default function CheckoutSummary({
   discountPercent,
   description,
   gallery,
+  quantityPrices,
+  onSelectQuantity,
 }: CheckoutSummaryProps) {
   const { time, viewers } = useUrgencyBanner();
+  const [selectedTier, setSelectedTier] = useState<QuantityPriceTier | null>(null);
+
+  const handleSelectTier = (tier: QuantityPriceTier) => {
+    setSelectedTier(tier);
+    onSelectQuantity?.(tier.min_quantity);
+  };
+
+  // If tiers exist, the active price is the selected tier's price;
+  // otherwise fall back to the base product price.
+  const activePrice = selectedTier?.price ?? productPrice;
+  const activeCompareAt = selectedTier?.compare_at_price ?? compareAtPrice;
 
   return (
     <div className="space-y-6">
@@ -76,17 +95,28 @@ export default function CheckoutSummary({
             {productName}
           </h2>
 
-          <div className="flex items-end gap-3 pb-4 border-b border-gray-100">
-            <span className="text-4xl font-bold text-gray-900">
-              {productPrice}{" "}
-              <span className="text-lg text-gray-500 font-normal">ج.م</span>
-            </span>
-            {compareAtPrice && (
-              <span className="text-lg text-gray-400 line-through mb-1">
-                {compareAtPrice} ج.م
+          {/* Quantity-Tier Pricing (or single price if no tiers) */}
+          <QuantityPricing
+            tiers={quantityPrices || []}
+            basePrice={productPrice}
+            baseCompareAtPrice={compareAtPrice}
+            onSelectTier={handleSelectTier}
+          />
+
+          {/* Fallback single price line (hidden when tiers are shown) */}
+          {(!quantityPrices || quantityPrices.length === 0) && (
+            <div className="flex items-end gap-3 pb-4 border-b border-gray-100">
+              <span className="text-4xl font-bold text-gray-900">
+                {activePrice}{" "}
+                <span className="text-lg text-gray-500 font-normal">ج.م</span>
               </span>
-            )}
-          </div>
+              {activeCompareAt && (
+                <span className="text-lg text-gray-400 line-through mb-1">
+                  {activeCompareAt} ج.م
+                </span>
+              )}
+            </div>
+          )}
 
           {description && (
             <div className="pt-2">

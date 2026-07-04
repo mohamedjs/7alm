@@ -211,7 +211,7 @@ The admin's `ProductList` has a **"Copy Link"** button that copies `{origin}/{sl
 
 | Table | Key Fields | Notes |
 |---|---|---|
-| `products` | id, name, slug, price, compare_at_price, quantity, stock_status, main_image, gallery[], is_active | `slug` is unique, used for landing page URLs |
+| `products` | id, name, slug, price, compare_at_price, quantity_prices, quantity, stock_status, main_image, gallery[], is_active | `slug` is unique, used for landing page URLs. `quantity_prices` is a JSONB array of `{ min_quantity, price, compare_at_price, label, is_special }` for tiered/bulk pricing (buy 2 = special price, buy 3 = better price). |
 | `orders` | id, customer_id, address_id, product_id, quantity, total_price, status, shipping_provider, shipping_tracking_id | Status managed by State Machine |
 | `customers` | id, phone, email, full_name | Unique by phone number |
 | `addresses` | id, customer_id, zone_id, street_details | |
@@ -230,12 +230,64 @@ npm run build    # Production build
 npx tsc --noEmit # Type check without emitting
 ```
 
+### Database Migration: quantity_prices column
+
+Run this SQL in Supabase to add the quantity-tier pricing column:
+
+```sql
+ALTER TABLE products
+  ADD COLUMN IF NOT EXISTS quantity_prices JSONB DEFAULT NULL;
+
+-- Example: set tiered pricing for a product
+UPDATE products
+  SET quantity_prices = '[
+    { "min_quantity": 1, "price": 299, "compare_at_price": 499, "label": "قطعة واحدة", "is_special": false },
+    { "min_quantity": 2, "price": 275, "compare_at_price": 499, "label": "قطعتين", "is_special": true },
+    { "min_quantity": 3, "price": 249, "compare_at_price": 499, "label": "3 قطع", "is_special": true }
+  ]'::jsonb
+  WHERE slug = 'your-product-slug';
+```
+
+### Realtime
+
+The app uses Supabase Realtime for live updates. The client-side hook
+`useRealtime(table, options)` subscribes to `postgres_changes` events
+(INSERT/UPDATE/DELETE/`*`). It requires these public env vars:
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+```
+
+Usage:
+```ts
+import { useRealtime, useRealtimeRefetch } from "@/features/realtime/realtime.hooks";
+
+// Auto-refetch an RTK Query when a table changes:
+const { refetch } = useGetOrdersQuery("all");
+useRealtimeRefetch("orders", refetch);
+
+// Or listen to events directly:
+const { lastEvent, isConnected } = useRealtime("orders", {
+  event: "*",
+  onEvent: (payload) => console.log("order changed:", payload),
+});
+```
+
+You must also enable Realtime on the table in Supabase:
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE orders;
+ALTER PUBLICATION supabase_realtime ADD TABLE products;
+```
+
 ### Environment Variables (`.env.local`)
 
 ```env
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co   # Client-side realtime (public)
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...               # Client-side realtime (public)
 NEXT_PUBLIC_IPINFO_TOKEN=xxx          # Optional, for IP geolocation
 DEFAULT_SHIPPING_PROVIDER=bosta       # Default shipping provider
 BOSTA_API_KEY=xxx                     # Bosta API credentials

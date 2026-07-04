@@ -3,6 +3,7 @@
 import OrdersTable from "@/components/admin/orders/OrdersTable";
 import { useAuth } from "@/features/auth/auth.hooks";
 import { useOrders } from "@/features/orders/orders.hooks";
+import { useRealtime } from "@/features/realtime/realtime.hooks";
 import type { OrderStatus } from "@/features/orders/orders.api";
 
 export default function OrdersPage() {
@@ -16,6 +17,12 @@ export default function OrdersPage() {
     approvingId,
     changeStatus,
   } = useOrders("pending");
+
+  // Realtime: auto-refresh on any change to the orders table
+  const { isConnected, notification } = useRealtime("orders", {
+    event: "*",
+    showNotification: true,
+  });
 
   if (!token) return null;
 
@@ -38,7 +45,33 @@ export default function OrdersPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Orders Management</h2>
           <p className="text-gray-600">View and manage customer orders.</p>
         </div>
+        {/* Realtime status indicator */}
+        <div className="flex items-center gap-2 text-sm">
+          <span
+            className={`relative flex h-2.5 w-2.5 ${isConnected ? "" : "opacity-40"}`}
+          >
+            {isConnected && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                isConnected ? "bg-green-500" : "bg-gray-400"
+              }`}
+            />
+          </span>
+          <span className={isConnected ? "text-green-600" : "text-gray-400"}>
+            {isConnected ? "Live" : "Offline"}
+          </span>
+        </div>
       </div>
+
+      {/* Realtime notification banner */}
+      {notification && (
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 flex items-center gap-2">
+          <span className="text-lg">🔔</span>
+          <span>{notification.message}</span>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
