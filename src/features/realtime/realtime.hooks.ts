@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabase-client";
+import { supabaseClient, setRealtimeAuth } from "@/lib/supabase-client";
+import { useAppSelector } from "@/lib/redux/hooks";
 
 /**
  * The payload shape Supabase Realtime delivers for postgres_changes.
@@ -72,6 +73,7 @@ export function useRealtime(
 ): UseRealtimeResult {
   const { event = "*", filter, onEvent, showNotification = false } = options;
   const router = useRouter();
+  const token = useAppSelector((state) => state.auth.token);
   const [lastEvent, setLastEvent] = useState<RealtimePayload | null>(null);
   const [eventCount, setEventCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
@@ -88,6 +90,12 @@ export function useRealtime(
     if (!supabaseClient) {
       console.warn(`[useRealtime] No Supabase client — realtime disabled for table "${table}"`);
       return;
+    }
+
+    // Authorize the realtime socket as the logged-in admin so RLS lets
+    // postgres_changes events through on locked-down tables.
+    if (token) {
+      setRealtimeAuth(token);
     }
 
     const channelName = `realtime:${table}:${event}:${filter || "all"}:${Date.now()}`;
@@ -164,7 +172,7 @@ export function useRealtime(
       client.removeChannel(channel);
       setIsConnected(false);
     };
-  }, [router, table, event, filter, showNotification]);
+  }, [router, table, event, filter, showNotification, token]);
 
   const clearNotification = () => {
     if (timerRef.current) {
