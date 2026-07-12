@@ -46,8 +46,31 @@ export class OrderService {
       if (input.product_id) {
         const product = await productService.getProductById(input.product_id);
         if (product) {
-          totalPrice = product.price * (input.quantity || 1);
           productId = product.id;
+          const quantity = input.quantity || 1;
+          const tiers = product.quantity_prices;
+
+          if (tiers && Array.isArray(tiers) && tiers.length > 0) {
+            // Sort tiers by min_quantity descending to match the highest applicable tier first
+            const sortedTiers = [...tiers].sort((a, b) => b.min_quantity - a.min_quantity);
+            const matchingTier = sortedTiers.find((t) => quantity >= t.min_quantity);
+
+            if (matchingTier) {
+              if (quantity === matchingTier.min_quantity) {
+                totalPrice = matchingTier.price;
+              } else {
+                // If quantity exceeds the tier min_quantity, scale by the unit price of this tier
+                const unitPrice = matchingTier.price / matchingTier.min_quantity;
+                totalPrice = unitPrice * quantity;
+              }
+            } else {
+              // Fallback if quantity is less than any tier's min_quantity
+              totalPrice = product.price * quantity;
+            }
+          } else {
+            // Fallback to base product price if no tiers are configured
+            totalPrice = product.price * quantity;
+          }
         }
       }
 

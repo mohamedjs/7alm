@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { productService } from "@/features/products/products.service";
-import CheckoutSummary from "@/components/landing/CheckoutSummary";
-import CheckoutForm from "@/components/landing/CheckoutForm";
+import ProductCheckoutFunnel from "@/components/landing/ProductCheckoutFunnel";
 import Footer from "@/components/landing/Footer";
 import type { Metadata } from "next";
 
@@ -84,25 +83,11 @@ export default async function ProductLandingPage({ params }: PageProps) {
             </h1>
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Right Column (RTL) - Product Summary & Urgency */}
-            <div className="lg:col-span-7 space-y-6">
-              <CheckoutSummary
-                productName={product.name}
-                productPrice={product.price}
-                compareAtPrice={product.compare_at_price}
-                discountPercent={discountPercent}
-                description={product.description}
-                gallery={gallery}
-                quantityPrices={product.quantity_prices}
-              />
-            </div>
-
-            {/* Left Column (RTL) - Checkout Form */}
-            <div className="lg:col-span-5 sticky top-8">
-              <CheckoutForm productId={product.id} />
-            </div>
-          </div>
+          <ProductCheckoutFunnel
+            product={product}
+            discountPercent={discountPercent}
+            gallery={gallery}
+          />
         </div>
       </div>
       <Footer />

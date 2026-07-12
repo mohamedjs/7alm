@@ -248,7 +248,7 @@ export default function OrderDetailsDrawer({
                       {order.product.name}
                     </p>
                     <p className="text-gray-500 text-xs">
-                      {order.product.price} EGP / unit
+                      {(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP / unit
                     </p>
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export default function OrderDetailsDrawer({
                   <DetailRow label="Quantity" value={order.quantity} />
                   <DetailRow
                     label="Unit price"
-                    value={`${order.product.price} EGP`}
+                    value={`${(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP`}
                   />
                   <DetailRow
                     label="Total"

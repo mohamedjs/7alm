@@ -188,7 +188,7 @@ export default function QuantityPricing({
           ) : (
             <span>
               اخترت <strong className="text-gray-900">{displayTiers[selectedIndex].label}</strong> —
-              الإجمالي: <strong className="text-brand-600">{displayTiers[selectedIndex].price * displayTiers[selectedIndex].min_quantity} ج.م</strong>
+              الإجمالي: <strong className="text-brand-600">{displayTiers[selectedIndex].price} ج.م</strong>
             </span>
           )}
         </div>

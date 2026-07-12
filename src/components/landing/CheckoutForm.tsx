@@ -4,9 +4,10 @@ import { useCheckoutForm } from "@/features/checkout/checkout.hooks";
 
 interface CheckoutFormProps {
   productId?: string;
+  quantity?: number;
 }
 
-export default function CheckoutForm({ productId }: CheckoutFormProps) {
+export default function CheckoutForm({ productId, quantity = 1 }: CheckoutFormProps) {
   const {
     zones,
     fields,
@@ -19,7 +20,7 @@ export default function CheckoutForm({ productId }: CheckoutFormProps) {
     error,
     loading,
     handleSubmit,
-  } = useCheckoutForm({ productId });
+  } = useCheckoutForm({ productId, quantity });
 
   if (success) {
     return (
