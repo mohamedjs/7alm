@@ -252,14 +252,45 @@ export default function OrderDetailsDrawer({
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-gray-100 mt-2 pt-2">
+                <div className="border-t border-gray-100 mt-2 pt-2 space-y-0.5">
+                  <DetailRow
+                    label="Catalog price"
+                    value={`${order.product.price} EGP`}
+                  />
                   <DetailRow label="Quantity" value={order.quantity} />
                   <DetailRow
-                    label="Unit price"
-                    value={`${(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP`}
+                    label="Subtotal (Base)"
+                    value={`${order.product.price * order.quantity} EGP`}
                   />
                   <DetailRow
-                    label="Total"
+                    label="Effective Unit price"
+                    value={`${(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP`}
+                  />
+                  {(() => {
+                    const baseTotal = order.product.price * order.quantity;
+                    const discountAmt = baseTotal - order.total_price;
+                    if (discountAmt > 0) {
+                      const discountPct = Math.round((discountAmt / baseTotal) * 100);
+                      return (
+                        <DetailRow
+                          label="Tier Discount"
+                          value={
+                            <span className="text-green-600 font-medium">
+                              -{discountAmt.toFixed(2).replace(/\.00$/, "")} EGP ({discountPct}%)
+                            </span>
+                          }
+                        />
+                      );
+                    }
+                    return (
+                      <DetailRow
+                        label="Tier Discount"
+                        value="0 EGP"
+                      />
+                    );
+                  })()}
+                  <DetailRow
+                    label="Total Paid"
                     value={
                       <span className="font-bold text-brand-600">
                         {order.total_price} EGP
