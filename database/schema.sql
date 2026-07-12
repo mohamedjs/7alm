@@ -93,11 +93,36 @@ CREATE TABLE public.admins (
 
 -- 5. Enable Row Level Security
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.countries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.zones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.addresses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admins can view admins"
 ON public.admins FOR SELECT
 TO authenticated
 USING (auth.uid() = id);
+
+CREATE POLICY "Admins can view all orders"
+ON public.orders FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.admins WHERE id = auth.uid()
+  )
+);
+
+CREATE POLICY "Admins can view all products"
+ON public.products FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.admins WHERE id = auth.uid()
+  )
+);
 
 -- ============================================================
 -- SEED DATA
