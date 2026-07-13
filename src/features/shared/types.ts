@@ -168,3 +168,18 @@ export interface ShippingTrackingResult {
   history?: Array<{ state: string; timestamp: string }>;
   error?: string;
 }
+
+// --- n8n Integration ---
+/**
+ * Payload sent to the n8n webhook when an order status changes.
+ * Used by OrderService.notifyN8n() to trigger WhatsApp notifications.
+ */
+export interface N8nOrderNotification {
+  orderId: string;
+  newStatus: string;
+  customerPhone: string;
+  customerName: string;
+  productName: string;
+  trackingId: string | null;
+  totalPrice: number;
+}

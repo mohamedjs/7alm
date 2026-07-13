@@ -5,6 +5,7 @@ import { shippingFactory } from "@/features/shipping/shipping.factory";
 import { orderRepository } from "./orders.repository";
 import type {
   CreateOrderInput,
+  N8nOrderNotification,
   OrderWithDetails,
   ShippingProviderName,
 } from "@/features/shared/types";
@@ -169,6 +170,9 @@ export class OrderService {
         await productService.decrementStock(order.product_id, order.quantity);
       }
 
+      // Notify n8n for WhatsApp notification (non-blocking)
+      this.notifyN8n(order, "approved");
+
       return { success: true, trackingId: shippingResult.trackingId };
     } catch (err) {
       console.error("Error approving order:", err);
@@ -196,6 +200,10 @@ export class OrderService {
       }
 
       await orderRepository.updateOrderStatus(orderId, newStatus);
+
+      // Notify n8n for WhatsApp notification (non-blocking)
+      this.notifyN8n(order, newStatus);
+
       return { success: true };
     } catch (err) {
       console.error(`Error changing order status to ${newStatus}:`, err);
@@ -209,6 +217,35 @@ export class OrderService {
 
   async getAllOrders(): Promise<OrderWithDetails[]> {
     return orderRepository.getAllOrders();
+  }
+  /**
+   * Notify n8n about an order status change to trigger WhatsApp notifications.
+   * This is fire-and-forget — failures are logged but never block the order flow.
+   */
+  private notifyN8n(order: OrderWithDetails, newStatus: string): void {
+    const n8nWebhookUrl = process.env.N8N_ORDER_WEBHOOK_URL;
+    if (!n8nWebhookUrl) {
+      return; // n8n integration not configured — skip silently
+    }
+
+    const payload: N8nOrderNotification = {
+      orderId: order.id,
+      newStatus,
+      customerPhone: order.customer.phone,
+      customerName: order.customer.full_name,
+      productName: order.product?.name || "طلبك",
+      trackingId: order.shipping_tracking_id,
+      totalPrice: order.total_price,
+    };
+
+    // Fire-and-forget — don't await
+    fetch(n8nWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch((err) => {
+      console.error("Failed to notify n8n:", err);
+    });
   }
 }
 
