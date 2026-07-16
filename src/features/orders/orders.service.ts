@@ -101,14 +101,14 @@ export class OrderService {
 
   /**
    * Admin approves a pending order.
-   * Changes status to 'approved' and triggers shipping provider delivery creation.
+   * Changes status to 'approved' and sends WhatsApp confirmation to customer.
+   * Shipping is NOT triggered here — it waits for customer confirmation via WhatsApp.
    */
   async approveOrder(
     orderId: string,
     providerName?: ShippingProviderName
   ): Promise<{
     success: boolean;
-    trackingId?: string;
     error?: string;
   }> {
     try {
@@ -123,15 +123,66 @@ export class OrderService {
         };
       }
 
+      // Store the selected shipping provider for later use when order is confirmed
+      const selectedProvider =
+        providerName ||
+        (process.env.DEFAULT_SHIPPING_PROVIDER as ShippingProviderName) ||
+        "bosta";
+
+      // Update order status to 'approved' with the shipping provider choice
+      await orderRepository.updateOrderStatus(
+        orderId,
+        "approved",
+        selectedProvider
+      );
+
+      // Decrement stock
+      if (order.product_id) {
+        await productService.decrementStock(order.product_id, order.quantity);
+      }
+
+      // Notify n8n → sends WhatsApp with accept/cancel buttons to customer
+      this.notifyN8n(order, "approved");
+
+      return { success: true };
+    } catch (err) {
+      console.error("Error approving order:", err);
+      return { success: false, error: "Internal server error" };
+    }
+  }
+
+  /**
+   * Customer confirms order via WhatsApp button press.
+   * Changes status to 'confirmed' and triggers shipping provider to create delivery.
+   */
+  async confirmOrder(
+    orderId: string
+  ): Promise<{
+    success: boolean;
+    trackingId?: string;
+    error?: string;
+  }> {
+    try {
+      const order = await orderRepository.getOrderById(orderId);
+      if (!order) {
+        return { success: false, error: "Order not found" };
+      }
+      if (order.status !== "approved") {
+        return {
+          success: false,
+          error: `Order cannot be confirmed — current status is "${order.status}"`,
+        };
+      }
+
       // Get the zone info for shipping
       const zone = await geoService.getZoneById(order.address.zone_id);
       if (!zone) {
         return { success: false, error: "Zone not found" };
       }
 
-      // Use factory pattern to get the shipping provider
+      // Use the shipping provider that was saved when admin approved
       const selectedProvider =
-        providerName ||
+        (order.shipping_provider as ShippingProviderName) ||
         (process.env.DEFAULT_SHIPPING_PROVIDER as ShippingProviderName) ||
         "bosta";
       const shippingProvider = shippingFactory.getProvider(selectedProvider);
@@ -151,31 +202,72 @@ export class OrderService {
       });
 
       if (!shippingResult.success) {
+        // If shipping fails, still mark as confirmed so admin can retry manually
+        await orderRepository.updateOrderStatus(orderId, "confirmed");
         return {
           success: false,
-          error: `Shipping error: ${shippingResult.error}`,
+          error: `Order confirmed but shipping failed: ${shippingResult.error}`,
         };
       }
 
-      // Update order status
+      // Update order status to 'confirmed' with tracking info
       await orderRepository.updateOrderStatus(
         orderId,
-        "approved",
+        "confirmed",
         selectedProvider,
         shippingResult.trackingId
       );
 
-      // Decrement stock
-      if (order.product_id) {
-        await productService.decrementStock(order.product_id, order.quantity);
+      // Notify n8n → sends "order confirmed, shipping soon" message
+      // Re-fetch order with updated tracking info
+      const updatedOrder = await orderRepository.getOrderById(orderId);
+      if (updatedOrder) {
+        this.notifyN8n(updatedOrder, "confirmed");
       }
-
-      // Notify n8n for WhatsApp notification (non-blocking)
-      this.notifyN8n(order, "approved");
 
       return { success: true, trackingId: shippingResult.trackingId };
     } catch (err) {
-      console.error("Error approving order:", err);
+      console.error("Error confirming order:", err);
+      return { success: false, error: "Internal server error" };
+    }
+  }
+
+  /**
+   * Cancel an order. Can be called by admin or by customer via WhatsApp.
+   */
+  async cancelOrder(
+    orderId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const order = await orderRepository.getOrderById(orderId);
+      if (!order) {
+        return { success: false, error: "Order not found" };
+      }
+
+      // Can only cancel if pending or approved (not yet shipped)
+      if (!["pending", "approved"].includes(order.status)) {
+        return {
+          success: false,
+          error: `Cannot cancel order — current status is "${order.status}"`,
+        };
+      }
+
+      // If stock was decremented on approval, restore it
+      if (
+        order.status === "approved" &&
+        order.product_id
+      ) {
+        await productService.incrementStock(order.product_id, order.quantity);
+      }
+
+      await orderRepository.updateOrderStatus(orderId, "cancelled");
+
+      // Notify n8n → sends cancellation WhatsApp message
+      this.notifyN8n(order, "cancelled");
+
+      return { success: true };
+    } catch (err) {
+      console.error("Error cancelling order:", err);
       return { success: false, error: "Internal server error" };
     }
   }
@@ -190,6 +282,15 @@ export class OrderService {
   ): Promise<{ success: boolean; trackingId?: string; error?: string }> {
     if (newStatus === "approved") {
       return this.approveOrder(orderId, providerName);
+    }
+
+    if (newStatus === "confirmed") {
+      return this.confirmOrder(orderId);
+    }
+
+    if (newStatus === "cancelled") {
+      const result = await this.cancelOrder(orderId);
+      return result;
     }
     
     // For other status changes
@@ -211,6 +312,17 @@ export class OrderService {
     }
   }
 
+  /**
+   * Public method to notify n8n about a status change.
+   * Used by shipping webhooks that update order status externally.
+   */
+  async notifyStatusChange(orderId: string, newStatus: string): Promise<void> {
+    const order = await orderRepository.getOrderById(orderId);
+    if (order) {
+      this.notifyN8n(order, newStatus);
+    }
+  }
+
   async getPendingOrders(): Promise<OrderWithDetails[]> {
     return orderRepository.getPendingOrders();
   }
@@ -218,6 +330,7 @@ export class OrderService {
   async getAllOrders(): Promise<OrderWithDetails[]> {
     return orderRepository.getAllOrders();
   }
+
   /**
    * Notify n8n about an order status change to trigger WhatsApp notifications.
    * This is fire-and-forget — failures are logged but never block the order flow.
@@ -236,6 +349,7 @@ export class OrderService {
       productName: order.product?.name || "طلبك",
       trackingId: order.shipping_tracking_id,
       totalPrice: order.total_price,
+      quantity: order.quantity,
     };
 
     // Fire-and-forget — don't await

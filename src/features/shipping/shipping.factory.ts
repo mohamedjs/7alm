@@ -3,6 +3,7 @@ import type { ShippingProviderName } from "@/features/shared/types";
 import { BostaProvider } from "./providers/bosta.provider";
 import { AbsProvider } from "./providers/abs.provider";
 import { MylerzProvider } from "./providers/mylerz.provider";
+import { TestProvider } from "./providers/test.provider";
 
 /**
  * Shipping Factory — Factory Pattern for logistics providers.
@@ -11,6 +12,7 @@ import { MylerzProvider } from "./providers/mylerz.provider";
  * - Bosta (fully implemented)
  * - ABS (placeholder — add integration when ready)
  * - Mylerz (placeholder — add integration when ready)
+ * - Test (simulated delivery for development/testing)
  *
  * Usage:
  *   const provider = shippingFactory.getProvider('bosta');
@@ -29,6 +31,7 @@ class ShippingFactory {
     this.registerProvider("bosta", new BostaProvider());
     this.registerProvider("abs", new AbsProvider());
     this.registerProvider("mylerz", new MylerzProvider());
+    this.registerProvider("test", new TestProvider());
   }
 
   /**

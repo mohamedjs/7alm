@@ -20,6 +20,10 @@ export class ProductService {
     if (product.quantity < quantity) return false;
     return productRepository.updateStock(productId, -quantity);
   }
+
+  async incrementStock(productId: string, quantity: number): Promise<boolean> {
+    return productRepository.updateStock(productId, quantity);
+  }
 }
 
 export const productService = new ProductService();

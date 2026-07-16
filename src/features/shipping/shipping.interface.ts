@@ -26,5 +26,5 @@ export interface IShippingProvider {
   /** Map provider-specific status to our internal status */
   mapStatus(
     providerStatus: string
-  ): "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned";
+  ): "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned";
 }

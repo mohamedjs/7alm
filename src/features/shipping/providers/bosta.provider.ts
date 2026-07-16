@@ -171,8 +171,8 @@ export class BostaProvider implements IShippingProvider {
    */
   mapStatus(
     bostaStatus: string
-  ): "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned" {
-    const statusMap: Record<string, "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned"> = {
+  ): "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned" {
+    const statusMap: Record<string, "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned"> = {
       TICKET_CREATED: "approved",
       PACKAGE_RECEIVED: "shipped",
       IN_TRANSIT: "shipped",

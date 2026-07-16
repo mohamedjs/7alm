@@ -49,9 +49,9 @@ export class AbsProvider implements IShippingProvider {
 
   mapStatus(
     providerStatus: string
-  ): "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned" {
+  ): "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned" {
     // TODO: Map ABS-specific statuses
-    const statusMap: Record<string, "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned"> = {
+    const statusMap: Record<string, "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned"> = {
       created: "approved",
       picked_up: "shipped",
       in_transit: "shipped",

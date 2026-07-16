@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { orderRepository } from "@/features/orders/orders.repository";
 import { shippingFactory } from "@/features/shipping/shipping.factory";
+import { orderService } from "@/features/orders/orders.service";
 import type { ShippingProviderName } from "@/features/shared/types";
 
 /**
  * POST /api/webhooks/shipping
- * Receives status update webhooks from shipping providers (Bosta, ABS, Mylerz).
+ * Receives status update webhooks from shipping providers (Bosta, ABS, Mylerz, Test).
  *
  * Security: Validates the secret query parameter.
  * Each provider sends different payload formats — we normalize them here.
+ *
+ * After updating order status, notifies n8n to send WhatsApp notification to customer.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +38,11 @@ export async function POST(request: NextRequest) {
     let trackingId: string | undefined;
     let providerStatus: string | undefined;
 
-    if (providerParam === "bosta" || !providerParam) {
+    if (providerParam === "test") {
+      // Test provider webhook payload format
+      trackingId = body.trackingId;
+      providerStatus = body.status;
+    } else if (providerParam === "bosta" || !providerParam) {
       // Bosta webhook payload format
       trackingId = body.trackingNumber || body.TrackingNumber;
       providerStatus =
@@ -61,8 +68,7 @@ export async function POST(request: NextRequest) {
     // Map provider status to our internal status
     const internalStatus = provider.mapStatus(providerStatus);
 
-    // Find and update the order
-    // We need to find the order by shipping_tracking_id
+    // Find and update the order by shipping_tracking_id
     const { supabase } = await import("@/lib/supabase");
     const { data: order } = await supabase
       .from("orders")
@@ -83,6 +89,9 @@ export async function POST(request: NextRequest) {
     console.log(
       `Webhook: Order ${order.id} updated to ${internalStatus} (provider: ${providerStatus})`
     );
+
+    // Notify n8n to send WhatsApp notification for the status change
+    await orderService.notifyStatusChange(order.id, internalStatus);
 
     return NextResponse.json({ success: true });
   } catch (error) {

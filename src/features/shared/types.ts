@@ -115,6 +115,7 @@ export interface Order {
 export type OrderStatus =
   | "pending"
   | "approved"
+  | "confirmed"
   | "shipped"
   | "delivered"
   | "cancelled"
@@ -142,7 +143,7 @@ export interface CreateOrderInput {
 }
 
 // --- Shipping ---
-export type ShippingProviderName = "bosta" | "abs" | "mylerz";
+export type ShippingProviderName = "bosta" | "abs" | "mylerz" | "test";
 
 export interface ShippingDeliveryInput {
   orderId: string;
@@ -182,4 +183,14 @@ export interface N8nOrderNotification {
   productName: string;
   trackingId: string | null;
   totalPrice: number;
+  quantity: number;
+}
+
+/**
+ * Payload received from n8n when a user responds to a WhatsApp
+ * order confirmation message (accept/cancel button press).
+ */
+export interface WhatsAppOrderAction {
+  orderId: string;
+  action: "confirm" | "cancel";
 }

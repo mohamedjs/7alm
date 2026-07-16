@@ -52,9 +52,9 @@ export class MylerzProvider implements IShippingProvider {
 
   mapStatus(
     providerStatus: string
-  ): "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned" {
+  ): "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned" {
     // TODO: Map Mylerz-specific statuses
-    const statusMap: Record<string, "pending" | "approved" | "shipped" | "delivered" | "cancelled" | "returned"> = {
+    const statusMap: Record<string, "pending" | "approved" | "confirmed" | "shipped" | "delivered" | "cancelled" | "returned"> = {
       new: "approved",
       in_transit: "shipped",
       out_for_delivery: "shipped",
