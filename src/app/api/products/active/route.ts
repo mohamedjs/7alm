@@ -7,14 +7,14 @@ import { productService } from "@/features/products/products.service";
  */
 export async function GET() {
   try {
-    const product = await productService.getActiveProduct();
-    if (!product) {
+    const products = await productService.getActiveProduct();
+    if (!products || products.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No active product found" },
+        { success: false, error: "No active products found" },
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, data: product });
+    return NextResponse.json({ success: true, data: products });
   } catch (error) {
     console.error("GET /api/products/active error:", error);
     return NextResponse.json(

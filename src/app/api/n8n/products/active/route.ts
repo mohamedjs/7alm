@@ -7,15 +7,15 @@ export async function GET(request: NextRequest) {
   if (unauthorizedResponse) return unauthorizedResponse;
 
   try {
-    const product = await productService.getActiveProductForAgent();
-    if (!product) {
+    const products = await productService.getActiveProductForAgent();
+    if (!products || products.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No active product found" },
+        { success: false, error: "No active products found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data: product });
+    return NextResponse.json({ success: true, data: products });
   } catch (error) {
     console.error("GET /api/n8n/products/active error:", error);
     return NextResponse.json(

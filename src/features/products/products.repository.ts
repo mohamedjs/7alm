@@ -2,13 +2,11 @@ import { supabase } from "@/lib/supabase";
 import type { Product } from "@/features/shared/types";
 
 export class ProductRepository {
-  async getActiveProduct(): Promise<Product | null> {
+  async getActiveProduct(): Promise<Product[] | null> {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("is_active", true)
-      .limit(1)
-      .single();
+      .eq("is_active", true);
 
     if (error) {
       console.error("Error fetching product:", error);
