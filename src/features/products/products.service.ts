@@ -25,6 +25,7 @@ export class ProductService {
         name: product.name,
         slug: product.slug,
         description: product.description,
+        main_image: product.main_image,
         availability: {
           status: product.stock_status,
           available_quantity: product.quantity,

@@ -57,6 +57,7 @@ export interface ActiveProductDto {
   name: string;
   slug: string;
   description: string | null;
+  main_image: string | null;
   availability: {
     status: Product["stock_status"];
     available_quantity: number;
