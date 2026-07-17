@@ -52,6 +52,31 @@ export interface Product {
   updated_at: string;
 }
 
+export interface ActiveProductDto {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  availability: {
+    status: Product["stock_status"];
+    available_quantity: number;
+    can_order: boolean;
+  };
+  pricing: {
+    currency: "EGP";
+    unit_price: number;
+    compare_at_price: number | null;
+    discount_percentage: number;
+  };
+  quantity_offers: Array<{
+    min_quantity: number;
+    label: string;
+    unit_price: number;
+    compare_at_price: number | null;
+    is_special: boolean;
+  }>;
+}
+
 // --- Geography ---
 export interface Country {
   id: string;
