@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="border-t border-white/5 py-12">
@@ -14,6 +16,9 @@ export default function Footer() {
 
           <div className="flex items-center gap-6 text-gray-500 text-sm">
             <span>© {new Date().getFullYear()} حلم. جميع الحقوق محفوظة</span>
+            <Link href="/privacy" className="hover:text-gray-900 transition-colors underline underline-offset-4">
+              سياسة الخصوصية
+            </Link>
           </div>
         </div>
       </div>
