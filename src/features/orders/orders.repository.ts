@@ -139,6 +139,47 @@ export class OrderRepository {
     return data as unknown as OrderWithDetails;
   }
 
+  /**
+   * Latest order still awaiting the customer's WhatsApp confirmation
+   * (status = 'approved'), looked up by the customer's phone number.
+   */
+  async getLatestApprovedOrderByPhone(
+    phone: string
+  ): Promise<OrderWithDetails | null> {
+    const { data: customer, error: customerError } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("phone", phone)
+      .single();
+
+    if (customerError || !customer) return null;
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select(
+        `
+        *,
+        customer:customers (*),
+        address:addresses (
+          *,
+          zone:zones (
+            *,
+            city:cities (*)
+          )
+        ),
+        product:products (*)
+      `
+      )
+      .eq("customer_id", customer.id)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data as unknown as OrderWithDetails;
+  }
+
   async updateOrderStatus(
     id: string,
     status: string,

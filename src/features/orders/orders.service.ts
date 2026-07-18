@@ -323,6 +323,21 @@ export class OrderService {
     }
   }
 
+  /**
+   * Find the sender's order awaiting WhatsApp confirmation (status 'approved').
+   * Accepts the phone in any common WhatsApp form (2010..., +2010..., 010...)
+   * and normalizes it to the 11-digit local format stored in customers.phone.
+   */
+  async getOrderAwaitingConfirmation(
+    rawPhone: string
+  ): Promise<OrderWithDetails | null> {
+    let digits = rawPhone.replace(/\D/g, "");
+    if (digits.startsWith("0020")) digits = digits.slice(4);
+    else if (digits.startsWith("20")) digits = digits.slice(2);
+    if (!digits.startsWith("0")) digits = "0" + digits;
+    return orderRepository.getLatestApprovedOrderByPhone(digits);
+  }
+
   async getPendingOrders(): Promise<OrderWithDetails[]> {
     return orderRepository.getPendingOrders();
   }
