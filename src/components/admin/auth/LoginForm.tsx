@@ -16,6 +16,9 @@ export default function LoginForm() {
     setError("");
     try {
       await login(email, password);
+      // The auth cookie is now set — use a hard navigation so the middleware
+      // re-evaluates the session and serves the dashboard.
+      window.location.assign("/admin");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);

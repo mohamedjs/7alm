@@ -15,9 +15,13 @@ export default function AdminLayoutClient({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // The dedicated /admin/login route renders without the dashboard shell,
+  // regardless of any (possibly stale) client-side session.
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
   if (!token) {
-    // The dedicated /admin/login route renders its own LoginForm.
-    if (pathname === "/admin/login") return <>{children}</>;
     return <LoginForm />;
   }
 

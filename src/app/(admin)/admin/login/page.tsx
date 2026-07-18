@@ -1,23 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { useAuth } from "@/features/auth/auth.hooks";
 import LoginForm from "@/components/admin/auth/LoginForm";
 
 /**
  * Dedicated login route the middleware redirects unauthenticated visitors to.
- * Once credentials are accepted (cookie + Redux state set), sends the admin
- * to the dashboard.
+ *
+ * Reaching this page means the middleware rejected (or found no) auth cookie,
+ * so any client-side session in Redux/localStorage is stale — purge it once
+ * instead of trusting it, then let the admin sign in again. Navigation to the
+ * dashboard happens inside LoginForm after a successful login.
  */
 export default function AdminLoginPage() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { isAuthenticated, logout } = useAuth();
+  const purgedStale = useRef(false);
 
   useEffect(() => {
-    if (isAuthenticated) router.replace("/admin");
-  }, [isAuthenticated, router]);
+    if (!purgedStale.current) {
+      purgedStale.current = true;
+      if (isAuthenticated) logout();
+    }
+  }, [isAuthenticated, logout]);
 
-  if (isAuthenticated) return null;
   return <LoginForm />;
 }
