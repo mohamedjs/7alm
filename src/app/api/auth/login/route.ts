@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAuth } from "@/lib/auth";
+import { ADMIN_TOKEN_COOKIE } from "@/lib/auth-cookie";
 
 /**
  * POST /api/auth/login
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         token: data.session.access_token,
@@ -55,6 +56,18 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // httpOnly cookie is the middleware's auth signal — only set after the
+    // admins-table check above passed.
+    response.cookies.set(ADMIN_TOKEN_COOKIE, data.session.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: data.session.expires_in ?? 3600,
+    });
+
+    return response;
   } catch (error) {
     console.error("POST /api/auth/login error:", error);
     return NextResponse.json(

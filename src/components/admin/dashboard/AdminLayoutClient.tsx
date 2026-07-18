@@ -16,6 +16,8 @@ export default function AdminLayoutClient({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (!token) {
+    // The dedicated /admin/login route renders its own LoginForm.
+    if (pathname === "/admin/login") return <>{children}</>;
     return <LoginForm />;
   }
 

@@ -29,7 +29,11 @@ export function useAuth() {
     [dispatch, login],
   );
 
-  const logout = useCallback(() => dispatch(logoutAction()), [dispatch]);
+  const logout = useCallback(() => {
+    // Clear the httpOnly cookie so the middleware blocks /admin pages again.
+    fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    dispatch(logoutAction());
+  }, [dispatch]);
   const hydrate = useCallback(() => dispatch(hydrateAuth()), [dispatch]);
 
   return {
