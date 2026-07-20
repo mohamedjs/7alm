@@ -4,7 +4,9 @@ import type { ProductInput } from "@/features/products/products.api";
 import type { Product } from "@/features/products/products.api";
 import type { QuantityPriceTier } from "@/features/shared/types";
 import { useMediaUpload } from "@/features/media/media.hooks";
+import { useGetCategoriesQuery } from "@/features/categories/categories.api";
 import Image from "next/image";
+import { useState, useEffect, useMemo } from "react";
 
 interface ProductFormProps {
   formData: ProductInput;
@@ -22,6 +24,45 @@ export default function ProductForm({
   onClose,
 }: ProductFormProps) {
   const { upload, uploading } = useMediaUpload();
+  const { data: categories = [] } = useGetCategoriesQuery();
+
+  // Media previews
+  const [localPreviews, setLocalPreviews] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Revoke local object URLs on unmount to avoid memory leaks
+    return () => {
+      Object.values(localPreviews).forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
+    };
+  }, [localPreviews]);
+
+  // Derived categories
+  const topCategories = useMemo(() => categories.filter(c => !c.parent_id), [categories]);
+  
+  // Find current parent category (if any) based on category_id
+  const currentCategory = useMemo(() => categories.find(c => c.id === formData.category_id), [categories, formData.category_id]);
+  const initialParentId = currentCategory?.parent_id || currentCategory?.id || "";
+  
+  const [selectedParentId, setSelectedParentId] = useState<string>(initialParentId);
+
+  const subCategories = useMemo(() => categories.filter(c => c.parent_id === selectedParentId), [categories, selectedParentId]);
+
+  const handleParentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const parentId = e.target.value;
+    setSelectedParentId(parentId);
+    setFormData({ ...formData, category_id: parentId || null }); // Default to parent if no sub selected
+  };
+
+  const handleSubChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const subId = e.target.value;
+    if (subId) {
+      setFormData({ ...formData, category_id: subId });
+    } else {
+      setFormData({ ...formData, category_id: selectedParentId || null });
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +81,14 @@ export default function ProductForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Create local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setLocalPreviews(prev => ({ ...prev, [file.name]: localUrl }));
+
+    // For gallery, we might want to store local URL temporarily in form data to show preview while uploading,
+    // but to keep it simple, we just show it below. Let's wait for upload to finish.
+
     try {
       const url = await upload(file);
       if (field === "gallery") {
@@ -135,6 +184,40 @@ export default function ProductForm({
               }
               className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Parent Category
+            </label>
+            <select
+              value={selectedParentId}
+              onChange={handleParentChange}
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+            >
+              <option value="">-- Select Parent --</option>
+              {topCategories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name_en} ({cat.name_ar})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Subcategory
+            </label>
+            <select
+              value={formData.category_id || selectedParentId || ""}
+              onChange={handleSubChange}
+              disabled={!selectedParentId || subCategories.length === 0}
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none disabled:bg-gray-100"
+            >
+              <option value="">-- Select Subcategory --</option>
+              {subCategories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name_en} ({cat.name_ar})</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -385,7 +468,7 @@ export default function ProductForm({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Main Image URL
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-2">
               <input
                 type="text"
                 value={formData.main_image || ""}
@@ -405,13 +488,18 @@ export default function ProductForm({
                 />
               </label>
             </div>
+            {formData.main_image && (
+              <div className="w-24 h-24 relative border rounded overflow-hidden">
+                <Image src={formData.main_image} alt="Main preview" fill className="object-cover" />
+              </div>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Video URL (Optional)
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-2">
               <input
                 type="text"
                 value={formData.video_url || ""}
@@ -431,6 +519,9 @@ export default function ProductForm({
                 />
               </label>
             </div>
+            {formData.video_url && (
+              <video src={formData.video_url} controls className="h-32 rounded border" />
+            )}
           </div>
 
           <div>

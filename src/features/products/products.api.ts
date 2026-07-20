@@ -11,6 +11,7 @@ export type ProductInput = Partial<Product> & {
   slug: string;
   price: number;
   quantity: number;
+  category_id?: string | null;
   quantity_prices?: QuantityPriceTier[] | null;
 };
 

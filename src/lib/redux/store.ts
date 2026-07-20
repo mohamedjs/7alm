@@ -6,6 +6,7 @@ import { authApi } from "@/features/auth/auth.api";
 import { geoApi } from "@/features/geo/geo.api";
 import { ordersApi } from "@/features/orders/orders.api";
 import { productsApi } from "@/features/products/products.api";
+import { categoriesApi } from "@/features/categories/categories.api";
 import { mediaApi } from "@/features/media/media.api";
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     [geoApi.reducerPath]: geoApi.reducer,
     [ordersApi.reducerPath]: ordersApi.reducer,
     [productsApi.reducerPath]: productsApi.reducer,
+    [categoriesApi.reducerPath]: categoriesApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
   },
   middleware: (getDefault) =>
@@ -23,6 +25,7 @@ export const store = configureStore({
       .concat(geoApi.middleware)
       .concat(ordersApi.middleware)
       .concat(productsApi.middleware)
+      .concat(categoriesApi.middleware)
       .concat(mediaApi.middleware),
 });
 
