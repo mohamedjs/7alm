@@ -31,9 +31,29 @@ export interface QuantityPriceTier {
   is_special: boolean;
 }
 
+// --- Categories ---
+export interface Category {
+  id: string;
+  parent_id: string | null;
+  slug: string;
+  name_ar: string;
+  name_en: string;
+  is_active: boolean;
+  sort_order: number;
+  image: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CategoryTree extends Category {
+  subcategories: CategoryTree[];
+}
+
 // --- Products ---
 export interface Product {
   id: string;
+  category_id: string | null;
+  category?: Category;
   name: string;
   slug: string;
   description: string | null;

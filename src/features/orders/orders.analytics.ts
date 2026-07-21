@@ -1,4 +1,4 @@
-import type { OrderWithDetails } from "@/features/shared/types";
+import type { Category, OrderWithDetails, Product } from "@/features/shared/types";
 
 /**
  * Pure client-side analytics over the orders list returned by
@@ -59,6 +59,43 @@ export function filterByPreviousRange(
     const created = new Date(o.created_at);
     return created >= prevStart && created < rangeStart;
   });
+}
+
+/** Orders created within an explicit [start, end] date range (inclusive of both days). */
+export function filterByDateRange(
+  orders: OrderWithDetails[],
+  start: Date,
+  end: Date,
+): OrderWithDetails[] {
+  const rangeStart = startOfDay(start);
+  const rangeEnd = new Date(startOfDay(end).getTime() + DAY_MS);
+  return orders.filter((o) => {
+    const created = new Date(o.created_at);
+    return created >= rangeStart && created < rangeEnd;
+  });
+}
+
+/** Orders in the window of the same length immediately before an explicit [start, end] range. */
+export function filterByPreviousDateRange(
+  orders: OrderWithDetails[],
+  start: Date,
+  end: Date,
+): OrderWithDetails[] {
+  const rangeStart = startOfDay(start);
+  const rangeEnd = new Date(startOfDay(end).getTime() + DAY_MS);
+  const lengthMs = rangeEnd.getTime() - rangeStart.getTime();
+  const prevStart = new Date(rangeStart.getTime() - lengthMs);
+  return orders.filter((o) => {
+    const created = new Date(o.created_at);
+    return created >= prevStart && created < rangeStart;
+  });
+}
+
+/** Number of calendar days spanned by [start, end], inclusive of both endpoints (minimum 1). */
+export function daysBetweenInclusive(start: Date, end: Date): number {
+  const s = startOfDay(start).getTime();
+  const e = startOfDay(end).getTime();
+  return Math.max(1, Math.round((e - s) / DAY_MS) + 1);
 }
 
 export interface TrendPoint {
@@ -197,4 +234,139 @@ export function computeKpis(orders: OrderWithDetails[]): DashboardKpis {
     socialCount,
     socialShare: total > 0 ? socialCount / total : 0,
   };
+}
+
+// --- Shared lookup helpers (join orders -> products -> categories client-side) ---
+
+/** Map of product id -> Product, for O(1) lookups when joining orders to products. */
+export function buildProductMap(products: Product[]): Map<string, Product> {
+  return new Map(products.map((p) => [p.id, p]));
+}
+
+/** Map of category id -> Category, for O(1) lookups when resolving a product's category. */
+export function buildCategoryMap(categories: Category[]): Map<string, Category> {
+  return new Map(categories.map((c) => [c.id, c]));
+}
+
+const UNKNOWN_PRODUCT_KEY = "unknown";
+const UNKNOWN_PRODUCT_LABEL = "Unknown product";
+const UNCATEGORIZED_KEY = "uncategorized";
+const UNCATEGORIZED_LABEL = "Uncategorized";
+
+export interface ProductStat {
+  productId: string;
+  name: string;
+  revenue: number;
+  units: number;
+}
+
+/**
+ * Top products by revenue for the given orders, with units sold.
+ * Orders whose product can't be resolved in `products` (deleted/unknown)
+ * are grouped under a single "Unknown product" bucket rather than dropped.
+ */
+export function topProducts(
+  orders: OrderWithDetails[],
+  products: Product[],
+  limit = 5,
+): ProductStat[] {
+  const productMap = buildProductMap(products);
+  const stats = new Map<string, ProductStat>();
+  for (const order of orders) {
+    const product = order.product_id ? productMap.get(order.product_id) : undefined;
+    const key = product ? product.id : UNKNOWN_PRODUCT_KEY;
+    const name = product ? product.name : UNKNOWN_PRODUCT_LABEL;
+    const entry = stats.get(key) ?? { productId: key, name, revenue: 0, units: 0 };
+    entry.revenue += Number(order.total_price) || 0;
+    entry.units += Number(order.quantity) || 0;
+    stats.set(key, entry);
+  }
+  return [...stats.values()].sort((a, b) => b.revenue - a.revenue).slice(0, limit);
+}
+
+/** Walk a product's category up to its top-level (root) ancestor. Guards against cycles. */
+function topLevelCategory(
+  categoryId: string | null | undefined,
+  categoryMap: Map<string, Category>,
+): Category | null {
+  if (!categoryId) return null;
+  let current = categoryMap.get(categoryId);
+  if (!current) return null;
+  const seen = new Set<string>([current.id]);
+  while (current.parent_id && categoryMap.has(current.parent_id) && !seen.has(current.parent_id)) {
+    current = categoryMap.get(current.parent_id)!;
+    seen.add(current.id);
+  }
+  return current;
+}
+
+export interface CategoryRevenueStat {
+  categoryId: string;
+  name: string;
+  revenue: number;
+}
+
+/**
+ * Revenue grouped by top-level category for the given orders. Products with
+ * no category (or an unresolvable one) are bucketed under "Uncategorized",
+ * as are orders whose product can't be resolved at all.
+ */
+export function revenueByCategory(
+  orders: OrderWithDetails[],
+  products: Product[],
+  categories: Category[],
+): CategoryRevenueStat[] {
+  const productMap = buildProductMap(products);
+  const categoryMap = buildCategoryMap(categories);
+  const stats = new Map<string, CategoryRevenueStat>();
+  for (const order of orders) {
+    const product = order.product_id ? productMap.get(order.product_id) : undefined;
+    const top = product ? topLevelCategory(product.category_id, categoryMap) : null;
+    const key = top ? top.id : UNCATEGORIZED_KEY;
+    const name = top ? top.name_en || top.name_ar : UNCATEGORIZED_LABEL;
+    const entry = stats.get(key) ?? { categoryId: key, name, revenue: 0 };
+    entry.revenue += Number(order.total_price) || 0;
+    stats.set(key, entry);
+  }
+  return [...stats.values()].sort((a, b) => b.revenue - a.revenue);
+}
+
+/** Revenue per order for the given orders (0 when there are none). */
+export function averageOrderValue(orders: OrderWithDetails[]): number {
+  if (orders.length === 0) return 0;
+  const revenue = orders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+  return revenue / orders.length;
+}
+
+export interface CsvOrderRow {
+  id: string;
+  date: string;
+  customer: string;
+  product: string;
+  quantity: number;
+  total: number;
+  status: string;
+  channel: OrderChannel;
+  zone: string;
+}
+
+/** Shape orders into flat CSV-ready rows for export (id, date, customer, product, quantity, total, status, channel, zone). */
+export function toCsvRows(orders: OrderWithDetails[], products: Product[]): CsvOrderRow[] {
+  const productMap = buildProductMap(products);
+  return orders.map((order) => {
+    const product = order.product_id ? productMap.get(order.product_id) : undefined;
+    const zone =
+      order.address?.zone?.english_name || order.address?.zone?.arabic_name || "Unknown";
+    return {
+      id: order.id,
+      date: order.created_at,
+      customer: order.customer?.full_name || "",
+      product: product ? product.name : UNKNOWN_PRODUCT_LABEL,
+      quantity: Number(order.quantity) || 0,
+      total: Number(order.total_price) || 0,
+      status: order.status,
+      channel: channelOf(order),
+      zone,
+    };
+  });
 }

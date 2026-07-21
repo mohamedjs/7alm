@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/features/products/products.api";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 
 interface ProductListProps {
   products: Product[];
@@ -18,6 +19,7 @@ export default function ProductList({
   onEdit,
   onDelete,
 }: ProductListProps) {
+  const { t } = useLocale();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopyLink = (slug: string, id: string) => {
@@ -29,51 +31,51 @@ export default function ProductList({
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    if (!confirm(t("products.deleteConfirm"))) return;
     onDelete(id);
   };
 
   if (isLoading) {
     return (
-      <div className="text-center text-gray-500 py-10">
-        Loading products...
+      <div className="py-10 text-center text-text-muted">
+        {t("products.list.loading")}
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-16 bg-white border border-gray-200 shadow-sm rounded-xl">
-        <div className="text-gray-500 mb-4">
-          <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="rounded-xl border border-border bg-surface-raised py-16 text-center shadow-sm">
+        <div className="mb-4 text-text-muted">
+          <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
         </div>
-        <p className="text-gray-900 text-lg font-medium mb-2">No products yet</p>
-        <p className="text-gray-500 text-sm">Create your first product to get started.</p>
+        <p className="mb-2 text-lg font-medium text-text-primary">{t("products.list.emptyTitle")}</p>
+        <p className="text-sm text-text-muted">{t("products.list.emptySubtitle")}</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto bg-white border border-gray-200 shadow-sm rounded-xl">
-      <table className="w-full text-left text-sm text-gray-600">
-        <thead className="bg-gray-50 text-gray-700">
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface-raised shadow-sm">
+      <table className="w-full text-start text-sm text-text-muted">
+        <thead className="bg-surface text-text-primary">
           <tr>
-            <th className="px-6 py-4 font-medium">Product</th>
-            <th className="px-6 py-4 font-medium">Price</th>
-            <th className="px-6 py-4 font-medium">Stock</th>
-            <th className="px-6 py-4 font-medium">Status</th>
-            <th className="px-6 py-4 font-medium">Share Links</th>
-            <th className="px-6 py-4 font-medium">Actions</th>
+            <th className="px-6 py-4 font-medium">{t("products.list.product")}</th>
+            <th className="px-6 py-4 font-medium">{t("products.list.price")}</th>
+            <th className="px-6 py-4 font-medium">{t("products.list.stock")}</th>
+            <th className="px-6 py-4 font-medium">{t("products.list.status")}</th>
+            <th className="px-6 py-4 font-medium">{t("products.list.shareLinks")}</th>
+            <th className="px-6 py-4 font-medium">{t("products.list.actions")}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y divide-border">
           {products.map((product) => (
-            <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4 flex items-center gap-3">
+            <tr key={product.id} className="transition-colors hover:bg-surface">
+              <td className="flex items-center gap-3 px-6 py-4">
                 {product.main_image ? (
-                  <div className="w-10 h-10 relative">
+                  <div className="relative h-10 w-10">
                     <Image
                       src={product.main_image}
                       alt={product.name}
@@ -82,19 +84,19 @@ export default function ProductList({
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400">
-                    N/A
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-xs text-text-muted">
+                    {t("products.list.na")}
                   </div>
                 )}
                 <div>
-                  <div className="text-gray-900 font-medium">{product.name}</div>
-                  <div className="text-xs text-gray-500">{product.slug}</div>
+                  <div className="font-medium text-text-primary">{product.name}</div>
+                  <div className="text-xs text-text-muted">{product.slug}</div>
                 </div>
               </td>
-              <td className="px-6 py-4 text-gray-900 font-medium">
+              <td className="px-6 py-4 font-medium text-text-primary">
                 EGP {product.price}
                 {product.compare_at_price && (
-                  <span className="text-xs line-through text-gray-500 block">
+                  <span className="block text-xs text-text-muted line-through">
                     EGP {product.compare_at_price}
                   </span>
                 )}
@@ -102,57 +104,57 @@ export default function ProductList({
               <td className="px-6 py-4">{product.quantity}</td>
               <td className="px-6 py-4">
                 <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  className={`rounded-full px-2 py-1 text-xs font-medium ${
                     product.is_active
-                      ? "bg-green-500/10 text-green-400"
-                      : "bg-red-500/10 text-red-400"
+                      ? "bg-success/10 text-success"
+                      : "bg-danger/10 text-danger"
                   }`}
                 >
-                  {product.is_active ? "Active" : "Inactive"}
+                  {product.is_active ? t("products.list.active") : t("products.list.inactive")}
                 </span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => handleCopyLink(`${product.slug}`, product.id)}
-                    className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all w-full ${
+                    className={`inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                       copiedId === product.id
-                        ? "bg-green-50 text-green-600 border border-green-200"
-                        : "bg-white text-gray-700 hover:text-gray-900 border border-gray-300 hover:border-gray-400"
+                        ? "border border-success/20 bg-success/10 text-success"
+                        : "border border-border bg-surface text-text-primary hover:border-text-muted"
                     }`}
                   >
-                    {copiedId === product.id ? "Copied!" : "Copy URL"}
+                    {copiedId === product.id ? t("products.list.copied") : t("products.list.copyUrl")}
                   </button>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleCopyLink(`${product.slug}?utm_source=facebook`, `${product.id}-fb`)}
-                      title="Copy Facebook Link"
-                      className={`flex-1 inline-flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      title={t("products.list.copyFb")}
+                      className={`inline-flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-all ${
                         copiedId === `${product.id}-fb`
-                          ? "bg-green-50 text-green-600 border border-green-200"
-                          : "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
+                          ? "border border-success/20 bg-success/10 text-success"
+                          : "border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
                       }`}
                     >
                       {copiedId === `${product.id}-fb` ? "✓" : "FB"}
                     </button>
                     <button
                       onClick={() => handleCopyLink(`${product.slug}?utm_source=instagram`, `${product.id}-ig`)}
-                      title="Copy Instagram Link"
-                      className={`flex-1 inline-flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      title={t("products.list.copyIg")}
+                      className={`inline-flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-all ${
                         copiedId === `${product.id}-ig`
-                          ? "bg-green-50 text-green-600 border border-green-200"
-                          : "bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100"
+                          ? "border border-success/20 bg-success/10 text-success"
+                          : "border border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 dark:border-pink-500/20 dark:bg-pink-500/10 dark:text-pink-400 dark:hover:bg-pink-500/20"
                       }`}
                     >
                       {copiedId === `${product.id}-ig` ? "✓" : "IG"}
                     </button>
                     <button
                       onClick={() => handleCopyLink(`${product.slug}?utm_source=tiktok`, `${product.id}-tk`)}
-                      title="Copy TikTok Link"
-                      className={`flex-1 inline-flex items-center justify-center py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      title={t("products.list.copyTk")}
+                      className={`inline-flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-all ${
                         copiedId === `${product.id}-tk`
-                          ? "bg-green-50 text-green-600 border border-green-200"
-                          : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                          ? "border border-success/20 bg-success/10 text-success"
+                          : "border border-border bg-surface text-text-primary hover:bg-border"
                       }`}
                     >
                       {copiedId === `${product.id}-tk` ? "✓" : "TK"}
@@ -164,16 +166,16 @@ export default function ProductList({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onEdit(product)}
-                    className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                    className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                   >
-                    Edit
+                    {t("products.list.edit")}
                   </button>
-                  <span className="text-gray-300">|</span>
+                  <span className="text-border">|</span>
                   <button
                     onClick={() => handleDelete(product.id)}
-                    className="text-red-600 hover:text-red-700 text-xs font-medium"
+                    className="text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                   >
-                    Delete
+                    {t("products.list.delete")}
                   </button>
                 </div>
               </td>

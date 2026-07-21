@@ -4,10 +4,12 @@ import OrdersTable from "@/components/admin/orders/OrdersTable";
 import { useAuth } from "@/features/auth/auth.hooks";
 import { useOrders } from "@/features/orders/orders.hooks";
 import { useRealtime } from "@/features/realtime/realtime.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 import type { OrderStatus } from "@/features/orders/orders.api";
 
 export default function OrdersPage() {
   const { token } = useAuth();
+  const { t } = useLocale();
   const {
     orders,
     isLoading,
@@ -31,76 +33,73 @@ export default function OrdersPage() {
     try {
       await changeStatus(orderId, nextStatus);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to update order status. Please try again.";
+      const message = err instanceof Error ? err.message : t("orders.updateFailed");
       alert(message);
     }
   };
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-8 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Orders Management</h2>
-          <p className="text-gray-600">View and manage customer orders.</p>
+          <h2 className="mb-2 text-2xl font-bold text-text-primary">{t("orders.title")}</h2>
+          <p className="text-text-muted">{t("orders.subtitle")}</p>
         </div>
         {/* Realtime status indicator */}
         <div className="flex items-center gap-2 text-sm">
-          <span
-            className={`relative flex h-2.5 w-2.5 ${isConnected ? "" : "opacity-40"}`}
-          >
+          <span className={`relative flex h-2.5 w-2.5 ${isConnected ? "" : "opacity-40"}`}>
             {isConnected && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
             )}
             <span
-              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                isConnected ? "bg-green-500" : "bg-gray-400"
+              className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
+                isConnected ? "bg-success" : "bg-text-muted"
               }`}
             />
           </span>
-          <span className={isConnected ? "text-green-600" : "text-gray-400"}>
-            {isConnected ? "Live" : "Offline"}
+          <span className={isConnected ? "text-success" : "text-text-muted"}>
+            {isConnected ? t("orders.live") : t("orders.offline")}
           </span>
         </div>
       </div>
 
       {/* Realtime notification banner */}
       {notification && (
-        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
           <span className="text-lg">🔔</span>
           <span>{notification.message}</span>
         </div>
       )}
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 mb-6">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setFilter("pending")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "pending"
-              ? "bg-amber-50 text-amber-600 border border-amber-200"
-              : "bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:bg-gray-50"
-            }`}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+            filter === "pending"
+              ? "border border-brand-500/20 bg-brand-500/10 text-brand-600 dark:text-brand-400"
+              : "border border-border bg-surface-raised text-text-muted hover:bg-surface hover:text-text-primary"
+          }`}
         >
-          Pending
+          {t("orders.filter.pending")}
         </button>
         <button
           onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "all"
-              ? "bg-amber-50 text-amber-600 border border-amber-200"
-              : "bg-white text-gray-600 border border-gray-200 hover:text-gray-900 hover:bg-gray-50"
-            }`}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+            filter === "all"
+              ? "border border-brand-500/20 bg-brand-500/10 text-brand-600 dark:text-brand-400"
+              : "border border-border bg-surface-raised text-text-muted hover:bg-surface hover:text-text-primary"
+          }`}
         >
-          All Orders
+          {t("orders.filter.all")}
         </button>
 
         <button
           onClick={refetch}
-          className="ml-auto bg-white border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-2 shadow-sm"
+          className="ms-auto flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm text-text-muted shadow-sm transition-all hover:bg-surface hover:text-text-primary"
         >
           <svg
-            className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+            className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -112,7 +111,7 @@ export default function OrdersPage() {
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          Refresh
+          {t("orders.refresh")}
         </button>
       </div>
 

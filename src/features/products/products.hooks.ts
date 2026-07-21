@@ -18,6 +18,7 @@ const EMPTY_FORM: ProductInput = {
   quantity_prices: [],
   sku: "",
   quantity: 0,
+  category_id: null,
   stock_status: "in_stock",
   main_image: "",
   gallery: [],

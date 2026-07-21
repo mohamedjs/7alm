@@ -1,6 +1,7 @@
 "use client";
 
 import { useProductsManager } from "@/features/products/products.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 import ProductForm from "@/components/admin/products/ProductForm";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +10,7 @@ import { useRouter } from "next/navigation";
  */
 export default function CreateProductPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const {
     editingProduct,
     formData,
@@ -24,8 +26,8 @@ export default function CreateProductPage() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Product</h2>
-        <p className="text-gray-500">Fill in the details for a new product.</p>
+        <h2 className="mb-2 text-2xl font-bold text-text-primary">{t("products.create.title")}</h2>
+        <p className="text-text-muted">{t("products.create.subtitle")}</p>
       </div>
 
       <ProductForm

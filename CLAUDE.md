@@ -11,7 +11,7 @@
 ### What is this project?
 **7alm** is an Arabic E-commerce platform with:
 - A **public checkout funnel** (RTL landing pages at `/` and `/[slug]`)
-- A **protected admin dashboard** (LTR, at `/admin/*`)
+- A **protected admin dashboard** (bilingual: Arabic default / English available; RTL default / LTR available via a runtime toggle, at `/admin/*`)
 - **Server-side business logic** via Next.js API routes + Supabase
 - **Client-side state** via Redux Toolkit Query (RTK Query)
 

@@ -2,10 +2,12 @@
 
 import { useProductsManager } from "@/features/products/products.hooks";
 import { useRealtime } from "@/features/realtime/realtime.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 import ProductList from "@/components/admin/products/ProductList";
 import Link from "next/link";
 
 export default function ProductsPage() {
+  const { t } = useLocale();
   const {
     products,
     isLoading,
@@ -18,20 +20,20 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Products Management
+          <h2 className="mb-2 text-2xl font-bold text-text-primary">
+            {t("products.title")}
           </h2>
-          <p className="text-gray-500">
-            Add, update, or remove products from the store.
+          <p className="text-text-muted">
+            {t("products.subtitle")}
           </p>
         </div>
         <Link
           href="/admin/products/create"
-          className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm transition-all font-bold w-full sm:w-auto text-center"
+          className="w-full rounded-lg bg-brand-500 px-5 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-brand-600 sm:w-auto"
         >
-          + Add Product
+          {t("products.add")}
         </Link>
       </div>
 
@@ -46,7 +48,7 @@ export default function ProductsPage() {
             const message =
               err instanceof Error
                 ? err.message
-                : "Failed to delete product.";
+                : t("products.deleteFailed");
             alert(message);
           }
         }}
