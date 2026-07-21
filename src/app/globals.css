@@ -25,18 +25,18 @@
  * add explicit @supports fallbacks below.
  */
 @theme {
-  /* --- Brand (Forest Green) --- */
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #22c55e;
-  --color-brand-600: #16a34a;
-  --color-brand-700: #15803d;
-  --color-brand-800: #166534;
-  --color-brand-900: #14532d;
-  --color-brand-950: #052e16;
+  /* --- Brand (Cyan/Teal) --- */
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #67e8f9;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #06b6d4;
+  --color-brand-600: #0891b2;
+  --color-brand-700: #0e7490;
+  --color-brand-800: #155e75;
+  --color-brand-900: #164e63;
+  --color-brand-950: #083344;
 
   --color-gold-400: #f5c542;
   --color-gold-500: #e6a817;
@@ -152,7 +152,7 @@
   --color-border: #e5e7eb;
   --color-text-primary: #111827;
   --color-text-muted: #6b7280;
-  --color-accent: #166534;
+  --color-accent: #0891b2;
   --color-success: #16a34a;
   --color-warning: #d97706;
   --color-danger: #dc2626;
@@ -506,13 +506,13 @@
   .bg-white\/90 { background-color: rgba(255, 255, 255, 0.9) !important; }
 
   /* Brand color opacity modifiers */
-  .bg-brand-500\/10 { background-color: rgba(34, 197, 94, 0.1) !important; }
-  .bg-brand-500\/20 { background-color: rgba(34, 197, 94, 0.2) !important; }
-  .ring-brand-500\/20 { --tw-ring-color: rgba(34, 197, 94, 0.2) !important; }
-  .border-brand-500\/20 { border-color: rgba(34, 197, 94, 0.2) !important; }
-  .from-brand-500 { --tw-gradient-from: #22c55e !important; }
-  .to-brand-600 { --tw-gradient-to: #16a34a !important; }
-  .to-brand-700 { --tw-gradient-to: #15803d !important; }
+  .bg-brand-500\/10 { background-color: rgba(6, 182, 212, 0.1) !important; }
+  .bg-brand-500\/20 { background-color: rgba(6, 182, 212, 0.2) !important; }
+  .ring-brand-500\/20 { --tw-ring-color: rgba(6, 182, 212, 0.2) !important; }
+  .border-brand-500\/20 { border-color: rgba(6, 182, 212, 0.2) !important; }
+  .from-brand-500 { --tw-gradient-from: #06b6d4 !important; }
+  .to-brand-600 { --tw-gradient-to: #0891b2 !important; }
+  .to-brand-700 { --tw-gradient-to: #0e7490 !important; }
 
   /* Dark mode overrides */
   .dark .bg-brand-500\/10 { background-color: rgba(6, 182, 212, 0.1) !important; }

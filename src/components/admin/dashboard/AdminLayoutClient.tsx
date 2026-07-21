@@ -76,11 +76,11 @@ export default function AdminLayoutClient({
     <div className="min-h-screen bg-surface transition-colors">
       {/* Top bar — floating style */}
       <div className="sticky top-0 z-50 p-4 pb-0">
-        <header className="rounded-2xl border border-border bg-surface transition-colors neu-raised">
+        <header className="rounded-2xl border border-border bg-surface-raised transition-colors neu-raised shadow-sm">
           <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
             {/* Start: brand + horizontal nav pills */}
             <div className="flex min-w-0 items-center gap-6">
-              <Link href="/admin" className="shrink-0 text-xl font-black tracking-tight text-green-700 dark:text-green-500">
+              <Link href="/admin" className="shrink-0 text-xl font-black tracking-tight text-brand-600 dark:text-brand-500">
               {t("nav.appName")}
             </Link>
             <nav className="hidden items-center gap-1 md:flex">
@@ -92,8 +92,8 @@ export default function AdminLayoutClient({
                     href={link.path}
                     className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-brand-500 text-white font-bold shadow-inner"
-                        : "text-text-muted hover:text-text-primary hover:bg-surface-raised"
+                        ? "neu-pressed bg-surface text-brand-500"
+                        : "text-text-muted hover:text-text-primary hover:neu-raised-sm"
                     }`}
                   >
                     {t(link.key)}
@@ -112,7 +112,7 @@ export default function AdminLayoutClient({
                 aria-expanded={isUserMenuOpen}
                 className="flex items-center gap-1.5 rounded-xl bg-surface-raised border border-border ps-1 pe-2 py-1 text-text-primary transition-all hover:neu-pressed-sm"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-600 dark:bg-green-500 text-xs font-bold text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-600 dark:bg-brand-500 text-xs font-bold text-white">
                   {(user?.email ?? "?").charAt(0).toUpperCase()}
                 </span>
                 <ChevronDown
@@ -157,8 +157,8 @@ export default function AdminLayoutClient({
                 aria-label="English"
                 className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
                   locale === "en"
-                    ? "bg-surface neu-raised-sm text-green-700 dark:text-green-500"
-                    : "text-text-muted hover:text-text-primary"
+                    ? "bg-surface neu-raised-sm text-brand-600 dark:text-brand-500"
+                    : "text-text-muted hover:text-text-primary hover:neu-raised-sm"
                 }`}
               >
                 EN
@@ -170,8 +170,8 @@ export default function AdminLayoutClient({
                 aria-label="العربية"
                 className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
                   locale === "ar"
-                    ? "bg-surface neu-raised-sm text-green-700 dark:text-green-500"
-                    : "text-text-muted hover:text-text-primary"
+                    ? "bg-surface neu-raised-sm text-brand-600 dark:text-brand-500"
+                    : "text-text-muted hover:text-text-primary hover:neu-raised-sm"
                 }`}
               >
                 AR
@@ -190,7 +190,7 @@ export default function AdminLayoutClient({
 
         {/* Mobile nav dropdown — follows theme */}
         {isMobileMenuOpen && (
-          <nav className="flex flex-col gap-1 border-t border-border/30 p-3 md:hidden bg-surface rounded-b-2xl">
+          <nav className="flex flex-col gap-1 border-t border-border/30 p-3 md:hidden bg-surface-raised rounded-b-2xl">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
@@ -200,8 +200,8 @@ export default function AdminLayoutClient({
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-brand-500 text-white font-bold neu-pressed-sm"
-                      : "text-text-muted hover:text-text-primary hover:bg-surface-raised"
+                      ? "neu-pressed bg-surface text-brand-500"
+                      : "text-text-muted hover:text-text-primary hover:neu-raised-sm"
                   }`}
                 >
                   {t(link.key)}
