@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useProductsManager } from "@/features/products/products.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 import ProductForm from "@/components/admin/products/ProductForm";
 import type { ProductInput } from "@/features/products/products.api";
 
@@ -10,7 +11,8 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  
+  const { t } = useLocale();
+
   const {
     products,
     isLoading,
@@ -39,14 +41,14 @@ export default function EditProductPage() {
   };
 
   if (isLoading || !editingProduct) {
-    return <div className="p-8 text-gray-500">Loading product data...</div>;
+    return <div className="p-8 text-text-muted">{t("products.loadingData")}</div>;
   }
 
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Edit Product</h2>
-        <p className="text-gray-500">Update details for the product.</p>
+        <h2 className="mb-2 text-2xl font-bold text-text-primary">{t("products.edit.title")}</h2>
+        <p className="text-text-muted">{t("products.edit.subtitle")}</p>
       </div>
 
       <ProductForm

@@ -1,6 +1,6 @@
 # 🏪 7alm — AI Agent Entrypoint
 
-> **7alm** is a production-ready, Arabic-first E-commerce platform built with Next.js 16 (App Router), TypeScript, Tailwind CSS, and Supabase. It powers a high-conversion product landing page funnel and a full-featured admin dashboard.
+> **7alm** is a production-ready, Arabic-first E-commerce platform built with Next.js 16 (App Router), TypeScript, Tailwind CSS, and Supabase. It powers a high-conversion product landing page funnel and a full-featured admin dashboard. The public storefront is RTL/Arabic-only; the admin dashboard is bilingual (Arabic default / English available) and direction-aware (RTL default / LTR available) via a runtime EN/AR toggle.
 
 ---
 
@@ -8,7 +8,7 @@
 
 1. **Next.js 16 (Turbopack)**: This project uses Next.js 16 with the App Router. APIs, conventions, and file structure may differ from your training data. Check `node_modules/next/dist/docs/` if unsure about any API.
 2. **Server vs Client Boundary**: All database operations happen server-side through API routes. Components in `(landing)` use `"use client"` and talk to the backend via RTK Query. Never import Supabase directly in client components.
-3. **Arabic RTL**: The landing pages are fully RTL (`dir="rtl"`, `lang="ar"`). Always respect this when adding UI elements.
+3. **Arabic RTL**: The landing pages are fully RTL (`dir="rtl"`, `lang="ar"`), fixed — no toggle. The admin dashboard (`(admin)/admin/*`) is bilingual and direction-aware instead: it defaults to Arabic/RTL but supports a runtime EN/AR + LTR/RTL toggle (`src/features/i18n/i18n.hooks.tsx`, `useLocale()`), persisted per-browser in `localStorage`. Any admin UI you add must use logical CSS properties (`ms-*`/`me-*`/`ps-*`/`pe-*`/`start-*`/`end-*`/`text-start`/`text-end`) — never physical `ml-*`/`mr-*`/`pl-*`/`pr-*`/`text-left`/`text-right`/`left-*`/`right-*` — and every first-party string must go through `t(key)` against `src/features/i18n/dictionary.ts`, not a hardcoded literal.
 4. **TypeScript Strict**: The project enforces strict TypeScript. Run `npx tsc --noEmit` before committing.
 5. **Feature-First Architecture**: All business logic lives in `src/features/<domain>/`. UI components live in `src/components/`. Never put business logic in components or pages.
 
@@ -63,8 +63,8 @@ src/
 │   │   ├── layout.tsx                    # Landing layout (Cairo font, dark bg)
 │   │   ├── page.tsx                      # Default landing (active product)
 │   │   └── [slug]/page.tsx               # Dynamic product landing page
-│   ├── (admin)/admin/                    # Protected admin dashboard
-│   │   ├── layout.tsx                    # Admin layout (sidebar + auth guard)
+│   ├── (admin)/admin/                    # Protected admin dashboard — bilingual (AR default/EN), RTL default/LTR via runtime toggle
+│   │   ├── layout.tsx                    # Admin layout (top bar + auth guard, no-FOUC theme + locale init)
 │   │   ├── page.tsx                      # Dashboard overview (stats)
 │   │   ├── products/
 │   │   │   ├── page.tsx                  # Product list + CRUD

@@ -5,6 +5,9 @@ import Image from "next/image";
 import type { OrderWithDetails } from "@/features/orders/orders.api";
 import type { OrderStatus } from "@/features/shared/types";
 import { OrderStateMachine } from "@/lib/orderStateMachine";
+import { useLocale } from "@/features/i18n/i18n.hooks";
+import { orderActionDictKey } from "@/features/orders/orders.hooks";
+import type { DictKey } from "@/features/i18n/dictionary";
 
 interface OrderDetailsDrawerProps {
   order: OrderWithDetails | null;
@@ -31,10 +34,10 @@ function DetailRow({
   mono?: boolean;
 }) {
   return (
-    <div className="flex justify-between items-start gap-4 py-2 border-b border-gray-100 last:border-0">
-      <span className="text-gray-500 text-sm shrink-0">{label}</span>
+    <div className="flex justify-between items-start gap-4 py-2 border-b border-gray-100 dark:border-border last:border-0">
+      <span className="text-gray-500 dark:text-text-muted text-sm shrink-0">{label}</span>
       <span
-        className={`text-gray-900 text-sm text-right break-words ${
+        className={`text-gray-900 dark:text-text-primary text-sm text-end break-words ${
           mono ? "font-mono text-xs" : ""
         }`}
       >
@@ -54,8 +57,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gray-50 rounded-xl p-4">
-      <h4 className="flex items-center gap-2 text-gray-900 font-bold text-sm mb-3">
+    <div className="bg-gray-50 dark:bg-surface rounded-xl p-4">
+      <h4 className="flex items-center gap-2 text-gray-900 dark:text-text-primary font-bold text-sm mb-3">
         <span className="text-lg">{icon}</span>
         {title}
       </h4>
@@ -70,6 +73,8 @@ export default function OrderDetailsDrawer({
   onChangeStatus,
   approvingId,
 }: OrderDetailsDrawerProps) {
+  const { t } = useLocale();
+
   // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -92,6 +97,7 @@ export default function OrderDetailsDrawer({
   if (!order) return null;
 
   const state = OrderStateMachine[order.status];
+  const statusLabel = t(`orders.status.${order.status}` as DictKey) || order.status;
 
   return (
     <>
@@ -102,23 +108,23 @@ export default function OrderDetailsDrawer({
         style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
       />
 
-      {/* Drawer — slides from the right (LTR) */}
+      {/* Drawer — slides in from the inline-end edge (right in LTR, left in RTL) */}
       <div
-        className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl overflow-y-auto"
+        className="fixed inset-y-0 end-0 w-full max-w-md bg-white dark:bg-surface-raised z-50 shadow-2xl overflow-y-auto"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white dark:bg-surface-raised border-b border-gray-200 dark:border-border px-5 py-4 flex items-center justify-between z-10">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Order Details</h3>
-            <p className="text-xs text-gray-500 font-mono mt-0.5">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-text-primary">{t("orders.drawer.title")}</h3>
+            <p className="text-xs text-gray-500 dark:text-text-muted font-mono mt-0.5">
               #{order.id.slice(0, 8)}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-500"
-            aria-label="Close"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-surface transition-colors text-gray-500 dark:text-text-muted"
+            aria-label={t("common.close")}
           >
             <svg
               className="w-5 h-5"
@@ -144,14 +150,14 @@ export default function OrderDetailsDrawer({
               state?.colorClass || OrderStateMachine.pending.colorClass
             }`}
           >
-            {state?.label || order.status}
+            {statusLabel}
           </div>
 
           {/* Customer */}
-          <Section title="Customer" icon="👤">
-            <DetailRow label="Name" value={order.customer.full_name} />
+          <Section title={t("orders.drawer.customer")} icon="👤">
+            <DetailRow label={t("orders.drawer.name")} value={order.customer.full_name} />
             <DetailRow
-              label="Phone"
+              label={t("orders.drawer.phone")}
               value={
                 <a
                   href={`tel:${order.customer.phone}`}
@@ -163,9 +169,9 @@ export default function OrderDetailsDrawer({
               }
               mono
             />
-            <DetailRow label="Email" value={order.customer.email} />
+            <DetailRow label={t("orders.drawer.email")} value={order.customer.email} />
             <DetailRow
-              label="Customer since"
+              label={t("orders.drawer.customerSince")}
               value={new Date(order.customer.created_at).toLocaleDateString(
                 "en-US",
                 { year: "numeric", month: "short", day: "numeric" }
@@ -174,21 +180,21 @@ export default function OrderDetailsDrawer({
           </Section>
 
           {/* Delivery Address */}
-          <Section title="Delivery Address" icon="📍">
+          <Section title={t("orders.drawer.deliveryAddress")} icon="📍">
             <DetailRow
-              label="City"
+              label={t("orders.drawer.city")}
               value={order.address?.zone?.city?.name}
             />
             <DetailRow
-              label="Zone (EN)"
+              label={t("orders.drawer.zoneEn")}
               value={order.address?.zone?.english_name}
             />
             <DetailRow
-              label="Zone (AR)"
+              label={t("orders.drawer.zoneAr")}
               value={order.address?.zone?.arabic_name}
             />
             <DetailRow
-              label="Street details"
+              label={t("orders.drawer.streetDetails")}
               value={order.address?.street_details}
             />
             {/* Copy full address button */}
@@ -207,7 +213,7 @@ export default function OrderDetailsDrawer({
                     .join("، ");
                   navigator.clipboard.writeText(full);
                 }}
-                className="mt-3 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                className="mt-3 w-full bg-gray-100 dark:bg-surface hover:bg-gray-200 dark:hover:bg-border text-gray-700 dark:text-text-primary text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
               >
                 <svg
                   className="w-3.5 h-3.5"
@@ -222,18 +228,18 @@ export default function OrderDetailsDrawer({
                     d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"
                   />
                 </svg>
-                Copy full address
+                {t("orders.drawer.copyAddress")}
               </button>
             )}
           </Section>
 
           {/* Product */}
-          <Section title="Product" icon="📦">
+          <Section title={t("orders.drawer.product")} icon="📦">
             {order.product ? (
               <>
                 <div className="flex items-center gap-3 py-2">
                   {order.product.main_image && (
-                    <div className="w-14 h-14 relative shrink-0 rounded-lg overflow-hidden border border-gray-200">
+                    <div className="w-14 h-14 relative shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-border">
                       <Image
                         src={order.product.main_image}
                         alt={order.product.name}
@@ -244,26 +250,26 @@ export default function OrderDetailsDrawer({
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-gray-900 font-medium text-sm truncate">
+                    <p className="text-gray-900 dark:text-text-primary font-medium text-sm truncate">
                       {order.product.name}
                     </p>
-                    <p className="text-gray-500 text-xs">
-                      {(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP / unit
+                    <p className="text-gray-500 dark:text-text-muted text-xs">
+                      {(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP {t("orders.drawer.perUnit")}
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-gray-100 mt-2 pt-2 space-y-0.5">
+                <div className="border-t border-gray-100 dark:border-border mt-2 pt-2 space-y-0.5">
                   <DetailRow
-                    label="Catalog price"
+                    label={t("orders.drawer.catalogPrice")}
                     value={`${order.product.price} EGP`}
                   />
-                  <DetailRow label="Quantity" value={order.quantity} />
+                  <DetailRow label={t("orders.drawer.quantity")} value={order.quantity} />
                   <DetailRow
-                    label="Subtotal (Base)"
+                    label={t("orders.drawer.subtotalBase")}
                     value={`${order.product.price * order.quantity} EGP`}
                   />
                   <DetailRow
-                    label="Effective Unit price"
+                    label={t("orders.drawer.effectiveUnitPrice")}
                     value={`${(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP`}
                   />
                   {(() => {
@@ -273,9 +279,9 @@ export default function OrderDetailsDrawer({
                       const discountPct = Math.round((discountAmt / baseTotal) * 100);
                       return (
                         <DetailRow
-                          label="Tier Discount"
+                          label={t("orders.drawer.tierDiscount")}
                           value={
-                            <span className="text-green-600 font-medium">
+                            <span className="text-green-600 dark:text-green-400 font-medium">
                               -{discountAmt.toFixed(2).replace(/\.00$/, "")} EGP ({discountPct}%)
                             </span>
                           }
@@ -284,15 +290,15 @@ export default function OrderDetailsDrawer({
                     }
                     return (
                       <DetailRow
-                        label="Tier Discount"
+                        label={t("orders.drawer.tierDiscount")}
                         value="0 EGP"
                       />
                     );
                   })()}
                   <DetailRow
-                    label="Total Paid"
+                    label={t("orders.drawer.totalPaid")}
                     value={
-                      <span className="font-bold text-brand-600">
+                      <span className="font-bold text-brand-600 dark:text-brand-400">
                         {order.total_price} EGP
                       </span>
                     }
@@ -300,35 +306,35 @@ export default function OrderDetailsDrawer({
                 </div>
               </>
             ) : (
-              <DetailRow label="Product" value="No product linked" />
+              <DetailRow label={t("orders.drawer.product")} value={t("orders.drawer.noProduct")} />
             )}
           </Section>
 
           {/* Order Info */}
-          <Section title="Order Info" icon="🧾">
+          <Section title={t("orders.drawer.orderInfo")} icon="🧾">
             <DetailRow
-              label="Order ID"
+              label={t("orders.drawer.orderId")}
               value={order.id}
               mono
             />
             <DetailRow
-              label="Source"
+              label={t("orders.drawer.source")}
               value={
                 <span>
                   {platformIcons[order.platform_source || ""] || ""}{" "}
-                  {order.platform_source || "direct"}
+                  {order.platform_source || t("orders.direct")}
                 </span>
               }
             />
             <DetailRow
-              label="Created"
+              label={t("orders.drawer.created")}
               value={new Date(order.created_at).toLocaleString("en-US", {
                 dateStyle: "medium",
                 timeStyle: "short",
               })}
             />
             <DetailRow
-              label="Last updated"
+              label={t("orders.drawer.lastUpdated")}
               value={new Date(order.updated_at).toLocaleString("en-US", {
                 dateStyle: "medium",
                 timeStyle: "short",
@@ -337,16 +343,16 @@ export default function OrderDetailsDrawer({
           </Section>
 
           {/* IP / Geolocation */}
-          <Section title="Visitor Info" icon="🌐">
-            <DetailRow label="IP address" value={order.ip_address} mono />
-            <DetailRow label="IP city" value={order.ip_city} />
-            <DetailRow label="IP country" value={order.ip_country} />
+          <Section title={t("orders.drawer.visitorInfo")} icon="🌐">
+            <DetailRow label={t("orders.drawer.ipAddress")} value={order.ip_address} mono />
+            <DetailRow label={t("orders.drawer.ipCity")} value={order.ip_city} />
+            <DetailRow label={t("orders.drawer.ipCountry")} value={order.ip_country} />
           </Section>
 
           {/* Shipping */}
-          <Section title="Shipping" icon="🚚">
+          <Section title={t("orders.drawer.shipping")} icon="🚚">
             <DetailRow
-              label="Provider"
+              label={t("orders.drawer.provider")}
               value={
                 order.shipping_provider
                   ? order.shipping_provider.charAt(0).toUpperCase() +
@@ -355,10 +361,10 @@ export default function OrderDetailsDrawer({
               }
             />
             <DetailRow
-              label="Tracking ID"
+              label={t("orders.drawer.trackingId")}
               value={
                 order.shipping_tracking_id ? (
-                  <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">
+                  <span className="font-mono text-xs bg-gray-100 dark:bg-surface text-gray-700 dark:text-text-primary px-2 py-0.5 rounded">
                     {order.shipping_tracking_id}
                   </span>
                 ) : (
@@ -371,7 +377,7 @@ export default function OrderDetailsDrawer({
           {/* Actions */}
           {state?.availableActions.length > 0 && (
             <div className="pt-2">
-              <h4 className="text-gray-900 font-bold text-sm mb-3">Actions</h4>
+              <h4 className="text-gray-900 dark:text-text-primary font-bold text-sm mb-3">{t("orders.drawer.actions")}</h4>
               <div className="grid grid-cols-2 gap-2">
                 {state.availableActions.map((action) => (
                   <button
@@ -401,7 +407,7 @@ export default function OrderDetailsDrawer({
                         />
                       </svg>
                     ) : null}
-                    {action.label}
+                    {t(orderActionDictKey(action.action))}
                   </button>
                 ))}
               </div>

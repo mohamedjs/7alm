@@ -57,27 +57,10 @@ export function useCategoriesManager() {
   const [updateCategory, updateState] = useUpdateCategoryMutation();
   const [deleteCategory, deleteState] = useDeleteCategoryMutation();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState<CategoryInput>(EMPTY_FORM);
 
   const tree = useCategoryTree(categories || []);
-
-  const openModal = useCallback((category: Category | null = null) => {
-    if (category) {
-      setEditingCategory(category);
-      setFormData(category as CategoryInput);
-    } else {
-      setEditingCategory(null);
-      setFormData(EMPTY_FORM);
-    }
-    setIsModalOpen(true);
-  }, []);
-
-  const closeModal = useCallback(() => {
-    setIsModalOpen(false);
-    setEditingCategory(null);
-  }, []);
 
   const saveCategory = useCallback(
     async (data: CategoryInput) => {
@@ -86,9 +69,8 @@ export function useCategoriesManager() {
       } else {
         await createCategory(data).unwrap();
       }
-      closeModal();
     },
-    [createCategory, updateCategory, editingCategory, closeModal],
+    [createCategory, updateCategory, editingCategory],
   );
 
   const removeCategory = useCallback(
@@ -104,13 +86,10 @@ export function useCategoriesManager() {
     isLoading,
     error,
     refetch,
-    isModalOpen,
     editingCategory,
     setEditingCategory,
     formData,
     setFormData,
-    openModal,
-    closeModal,
     saveCategory,
     removeCategory,
     createState,
