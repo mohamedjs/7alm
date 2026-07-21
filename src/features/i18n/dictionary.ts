@@ -19,7 +19,7 @@ const en = {
   // ---------------------------------------------------------------
   // nav.* — shell top bar
   // ---------------------------------------------------------------
-  "nav.appName": "7alm Admin",
+  "nav.appName": "7alm",
   "nav.dashboard": "Dashboard",
   "nav.orders": "Orders",
   "nav.products": "Products",
@@ -295,7 +295,7 @@ const en = {
 export type DictKey = keyof typeof en;
 
 const ar: Record<DictKey, string> = {
-  "nav.appName": "لوحة تحكم 7alm",
+  "nav.appName": "7alm",
   "nav.dashboard": "الرئيسية",
   "nav.orders": "الطلبات",
   "nav.products": "المنتجات",

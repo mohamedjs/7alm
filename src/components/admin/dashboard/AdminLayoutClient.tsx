@@ -74,12 +74,13 @@ export default function AdminLayoutClient({
 
   return (
     <div className="min-h-screen bg-surface transition-colors">
-      {/* Top bar — neumorphic raised bar */}
-      <header className="sticky top-0 z-50 bg-surface neu-raised transition-colors" style={{ borderRadius: 0 }}>
-        <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
-          {/* Start: brand + horizontal nav pills */}
-          <div className="flex min-w-0 items-center gap-6">
-            <Link href="/admin" className="shrink-0 text-xl font-bold text-gradient">
+      {/* Top bar — floating style */}
+      <div className="sticky top-0 z-50 p-4 pb-0">
+        <header className="rounded-2xl border border-border bg-surface transition-colors neu-raised">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
+            {/* Start: brand + horizontal nav pills */}
+            <div className="flex min-w-0 items-center gap-6">
+              <Link href="/admin" className="shrink-0 text-xl font-black tracking-tight text-green-700 dark:text-green-500">
               {t("nav.appName")}
             </Link>
             <nav className="hidden items-center gap-1 md:flex">
@@ -91,8 +92,8 @@ export default function AdminLayoutClient({
                     href={link.path}
                     className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                       isActive
-                        ? "neu-pressed bg-surface text-brand-500"
-                        : "text-text-muted hover:text-text-primary hover:neu-raised-sm"
+                        ? "bg-brand-500 text-white font-bold shadow-inner"
+                        : "text-text-muted hover:text-text-primary hover:bg-surface-raised"
                     }`}
                   >
                     {t(link.key)}
@@ -109,9 +110,9 @@ export default function AdminLayoutClient({
                 onClick={() => setIsUserMenuOpen((v) => !v)}
                 aria-label={t("action.userMenu")}
                 aria-expanded={isUserMenuOpen}
-                className="flex items-center gap-1.5 rounded-xl bg-surface ps-1 pe-2 py-1 text-text-primary transition-all neu-raised-sm hover:neu-raised"
+                className="flex items-center gap-1.5 rounded-xl bg-surface-raised border border-border ps-1 pe-2 py-1 text-text-primary transition-all hover:neu-pressed-sm"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-xs font-bold text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-600 dark:bg-green-500 text-xs font-bold text-white">
                   {(user?.email ?? "?").charAt(0).toUpperCase()}
                 </span>
                 <ChevronDown
@@ -143,12 +144,12 @@ export default function AdminLayoutClient({
               onClick={toggleTheme}
               aria-label={theme === "dark" ? t("action.themeToLight") : t("action.themeToDark")}
               title={theme === "dark" ? t("action.themeToLight") : t("action.themeToDark")}
-              className="rounded-xl p-2 text-text-muted transition-all neu-raised-sm hover:neu-raised hover:text-text-primary"
+              className="rounded-xl p-2 text-text-muted border border-border bg-surface-raised transition-all hover:neu-pressed-sm hover:text-text-primary"
             >
               <ThemeIcon className="h-4 w-4" />
             </button>
 
-            <div className="flex items-center gap-0.5 rounded-xl p-0.5 neu-pressed-sm">
+            <div className="flex items-center gap-0.5 rounded-xl p-0.5 bg-surface-raised neu-pressed-sm">
               <button
                 type="button"
                 onClick={() => setLocale("en")}
@@ -156,7 +157,7 @@ export default function AdminLayoutClient({
                 aria-label="English"
                 className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
                   locale === "en"
-                    ? "neu-raised-sm bg-brand-500 text-white"
+                    ? "bg-surface neu-raised-sm text-green-700 dark:text-green-500"
                     : "text-text-muted hover:text-text-primary"
                 }`}
               >
@@ -169,7 +170,7 @@ export default function AdminLayoutClient({
                 aria-label="العربية"
                 className={`rounded-lg px-2 py-1 text-xs font-semibold transition-all ${
                   locale === "ar"
-                    ? "neu-raised-sm bg-brand-500 text-white"
+                    ? "bg-surface neu-raised-sm text-green-700 dark:text-green-500"
                     : "text-text-muted hover:text-text-primary"
                 }`}
               >
@@ -180,16 +181,16 @@ export default function AdminLayoutClient({
             <button
               onClick={() => setIsMobileMenuOpen((v) => !v)}
               aria-label={isMobileMenuOpen ? t("action.closeMenu") : t("action.openMenu")}
-              className="rounded-xl p-2 text-text-muted transition-all neu-raised-sm hover:neu-raised md:hidden"
+              className="rounded-xl p-2 text-text-muted border border-border bg-surface-raised transition-all hover:neu-pressed-sm hover:text-text-primary md:hidden"
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile nav dropdown — nav tabs only; avatar/theme/language stay in the header above */}
+        {/* Mobile nav dropdown — follows theme */}
         {isMobileMenuOpen && (
-          <nav className="flex flex-col gap-1 border-t border-border/20 p-3 md:hidden">
+          <nav className="flex flex-col gap-1 border-t border-border/30 p-3 md:hidden bg-surface rounded-b-2xl">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
@@ -199,8 +200,8 @@ export default function AdminLayoutClient({
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     isActive
-                      ? "neu-pressed bg-surface text-brand-500"
-                      : "text-text-muted hover:text-text-primary hover:neu-raised-sm"
+                      ? "bg-brand-500 text-white font-bold neu-pressed-sm"
+                      : "text-text-muted hover:text-text-primary hover:bg-surface-raised"
                   }`}
                 >
                   {t(link.key)}
@@ -209,7 +210,8 @@ export default function AdminLayoutClient({
             })}
           </nav>
         )}
-      </header>
+        </header>
+      </div>
 
       {/* Main Content — single full-width column below the bar */}
       <main className="bg-surface p-4 transition-colors md:p-8">{children}</main>
