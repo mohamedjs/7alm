@@ -41,7 +41,7 @@ export default function HorizontalBarChart({
   if (variant === "segmented") {
     return (
       <div className="space-y-3">
-        <div className="flex h-3 w-full overflow-hidden rounded-full bg-surface">
+        <div className="flex h-3 w-full overflow-hidden rounded-full neu-pressed-sm bg-surface">
           {rows.map((row) => {
             const pct = total > 0 ? (row.value / total) * 100 : 0;
             const isHovered = hovered === row.key;
@@ -137,7 +137,7 @@ export default function HorizontalBarChart({
             </div>
 
             {isHovered && row.detail && (
-              <div className="pointer-events-none absolute start-[92px] -top-7 z-10 rounded-md border border-border bg-surface-raised px-2.5 py-1 text-xs shadow-md whitespace-nowrap">
+              <div className="pointer-events-none absolute start-[92px] -top-7 z-10 rounded-xl bg-surface px-2.5 py-1 text-xs neu-raised-sm whitespace-nowrap">
                 <span className="font-semibold text-text-primary">{row.detail}</span>
               </div>
             )}

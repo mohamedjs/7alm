@@ -88,9 +88,6 @@ export default function ProductForm({
     const localUrl = URL.createObjectURL(file);
     setLocalPreviews(prev => ({ ...prev, [file.name]: localUrl }));
 
-    // For gallery, we might want to store local URL temporarily in form data to show preview while uploading,
-    // but to keep it simple, we just show it below. Let's wait for upload to finish.
-
     try {
       const url = await upload(file);
       if (field === "gallery") {
@@ -151,16 +148,19 @@ export default function ProductForm({
     });
   };
 
+  const inputClasses = "w-full neu-input rounded-xl px-4 py-2 transition-all";
+  const labelClasses = "block text-sm font-medium text-text-muted mb-1";
+
   return (
-    <div className="bg-white dark:bg-surface-raised border border-gray-200 dark:border-border rounded-2xl w-full p-6 shadow-xl relative">
-      <h3 className="text-xl font-bold text-gray-900 dark:text-text-primary mb-6">
+    <div className="bg-surface rounded-2xl w-full p-6 neu-raised relative">
+      <h3 className="text-xl font-bold text-text-primary mb-6">
         {editingProduct ? t("products.form.editTitle") : t("products.form.addTitle")}
       </h3>
       
       <form onSubmit={handleSave} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.name")}
             </label>
             <input
@@ -170,11 +170,11 @@ export default function ProductForm({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.slug")}
             </label>
             <input
@@ -185,20 +185,20 @@ export default function ProductForm({
                 setFormData({ ...formData, slug: e.target.value })
               }
               dir="ltr"
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.parentCategory")}
             </label>
             <select
               value={selectedParentId}
               onChange={handleParentChange}
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             >
               <option value="">{t("products.form.selectParent")}</option>
               {topCategories.map(cat => (
@@ -207,14 +207,14 @@ export default function ProductForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.subcategory")}
             </label>
             <select
               value={formData.category_id || selectedParentId || ""}
               onChange={handleSubChange}
               disabled={!selectedParentId || subCategories.length === 0}
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none disabled:bg-gray-100 dark:disabled:bg-surface"
+              className={`${inputClasses} disabled:opacity-50`}
             >
               <option value="">{t("products.form.selectSubcategory")}</option>
               {subCategories.map(cat => (
@@ -225,7 +225,7 @@ export default function ProductForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+          <label className={labelClasses}>
             {t("products.form.description")}
           </label>
           <textarea
@@ -234,13 +234,13 @@ export default function ProductForm({
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+            className={inputClasses}
           />
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.price")}
             </label>
             <input
@@ -254,11 +254,11 @@ export default function ProductForm({
                   price: parseFloat(e.target.value),
                 })
               }
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.comparePrice")}
             </label>
             <input
@@ -273,11 +273,11 @@ export default function ProductForm({
                     : null,
                 })
               }
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.sku")}
             </label>
             <input
@@ -287,31 +287,31 @@ export default function ProductForm({
                 setFormData({ ...formData, sku: e.target.value })
               }
               dir="ltr"
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             />
           </div>
         </div>
 
         {/* Quantity-Tier Pricing */}
-        <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-border">
+        <div className="space-y-3 pt-4 border-t border-border/20">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-gray-900 dark:text-text-primary font-medium">{t("products.form.tierPricingTitle")}</h4>
-              <p className="text-xs text-gray-500 dark:text-text-muted mt-0.5">
+              <h4 className="text-text-primary font-medium">{t("products.form.tierPricingTitle")}</h4>
+              <p className="text-xs text-text-muted mt-0.5">
                 {t("products.form.tierPricingSubtitle")}
               </p>
             </div>
             <button
               type="button"
               onClick={addQuantityTier}
-              className="bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              className="bg-brand-500/10 text-brand-500 px-3 py-1.5 rounded-xl text-sm font-medium transition-all neu-raised-sm hover:neu-raised"
             >
               {t("products.form.addTier")}
             </button>
           </div>
 
           {quantityPrices.length === 0 ? (
-            <p className="text-sm text-gray-400 dark:text-text-muted italic py-2">
+            <p className="text-sm text-text-muted italic py-2">
               {t("products.form.noTiers")}
             </p>
           ) : (
@@ -319,11 +319,11 @@ export default function ProductForm({
               {quantityPrices.map((tier, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-12 gap-2 items-end bg-gray-50 dark:bg-surface border border-gray-200 dark:border-border rounded-lg p-3"
+                  className="grid grid-cols-12 gap-2 items-end bg-surface rounded-xl p-3 neu-pressed"
                 >
                   {/* Min Quantity */}
                   <div className="col-span-2">
-                    <label className="block text-xs text-gray-600 dark:text-text-muted mb-1">{t("products.form.minQty")}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t("products.form.minQty")}</label>
                     <input
                       type="number"
                       min={1}
@@ -335,13 +335,13 @@ export default function ProductForm({
                           parseInt(e.target.value) || 1
                         )
                       }
-                      className="w-full bg-white dark:bg-surface-raised border border-gray-300 dark:border-border rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                      className="w-full neu-input rounded-lg px-2 py-1.5 text-sm transition-all"
                     />
                   </div>
 
                   {/* Label — this is product DATA (the tier's Arabic display label), not UI chrome, so its value is never translated; only the field's own <label> text above is. */}
                   <div className="col-span-3">
-                    <label className="block text-xs text-gray-600 dark:text-text-muted mb-1">{t("products.form.labelAr")}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t("products.form.labelAr")}</label>
                     <input
                       type="text"
                       value={tier.label}
@@ -349,13 +349,13 @@ export default function ProductForm({
                         updateQuantityTier(index, "label", e.target.value)
                       }
                       placeholder="قطعتين"
-                      className="w-full bg-white dark:bg-surface-raised border border-gray-300 dark:border-border rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                      className="w-full neu-input rounded-lg px-2 py-1.5 text-sm transition-all"
                     />
                   </div>
 
                   {/* Price */}
                   <div className="col-span-2">
-                    <label className="block text-xs text-gray-600 dark:text-text-muted mb-1">{t("products.form.price")}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t("products.form.price")}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -367,13 +367,13 @@ export default function ProductForm({
                           parseFloat(e.target.value) || 0
                         )
                       }
-                      className="w-full bg-white dark:bg-surface-raised border border-gray-300 dark:border-border rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                      className="w-full neu-input rounded-lg px-2 py-1.5 text-sm transition-all"
                     />
                   </div>
 
                   {/* Compare Price */}
                   <div className="col-span-2">
-                    <label className="block text-xs text-gray-600 dark:text-text-muted mb-1">{t("products.form.compare")}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t("products.form.compare")}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -385,7 +385,7 @@ export default function ProductForm({
                           e.target.value ? parseFloat(e.target.value) : null
                         )
                       }
-                      className="w-full bg-white dark:bg-surface-raised border border-gray-300 dark:border-border rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                      className="w-full neu-input rounded-lg px-2 py-1.5 text-sm transition-all"
                     />
                   </div>
 
@@ -398,11 +398,11 @@ export default function ProductForm({
                       onChange={(e) =>
                         updateQuantityTier(index, "is_special", e.target.checked)
                       }
-                      className="w-4 h-4 rounded bg-white dark:bg-surface-raised border-gray-300 dark:border-border text-amber-500 focus:ring-amber-500/20"
+                      className="w-4 h-4 rounded accent-brand-500"
                     />
                     <label
                       htmlFor={`tier-special-${index}`}
-                      className="text-xs text-gray-700 dark:text-text-primary cursor-pointer"
+                      className="text-xs text-text-primary cursor-pointer"
                     >
                       {t("products.form.special")}
                     </label>
@@ -413,7 +413,7 @@ export default function ProductForm({
                     <button
                       type="button"
                       onClick={() => removeQuantityTier(index)}
-                      className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg leading-none"
+                      className="text-danger hover:text-red-300 text-lg leading-none"
                       aria-label={t("products.form.removeTier")}
                     >
                       ✕
@@ -427,7 +427,7 @@ export default function ProductForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.quantity")}
             </label>
             <input
@@ -440,11 +440,11 @@ export default function ProductForm({
                   quantity: parseInt(e.target.value),
                 })
               }
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.stockStatus")}
             </label>
             <select
@@ -455,7 +455,7 @@ export default function ProductForm({
                   stock_status: e.target.value as ProductInput["stock_status"],
                 })
               }
-              className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+              className={inputClasses}
             >
               <option value="in_stock">{t("products.form.inStock")}</option>
               <option value="low_stock">{t("products.form.lowStock")}</option>
@@ -464,11 +464,11 @@ export default function ProductForm({
           </div>
         </div>
 
-        <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-border">
-          <h4 className="text-gray-900 dark:text-text-primary font-medium">{t("products.form.media")}</h4>
+        <div className="space-y-3 pt-4 border-t border-border/20">
+          <h4 className="text-text-primary font-medium">{t("products.form.media")}</h4>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.mainImageUrl")}
             </label>
             <div className="flex gap-2 mb-2">
@@ -479,9 +479,9 @@ export default function ProductForm({
                   setFormData({ ...formData, main_image: e.target.value })
                 }
                 dir="ltr"
-                className="flex-1 bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                className={`flex-1 ${inputClasses}`}
               />
-              <label className="bg-gray-100 dark:bg-surface hover:bg-gray-200 dark:hover:bg-border text-gray-700 dark:text-text-primary px-4 py-2 rounded-lg cursor-pointer whitespace-nowrap">
+              <label className="bg-surface text-text-primary px-4 py-2 rounded-xl cursor-pointer whitespace-nowrap neu-btn">
                 {uploading ? t("common.uploadingEllipsis") : t("common.upload")}
                 <input
                   type="file"
@@ -493,14 +493,14 @@ export default function ProductForm({
               </label>
             </div>
             {formData.main_image && (
-              <div className="w-24 h-24 relative border border-gray-200 dark:border-border rounded overflow-hidden">
+              <div className="w-24 h-24 relative rounded-xl overflow-hidden neu-pressed-sm">
                 <Image src={formData.main_image} alt="Main preview" fill className="object-cover" />
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.videoUrl")}
             </label>
             <div className="flex gap-2 mb-2">
@@ -511,9 +511,9 @@ export default function ProductForm({
                   setFormData({ ...formData, video_url: e.target.value })
                 }
                 dir="ltr"
-                className="flex-1 bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-2 text-gray-900 dark:text-text-primary focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
+                className={`flex-1 ${inputClasses}`}
               />
-              <label className="bg-gray-100 dark:bg-surface hover:bg-gray-200 dark:hover:bg-border text-gray-700 dark:text-text-primary px-4 py-2 rounded-lg cursor-pointer whitespace-nowrap">
+              <label className="bg-surface text-text-primary px-4 py-2 rounded-xl cursor-pointer whitespace-nowrap neu-btn">
                 {uploading ? t("common.uploadingEllipsis") : t("common.upload")}
                 <input
                   type="file"
@@ -525,12 +525,12 @@ export default function ProductForm({
               </label>
             </div>
             {formData.video_url && (
-              <video src={formData.video_url} controls className="h-32 rounded border" />
+              <video src={formData.video_url} controls className="h-32 rounded-xl" />
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-1">
+            <label className={labelClasses}>
               {t("products.form.gallery")}
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -541,7 +541,7 @@ export default function ProductForm({
                       src={img}
                       alt="Gallery"
                       fill
-                      className="object-cover rounded border border-gray-300 dark:border-border"
+                      className="object-cover rounded-lg"
                     />
                   </div>
                   <button
@@ -555,14 +555,14 @@ export default function ProductForm({
                       })
                     }
                     aria-label={t("products.form.removeGalleryImage")}
-                    className="absolute top-1 end-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 end-1 bg-danger text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     ✕
                   </button>
                 </div>
               ))}
             </div>
-            <label className="bg-gray-100 dark:bg-surface hover:bg-gray-200 dark:hover:bg-border text-gray-700 dark:text-text-primary px-4 py-2 rounded-lg cursor-pointer text-sm inline-block">
+            <label className="bg-surface text-text-primary px-4 py-2 rounded-xl cursor-pointer text-sm inline-block neu-btn">
               {uploading ? t("common.uploading") : t("products.form.addGalleryImage")}
               <input
                 type="file"
@@ -575,7 +575,7 @@ export default function ProductForm({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-border">
+        <div className="flex items-center gap-2 pt-4 border-t border-border/20">
           <input
             type="checkbox"
             id="isActive"
@@ -583,11 +583,11 @@ export default function ProductForm({
             onChange={(e) =>
               setFormData({ ...formData, is_active: e.target.checked })
             }
-            className="w-4 h-4 rounded bg-white dark:bg-surface-raised border-gray-300 dark:border-border text-amber-500 focus:ring-amber-500/20"
+            className="w-4 h-4 rounded accent-brand-500"
           />
           <label
             htmlFor="isActive"
-            className="text-sm font-medium text-gray-700 dark:text-text-muted"
+            className="text-sm font-medium text-text-muted"
           >
             {t("products.form.isActive")}
           </label>
@@ -597,13 +597,13 @@ export default function ProductForm({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 dark:text-text-muted hover:text-gray-900 dark:hover:text-text-primary transition-colors"
+            className="px-4 py-2 text-text-muted hover:text-text-primary transition-all rounded-xl neu-raised-sm"
           >
             {t("common.cancel")}
           </button>
           <button
             type="submit"
-            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+            className="bg-brand-500 hover:bg-brand-400 text-white px-6 py-2 rounded-xl font-bold transition-all neu-btn"
           >
             {t("products.form.saveProduct")}
           </button>

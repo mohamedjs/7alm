@@ -243,7 +243,7 @@ export default function OrdersTrendChart({ data }: OrdersTrendChartProps) {
 
         {active && activeIndex !== null && width > 0 && (
           <div
-            className="pointer-events-none absolute z-10 rounded-lg border border-border bg-surface-raised px-3 py-2 shadow-md"
+            className="pointer-events-none absolute z-10 rounded-xl bg-surface px-3 py-2 neu-raised-sm"
             style={{
               top: PAD.top,
               // Plain physical `left`, not `insetInlineStart`: plot.x()

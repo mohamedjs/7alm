@@ -36,7 +36,7 @@ export default function StatTile({
 
   return (
     <div
-      className={`h-full flex flex-col justify-between rounded-2xl border border-border bg-surface-raised shadow-sm transition-colors ${
+      className={`h-full flex flex-col justify-between rounded-2xl bg-surface neu-raised transition-all ${
         isLg ? "p-5 sm:p-7" : "p-4 sm:p-6"
       } ${className}`}
     >
@@ -52,8 +52,8 @@ export default function StatTile({
         {showDelta && (
           <p className="mt-2 text-xs text-text-muted">
             <span
-              className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-medium ${
-                deltaUp ? "bg-success/10 text-success" : "bg-danger/10 text-danger"
+              className={`inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 font-medium neu-pressed-sm ${
+                deltaUp ? "text-success" : "text-danger"
               }`}
             >
               {deltaUp ? "▲" : "▼"} {Math.abs(delta! * 100).toFixed(0)}%

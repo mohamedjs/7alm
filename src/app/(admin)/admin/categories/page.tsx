@@ -16,14 +16,14 @@ export default function CategoriesPage() {
         <h1 className="text-2xl font-bold text-text-primary">{t("categories.title")}</h1>
         <Link
           href="/admin/categories/create"
-          className="flex items-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-white transition-colors hover:bg-brand-600"
+          className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 text-white transition-all neu-btn"
         >
           <Plus className="h-4 w-4" />
           {t("categories.add")}
         </Link>
       </div>
 
-      <div className="rounded-lg border border-border bg-surface-raised shadow">
+      <div className="rounded-2xl bg-surface neu-raised">
         <CategoryList
           tree={tree}
           isLoading={isLoading}

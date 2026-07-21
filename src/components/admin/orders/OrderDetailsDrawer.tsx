@@ -34,10 +34,10 @@ function DetailRow({
   mono?: boolean;
 }) {
   return (
-    <div className="flex justify-between items-start gap-4 py-2 border-b border-gray-100 dark:border-border last:border-0">
-      <span className="text-gray-500 dark:text-text-muted text-sm shrink-0">{label}</span>
+    <div className="flex justify-between items-start gap-4 py-2 border-b border-border/10 last:border-0">
+      <span className="text-text-muted text-sm shrink-0">{label}</span>
       <span
-        className={`text-gray-900 dark:text-text-primary text-sm text-end break-words ${
+        className={`text-text-primary text-sm text-end break-words ${
           mono ? "font-mono text-xs" : ""
         }`}
       >
@@ -57,8 +57,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gray-50 dark:bg-surface rounded-xl p-4">
-      <h4 className="flex items-center gap-2 text-gray-900 dark:text-text-primary font-bold text-sm mb-3">
+    <div className="bg-surface rounded-2xl p-4 neu-pressed">
+      <h4 className="flex items-center gap-2 text-text-primary font-bold text-sm mb-3">
         <span className="text-lg">{icon}</span>
         {title}
       </h4>
@@ -110,20 +110,20 @@ export default function OrderDetailsDrawer({
 
       {/* Drawer — slides in from the inline-end edge (right in LTR, left in RTL) */}
       <div
-        className="fixed inset-y-0 end-0 w-full max-w-md bg-white dark:bg-surface-raised z-50 shadow-2xl overflow-y-auto"
+        className="fixed inset-y-0 end-0 w-full max-w-md bg-surface z-50 neu-raised overflow-y-auto"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-surface-raised border-b border-gray-200 dark:border-border px-5 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-surface border-b border-border/10 px-5 py-4 flex items-center justify-between z-10">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-text-primary">{t("orders.drawer.title")}</h3>
-            <p className="text-xs text-gray-500 dark:text-text-muted font-mono mt-0.5">
+            <h3 className="text-lg font-bold text-text-primary">{t("orders.drawer.title")}</h3>
+            <p className="text-xs text-text-muted font-mono mt-0.5">
               #{order.id.slice(0, 8)}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-surface transition-colors text-gray-500 dark:text-text-muted"
+            className="w-9 h-9 flex items-center justify-center rounded-xl transition-all text-text-muted hover:text-text-primary neu-raised-sm"
             aria-label={t("common.close")}
           >
             <svg
@@ -213,7 +213,7 @@ export default function OrderDetailsDrawer({
                     .join("، ");
                   navigator.clipboard.writeText(full);
                 }}
-                className="mt-3 w-full bg-gray-100 dark:bg-surface hover:bg-gray-200 dark:hover:bg-border text-gray-700 dark:text-text-primary text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                className="mt-3 w-full bg-surface text-text-primary text-xs font-medium py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 neu-btn"
               >
                 <svg
                   className="w-3.5 h-3.5"
@@ -239,7 +239,7 @@ export default function OrderDetailsDrawer({
               <>
                 <div className="flex items-center gap-3 py-2">
                   {order.product.main_image && (
-                    <div className="w-14 h-14 relative shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-border">
+                    <div className="w-14 h-14 relative shrink-0 rounded-xl overflow-hidden neu-pressed-sm">
                       <Image
                         src={order.product.main_image}
                         alt={order.product.name}
@@ -250,15 +250,15 @@ export default function OrderDetailsDrawer({
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-gray-900 dark:text-text-primary font-medium text-sm truncate">
+                    <p className="text-text-primary font-medium text-sm truncate">
                       {order.product.name}
                     </p>
-                    <p className="text-gray-500 dark:text-text-muted text-xs">
+                    <p className="text-text-muted text-xs">
                       {(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP {t("orders.drawer.perUnit")}
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-gray-100 dark:border-border mt-2 pt-2 space-y-0.5">
+                <div className="border-t border-border/10 mt-2 pt-2 space-y-0.5">
                   <DetailRow
                     label={t("orders.drawer.catalogPrice")}
                     value={`${order.product.price} EGP`}
@@ -364,7 +364,7 @@ export default function OrderDetailsDrawer({
               label={t("orders.drawer.trackingId")}
               value={
                 order.shipping_tracking_id ? (
-                  <span className="font-mono text-xs bg-gray-100 dark:bg-surface text-gray-700 dark:text-text-primary px-2 py-0.5 rounded">
+                  <span className="font-mono text-xs bg-surface text-text-primary px-2 py-0.5 rounded-lg neu-pressed-sm">
                     {order.shipping_tracking_id}
                   </span>
                 ) : (
@@ -377,14 +377,14 @@ export default function OrderDetailsDrawer({
           {/* Actions */}
           {state?.availableActions.length > 0 && (
             <div className="pt-2">
-              <h4 className="text-gray-900 dark:text-text-primary font-bold text-sm mb-3">{t("orders.drawer.actions")}</h4>
+              <h4 className="text-text-primary font-bold text-sm mb-3">{t("orders.drawer.actions")}</h4>
               <div className="grid grid-cols-2 gap-2">
                 {state.availableActions.map((action) => (
                   <button
                     key={action.action}
                     onClick={() => onChangeStatus(order.id, action.nextStatus)}
                     disabled={approvingId === order.id}
-                    className={`${action.style} px-4 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 border`}
+                    className={`${action.style} px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-1.5`}
                   >
                     {approvingId === order.id ? (
                       <svg

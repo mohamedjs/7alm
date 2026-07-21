@@ -8,6 +8,11 @@ export interface OrderState {
   availableActions: { label: string; action: string; nextStatus: OrderStatus; style: string }[];
 }
 
+/**
+ * Order State Machine — Vivid Nightfall / Ocean Breeze neumorphic palette.
+ * Status badges use neu-pressed-sm inset style with tinted text.
+ * Action buttons use neumorphic raised style with colored tints.
+ */
 export const OrderStateMachine: Record<OrderStatus, OrderState> = {
   pending: {
     status: 'pending',
@@ -15,26 +20,26 @@ export const OrderStateMachine: Record<OrderStatus, OrderState> = {
     labelAr: 'قيد الانتظار',
     colorClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     availableActions: [
-      { label: 'Approve', action: 'approve', nextStatus: 'approved', style: 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20' },
-      { label: 'Cancel', action: 'cancel', nextStatus: 'cancelled', style: 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20' }
+      { label: 'Approve', action: 'approve', nextStatus: 'approved', style: 'bg-green-500/10 text-green-400 hover:bg-green-500/20 neu-raised-sm' },
+      { label: 'Cancel', action: 'cancel', nextStatus: 'cancelled', style: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 neu-raised-sm' }
     ]
   },
   approved: {
     status: 'approved',
     label: 'Approved (Awaiting Customer)',
     labelAr: 'تم القبول (في انتظار تأكيد العميل)',
-    colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    colorClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
     availableActions: [
-      { label: 'Cancel', action: 'cancel', nextStatus: 'cancelled', style: 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20' }
+      { label: 'Cancel', action: 'cancel', nextStatus: 'cancelled', style: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 neu-raised-sm' }
     ]
   },
   confirmed: {
     status: 'confirmed',
     label: 'Confirmed (Shipping)',
     labelAr: 'مؤكد (جاري الشحن)',
-    colorClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     availableActions: [
-      { label: 'Ship', action: 'ship', nextStatus: 'shipped', style: 'bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20' }
+      { label: 'Ship', action: 'ship', nextStatus: 'shipped', style: 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 neu-raised-sm' }
     ]
   },
   shipped: {
@@ -43,8 +48,8 @@ export const OrderStateMachine: Record<OrderStatus, OrderState> = {
     labelAr: 'تم الشحن',
     colorClass: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
     availableActions: [
-      { label: 'Deliver', action: 'deliver', nextStatus: 'delivered', style: 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20' },
-      { label: 'Return', action: 'return', nextStatus: 'returned', style: 'bg-gray-500/10 text-gray-400 border-gray-500/20 hover:bg-gray-500/20' }
+      { label: 'Deliver', action: 'deliver', nextStatus: 'delivered', style: 'bg-green-500/10 text-green-400 hover:bg-green-500/20 neu-raised-sm' },
+      { label: 'Return', action: 'return', nextStatus: 'returned', style: 'bg-gray-500/10 text-gray-400 hover:bg-gray-500/20 neu-raised-sm' }
     ]
   },
   delivered: {
@@ -53,7 +58,7 @@ export const OrderStateMachine: Record<OrderStatus, OrderState> = {
     labelAr: 'تم التوصيل',
     colorClass: 'bg-green-500/10 text-green-400 border-green-500/20',
     availableActions: [
-      { label: 'Return', action: 'return', nextStatus: 'returned', style: 'bg-gray-500/10 text-gray-400 border-gray-500/20 hover:bg-gray-500/20' }
+      { label: 'Return', action: 'return', nextStatus: 'returned', style: 'bg-gray-500/10 text-gray-400 hover:bg-gray-500/20 neu-raised-sm' }
     ]
   },
   cancelled: {
