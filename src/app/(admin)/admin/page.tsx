@@ -371,7 +371,7 @@ export default function AdminOverviewPage() {
             accentClassName="text-success"
             delta={view.revenueDelta}
             size="lg"
-            className="sm:col-span-2 lg:col-span-2 lg:row-span-2"
+            className="sm:col-span-2 lg:col-span-2 lg:row-span-2 animate-in delay-75"
           >
             <div className="flex flex-wrap items-center gap-2">
               <Link
@@ -393,7 +393,7 @@ export default function AdminOverviewPage() {
           <ChartCard
             title={t("dashboard.stat.ordersPerDay")}
             subtitle={t("dashboard.stat.ordersPerDaySubtitle")}
-            className="sm:col-span-2 lg:col-span-4"
+            className="sm:col-span-2 lg:col-span-4 animate-in delay-100"
           >
             <OrdersTrendChart data={view.trend} />
           </ChartCard>
@@ -403,21 +403,25 @@ export default function AdminOverviewPage() {
             value={formatEgp(view.aov)}
             accentClassName="text-gold-500 dark:text-gold-400"
             delta={view.aovDelta}
+            className="animate-in delay-150"
           />
           <StatTile
             label={t("dashboard.stat.pendingOrders")}
             value={formatCompact(view.kpis.pending)}
             accentClassName="text-warning"
+            className="animate-in delay-150"
           />
           <StatTile
             label={t("dashboard.stat.totalOrders")}
             value={formatCompact(view.kpis.total)}
             delta={view.ordersDelta}
+            className="animate-in delay-200"
           />
           <StatTile
             label={t("dashboard.stat.fromSocial")}
             value={`${Math.round(view.kpis.socialShare * 100)}%`}
             accentClassName="text-[#eb6834] dark:text-orange-400"
+            className="animate-in delay-200"
           />
         </div>
 
@@ -432,7 +436,7 @@ export default function AdminOverviewPage() {
               <ChartCard
                 title={t("dashboard.topProducts")}
                 subtitle={t("dashboard.topProductsSubtitle")}
-                className="lg:col-span-2"
+                className="lg:col-span-2 animate-in delay-225"
               >
                 {view.topProducts.length === 0 ? (
                   <p className="text-xs text-text-muted">{t("dashboard.noProductData")}</p>
@@ -453,7 +457,7 @@ export default function AdminOverviewPage() {
               <ChartCard
                 title={t("dashboard.revenueByCategory")}
                 subtitle={t("dashboard.revenueByCategorySubtitle")}
-                className="lg:col-span-2"
+                className="lg:col-span-2 animate-in delay-225"
               >
                 {view.categoryRevenue.length === 0 ? (
                   <p className="text-xs text-text-muted">{t("dashboard.noCategoryData")}</p>
@@ -473,7 +477,7 @@ export default function AdminOverviewPage() {
               <ChartCard
                 title={t("dashboard.ordersByChannel")}
                 subtitle={t("dashboard.ordersByChannelSubtitle")}
-                className="lg:col-span-2"
+                className="lg:col-span-2 animate-in delay-225"
               >
                 <HorizontalBarChart
                   variant="segmented"
@@ -490,7 +494,7 @@ export default function AdminOverviewPage() {
 
             {/* Grid C: orders by status / top delivery zones */}
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
-              <ChartCard title={t("dashboard.ordersByStatus")} className="lg:col-span-3">
+              <ChartCard title={t("dashboard.ordersByStatus")} className="lg:col-span-3 animate-in delay-300">
                 <HorizontalBarChart
                   color={seriesColors.retail}
                   rows={view.statuses.map((s) => ({
@@ -501,7 +505,7 @@ export default function AdminOverviewPage() {
                 />
               </ChartCard>
 
-              <ChartCard title={t("dashboard.topZones")} className="lg:col-span-3">
+              <ChartCard title={t("dashboard.topZones")} className="lg:col-span-3 animate-in delay-300">
                 {view.zones.length === 0 ? (
                   <p className="text-xs text-text-muted">{t("dashboard.noZoneData")}</p>
                 ) : (
