@@ -273,10 +273,10 @@
       "parameters": {
         "toolDescription": "Publish the approved Facebook post WITH a product image to the store's Facebook Page. Inputs: caption (the exact final post text the owner approved, complete and verbatim) and image_url (absolute https URL of the product image). Call it exactly once, and only after the owner explicitly approved the final draft in chat.",
         "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/1277443185443247/photos",
+        "url": "=https://graph.facebook.com/v21.0/1225286564001507/photos",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"caption\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"url\": {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }},\n  \"access_token\": \"EAAZAve3jlR3UBR5WcVkZCZBGSmpgkioPstUZBzZCkRrAt0G2zpb9CGg5ZBVymJqOdomOPZAS6mX93yiMXTMo7PRoDUZBtLcVfRBJW5DZCOgjiAWZAvuEZAJc8FZCoe9jXK1uXkEoHNWnHz9uF9pZAHwG4tHcVtSNHbe0XqPqNKEKgOGWeG3CFSSrUKe9GhqcqMYuaHy4bGAZCx\"\n}",
+        "jsonBody": "={\n  \"caption\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"url\": {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }},\n  \"access_token\": \"EAAOkmavZAby4BSNHf6p8LP3kOlVDjXbZBG9N1KMFl2hJ7H9tAF6tQx1kCL16bdBOlHpQ2bCuCxV4dCLbTxpdQRaRgUK4iFKD6UP6l9s7ohT7yGekldwZCdNmv2yyyqIVRlcQ2t5dvvYoGokgaOtlWwgBTxaEuxnqPI4mvfVf4PDXicGdZAfoZAqH9OOQZCSnZCpgPQZA\"\n}",
         "options": {}
       },
       "id": "15aef408-195a-404c-a724-9d03cb66f4fc",
@@ -293,10 +293,10 @@
       "parameters": {
         "toolDescription": "Publish the approved Facebook post as TEXT ONLY (no image) to the store's Facebook Page feed. Input: caption (the exact final post text the owner approved, complete and verbatim). Use this only when the chosen product has no image. Call it exactly once, and only after the owner explicitly approved the final draft in chat.",
         "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/1277443185443247/feed",
+        "url": "=https://graph.facebook.com/v21.0/1225286564001507/feed",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"message\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"access_token\": \"EAAZAve3jlR3UBR5WcVkZCZBGSmpgkioPstUZBzZCkRrAt0G2zpb9CGg5ZBVymJqOdomOPZAS6mX93yiMXTMo7PRoDUZBtLcVfRBJW5DZCOgjiAWZAvuEZAJc8FZCoe9jXK1uXkEoHNWnHz9uF9pZAHwG4tHcVtSNHbe0XqPqNKEKgOGWeG3CFSSrUKe9GhqcqMYuaHy4bGAZCx\"\n}",
+        "jsonBody": "={\n  \"message\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"access_token\": \"EAAOkmavZAby4BSNHf6p8LP3kOlVDjXbZBG9N1KMFl2hJ7H9tAF6tQx1kCL16bdBOlHpQ2bCuCxV4dCLbTxpdQRaRgUK4iFKD6UP6l9s7ohT7yGekldwZCdNmv2yyyqIVRlcQ2t5dvvYoGokgaOtlWwgBTxaEuxnqPI4mvfVf4PDXicGdZAfoZAqH9OOQZCSnZCpgPQZA\"\n}",
         "options": {}
       },
       "id": "e20e4655-e8ab-4361-b02a-d04f7e90038f",
@@ -313,10 +313,10 @@
       "parameters": {
         "toolDescription": "Step 1 of 2 for publishing to Instagram: create a media container on the store's Instagram Business Account. Inputs: image_url (absolute https URL of the product image) and caption (the exact final post text the owner approved, complete and verbatim). Instagram requires an image — never call this without one. The tool result's JSON contains an `id` field — that is the creation_id, and you MUST pass it as creation_id to publish_instagram_media immediately after this call, in the same publish sequence. Do NOT tell the owner the Instagram post succeeded until publish_instagram_media (step 2) also succeeds. Call this once per approval.",
         "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/<IG_BUSINESS_ACCOUNT_ID>/media",
+        "url": "=https://graph.instagram.com/v21.0/17841439246212022/media",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"image_url\": {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }},\n  \"caption\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"access_token\": \"YOUR_INSTAGRAM_ACCESS_TOKEN\"\n}",
+        "jsonBody": "={\n  \"image_url\": {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }},\n  \"caption\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"access_token\": \"IGAAV0Gw2akkVBZAFlfSTRvLVJlMF9Yam1rV1l3em5hbkFMemlORVB3Vkl4cWViR0x4SFpDMTdvN19pQnVtTThyR1FmNm0zZA0Y1N0Y1VzdVYTQwcjRxeGt5M2RHeUZAncDVtMUxGMDJ2MUY1R25qSjdxSmw1aUh1OEw5b2ZAfazhpRQZDZD\"\n}",
         "options": {}
       },
       "id": "a1b2c3d4-1111-4a2b-8c3d-1a2b3c4d5e6f",
@@ -327,16 +327,16 @@
         -2032
       ],
       "typeVersion": 4.4,
-      "notes": "AI tool: step 1/2 of Instagram publishing — creates a media container via the Graph API. Replace <IG_BUSINESS_ACCOUNT_ID> with the connected Instagram Business Account ID (see CREDENTIALS_GUIDE.md §8) and YOUR_INSTAGRAM_ACCESS_TOKEN with a real Page/IG access token before use. Must be followed by publish_instagram_media using the returned creation_id."
+      "notes": "AI tool: step 1/2 of Instagram publishing — creates a media container via the Instagram API with Instagram Login (graph.instagram.com), using an IGAA-type Instagram User access token, not a Facebook Page token. Set the IG_LOGIN_ACCESS_TOKEN environment variable in n8n (see CREDENTIALS_GUIDE.md §8). Must be followed by publish_instagram_media using the returned creation_id."
     },
     {
       "parameters": {
         "toolDescription": "Step 2 of 2 for publishing to Instagram: publish the media container created by create_instagram_media. Input: creation_id (the id value returned by create_instagram_media's result). Call this immediately after create_instagram_media succeeds, in the same publish sequence, and only confirm success to the owner after THIS call succeeds too. Call once per approval — never repeat the create+publish pair for the same approval.",
         "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/<IG_BUSINESS_ACCOUNT_ID>/media_publish",
+        "url": "=https://graph.instagram.com/v21.0/17841439246212022/media_publish",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"creation_id\": {{ JSON.stringify($fromAI('creation_id', 'The id returned by create_instagram_media', 'string')) }},\n  \"access_token\": \"YOUR_INSTAGRAM_ACCESS_TOKEN\"\n}",
+        "jsonBody": "={\n  \"creation_id\": {{ JSON.stringify($fromAI('creation_id', 'The id returned by create_instagram_media', 'string')) }},\n  \"access_token\": \"IGAAV0Gw2akkVBZAFlfSTRvLVJlMF9Yam1rV1l3em5hbkFMemlORVB3Vkl4cWViR0x4SFpDMTdvN19pQnVtTThyR1FmNm0zZA0Y1N0Y1VzdVYTQwcjRxeGt5M2RHeUZAncDVtMUxGMDJ2MUY1R25qSjdxSmw1aUh1OEw5b2ZAfazhpRQZDZD\"\n}",
         "options": {}
       },
       "id": "b2c3d4e5-2222-4b3c-9d4e-2b3c4d5e6f70",
@@ -347,7 +347,7 @@
         -2032
       ],
       "typeVersion": 4.4,
-      "notes": "AI tool: step 2/2 of Instagram publishing — publishes the container via the Graph API. Replace <IG_BUSINESS_ACCOUNT_ID> and YOUR_INSTAGRAM_ACCESS_TOKEN before use. Must be called with the creation_id returned by create_instagram_media."
+      "notes": "AI tool: step 2/2 of Instagram publishing — publishes the container via the Instagram API with Instagram Login (graph.instagram.com), using the same IG_LOGIN_ACCESS_TOKEN environment variable as create_instagram_media. Must be called with the creation_id returned by create_instagram_media."
     },
     {
       "parameters": {
