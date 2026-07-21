@@ -2,10 +2,9 @@ import type { OrderChannel } from "@/features/orders/orders.analytics";
 import type { DictKey } from "@/features/i18n/dictionary";
 
 /**
- * Dashboard chart theme. The categorical hues are a CVD-validated set
- * (adjacent-pair ΔE checks pass on the white card surface); assign them
- * by entity, never by rank. The sub-3:1 hues (magenta, yellow) are only
- * used on bars that carry a visible value label.
+ * Dashboard chart theme — Vivid Nightfall / Ocean Breeze neumorphic palette.
+ * The categorical hues are a CVD-validated set; assign them by entity,
+ * never by rank.
  */
 
 /*
@@ -14,7 +13,7 @@ import type { DictKey } from "@/features/i18n/dictionary";
  * these SVG fill/stroke/text-fill colors flip with the admin's dark mode.
  * seriesColors/channelMeta below stay hardcoded hex on purpose — they're
  * data-encoding colors (which entity is which), not surface/text ink, and
- * are legible on both a white and a dark card without changing meaning.
+ * are legible on both a warm beige and a dark navy card without changing meaning.
  */
 export const chartInk = {
   primary: "var(--chart-ink-primary)",
@@ -26,8 +25,8 @@ export const chartInk = {
 } as const;
 
 export const seriesColors = {
-  retail: "#2a78d6", // blue — website / retail everywhere on the page
-  social: "#eb6834", // orange — social aggregate in the trend chart
+  retail: "#06b6d4", // teal/cyan — website / retail (ocean theme)
+  social: "#f97316", // orange — social aggregate in the trend chart
 } as const;
 
 /*
@@ -40,25 +39,21 @@ export const channelMeta: Record<
   OrderChannel,
   { labelKey: DictKey; color: string }
 > = {
-  website: { labelKey: "dashboard.channel.website", color: "#2a78d6" },
-  whatsapp: { labelKey: "dashboard.channel.whatsapp", color: "#008300" },
-  facebook: { labelKey: "dashboard.channel.facebook", color: "#e87ba4" },
-  instagram: { labelKey: "dashboard.channel.instagram", color: "#eda100" },
+  website: { labelKey: "dashboard.channel.website", color: "#06b6d4" },
+  whatsapp: { labelKey: "dashboard.channel.whatsapp", color: "#22c55e" },
+  facebook: { labelKey: "dashboard.channel.facebook", color: "#8b5cf6" },
+  instagram: { labelKey: "dashboard.channel.instagram", color: "#f97316" },
 };
 
 /*
- * Entity badge rotation (005-admin-bento-grid-redesign, "Visual Design
- * Direction"): a fixed 5-color palette drawn from the brand/accent hues
- * already in globals.css, assigned to a product/category row by a stable
- * hash of its id/name — never randomly per render — so a given entity
- * always gets the same badge color across renders and page loads. Used by
- * "Top products" and "Revenue by category" rows on the Overview bento
- * grid (src/app/(admin)/admin/page.tsx) via BarRow.color.
+ * Entity badge rotation: a fixed 5-color palette drawn from the
+ * Vivid Nightfall / Ocean Breeze hues, assigned to a product/category
+ * row by a stable hash of its id/name.
  */
 export const badgePalette = [
-  "#dd6253", // brand-500
-  "#e6a817", // gold-500
-  "#3b82f6", // blue-500
+  "#06b6d4", // cyan-500 (brand)
+  "#f97316", // orange-500
+  "#8b5cf6", // violet-500
   "#22c55e", // green-500
   "#ec4899", // pink-500
 ] as const;

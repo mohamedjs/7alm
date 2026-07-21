@@ -34,7 +34,7 @@ export default function OrdersTable({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-border bg-surface-raised p-12 shadow-sm transition-colors">
+      <div className="rounded-2xl bg-surface p-12 neu-raised transition-all">
         <div className="flex flex-col items-center justify-center text-text-muted">
           <svg
             className="mb-4 h-8 w-8 animate-spin"
@@ -63,7 +63,7 @@ export default function OrdersTable({
 
   if (orders.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-surface-raised p-12 shadow-sm transition-colors">
+      <div className="rounded-2xl bg-surface p-12 neu-raised transition-all">
         <div className="flex flex-col items-center justify-center text-text-muted">
           <svg
             className="mb-4 h-16 w-16"
@@ -86,12 +86,12 @@ export default function OrdersTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-sm transition-colors">
+    <div className="overflow-hidden rounded-2xl bg-surface neu-raised transition-all">
       {/* Desktop Table */}
       <div className="hidden overflow-x-auto lg:block">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-sm text-text-muted">
+            <tr className="border-b border-border/20 text-sm text-text-muted">
               <th className="px-6 py-4 text-start font-medium">{t("orders.table.customer")}</th>
               <th className="px-6 py-4 text-start font-medium">{t("orders.table.zone")}</th>
               <th className="px-6 py-4 text-start font-medium">{t("orders.table.ipInfo")}</th>
@@ -106,7 +106,7 @@ export default function OrdersTable({
             {orders.map((order) => (
               <tr
                 key={order.id}
-                className="cursor-pointer border-b border-border/60 transition-colors hover:bg-surface"
+                className="cursor-pointer border-b border-border/10 transition-all hover:bg-surface-raised/50"
                 onClick={() => setSelectedOrder(order)}
               >
                 <td className="px-6 py-4">
@@ -203,11 +203,11 @@ export default function OrdersTable({
       </div>
 
       {/* Mobile Cards */}
-      <div className="divide-y divide-border lg:hidden">
+      <div className="divide-y divide-border/20 lg:hidden">
         {orders.map((order) => (
           <div
             key={order.id}
-            className="cursor-pointer p-4 transition-colors hover:bg-surface"
+            className="cursor-pointer p-4 transition-all hover:bg-surface-raised/50"
             onClick={() => setSelectedOrder(order)}
           >
             <div className="flex items-center justify-between">

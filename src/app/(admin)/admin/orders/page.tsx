@@ -65,7 +65,7 @@ export default function OrdersPage() {
 
       {/* Realtime notification banner */}
       {notification && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
+        <div className="mb-4 flex items-center gap-2 rounded-xl p-3 text-sm text-brand-500 neu-raised-sm">
           <span className="text-lg">🔔</span>
           <span>{notification.message}</span>
         </div>
@@ -75,20 +75,20 @@ export default function OrdersPage() {
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setFilter("pending")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
             filter === "pending"
-              ? "border border-brand-500/20 bg-brand-500/10 text-brand-600 dark:text-brand-400"
-              : "border border-border bg-surface-raised text-text-muted hover:bg-surface hover:text-text-primary"
+              ? "neu-pressed bg-surface text-brand-500"
+              : "bg-surface text-text-muted hover:text-text-primary neu-raised-sm"
           }`}
         >
           {t("orders.filter.pending")}
         </button>
         <button
           onClick={() => setFilter("all")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
             filter === "all"
-              ? "border border-brand-500/20 bg-brand-500/10 text-brand-600 dark:text-brand-400"
-              : "border border-border bg-surface-raised text-text-muted hover:bg-surface hover:text-text-primary"
+              ? "neu-pressed bg-surface text-brand-500"
+              : "bg-surface text-text-muted hover:text-text-primary neu-raised-sm"
           }`}
         >
           {t("orders.filter.all")}
@@ -96,7 +96,7 @@ export default function OrdersPage() {
 
         <button
           onClick={refetch}
-          className="ms-auto flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-4 py-2 text-sm text-text-muted shadow-sm transition-all hover:bg-surface hover:text-text-primary"
+          className="ms-auto flex items-center gap-2 rounded-xl bg-surface px-4 py-2 text-sm text-text-muted transition-all hover:text-text-primary neu-btn"
         >
           <svg
             className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}

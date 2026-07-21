@@ -67,7 +67,7 @@ function ChartCard({
 }) {
   return (
     <div
-      className={`h-full rounded-2xl border border-border bg-surface-raised p-4 shadow-sm transition-colors sm:p-6 ${className}`}
+      className={`h-full rounded-2xl bg-surface p-4 neu-raised transition-all sm:p-6 ${className}`}
     >
       <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
       {subtitle && <p className="mt-0.5 text-xs text-text-muted">{subtitle}</p>}
@@ -90,7 +90,7 @@ function QuickMetricPill({
   const deltaUp = showDelta && delta! >= 0;
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 text-xs shadow-sm">
+    <span className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs neu-raised-sm">
       <span className="text-text-muted">{label}</span>
       <span className="font-semibold text-text-primary tabular-nums">{value}</span>
       {showDelta && (
@@ -287,7 +287,7 @@ export default function AdminOverviewPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-0.5 rounded-lg border border-border bg-surface-raised p-0.5 shadow-sm">
+          <div className="flex items-center gap-0.5 rounded-xl bg-surface p-0.5 neu-pressed-sm">
             {RANGE_PRESETS.map((preset) => (
               <button
                 key={preset.days}
@@ -297,10 +297,10 @@ export default function AdminOverviewPage() {
                   setCustomRangeError(null);
                   setRangeDays(preset.days);
                 }}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                   !activeCustomRange && rangeDays === preset.days
-                    ? "bg-brand-500 text-white"
-                    : "text-text-muted hover:bg-surface"
+                    ? "neu-raised-sm bg-brand-500 text-white"
+                    : "text-text-muted hover:text-text-primary"
                 }`}
               >
                 {t(preset.key)}
@@ -308,13 +308,13 @@ export default function AdminOverviewPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-1.5 rounded-lg border border-border bg-surface-raised px-2 py-1 shadow-sm">
+          <div className="flex items-center gap-1.5 rounded-xl bg-surface px-2 py-1 neu-raised-sm">
             <input
               type="date"
               value={customStart}
               onChange={(e) => setCustomStart(e.target.value)}
               aria-label={t("dashboard.rangeStartLabel")}
-              className="bg-transparent text-xs text-text-primary outline-none"
+              className="bg-transparent text-xs text-text-primary outline-none rounded-lg px-1 py-0.5"
             />
             <span className="text-xs text-text-muted">{t("dashboard.rangeTo")}</span>
             <input
@@ -322,7 +322,7 @@ export default function AdminOverviewPage() {
               value={customEnd}
               onChange={(e) => setCustomEnd(e.target.value)}
               aria-label={t("dashboard.rangeEndLabel")}
-              className="bg-transparent text-xs text-text-primary outline-none"
+              className="bg-transparent text-xs text-text-primary outline-none rounded-lg px-1 py-0.5"
             />
             <button
               type="button"
@@ -338,10 +338,10 @@ export default function AdminOverviewPage() {
                 setCustomRangeError(null);
                 setActiveCustomRange({ start: customStart, end: customEnd });
               }}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
                 activeCustomRange
-                  ? "bg-brand-500 text-white"
-                  : "text-text-muted hover:bg-surface"
+                  ? "neu-raised-sm bg-brand-500 text-white"
+                  : "text-text-muted hover:text-text-primary"
               }`}
             >
               {t("dashboard.apply")}
@@ -351,7 +351,7 @@ export default function AdminOverviewPage() {
           <button
             type="button"
             onClick={handleExportCsv}
-            className="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text-primary shadow-sm transition-colors hover:bg-surface"
+            className="rounded-xl bg-surface px-3 py-1.5 text-xs font-medium text-text-primary transition-all neu-btn"
           >
             {t("dashboard.exportCsv")}
           </button>
@@ -371,19 +371,19 @@ export default function AdminOverviewPage() {
             accentClassName="text-success"
             delta={view.revenueDelta}
             size="lg"
-            className="sm:col-span-2 lg:col-span-2 lg:row-span-2"
+            className="sm:col-span-2 lg:col-span-2 lg:row-span-2 animate-in delay-75"
           >
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href="/admin/orders"
-                className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-600"
+                className="rounded-xl bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white transition-all neu-btn"
               >
                 {t("dashboard.stat.viewOrders")}
               </Link>
               <button
                 type="button"
                 onClick={handleExportCsv}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-surface"
+                className="rounded-xl bg-surface px-3 py-1.5 text-xs font-medium text-text-primary transition-all neu-btn"
               >
                 {t("dashboard.exportCsv")}
               </button>
@@ -393,7 +393,7 @@ export default function AdminOverviewPage() {
           <ChartCard
             title={t("dashboard.stat.ordersPerDay")}
             subtitle={t("dashboard.stat.ordersPerDaySubtitle")}
-            className="sm:col-span-2 lg:col-span-4"
+            className="sm:col-span-2 lg:col-span-4 animate-in delay-100"
           >
             <OrdersTrendChart data={view.trend} />
           </ChartCard>
@@ -403,26 +403,30 @@ export default function AdminOverviewPage() {
             value={formatEgp(view.aov)}
             accentClassName="text-gold-500 dark:text-gold-400"
             delta={view.aovDelta}
+            className="animate-in delay-150"
           />
           <StatTile
             label={t("dashboard.stat.pendingOrders")}
             value={formatCompact(view.kpis.pending)}
             accentClassName="text-warning"
+            className="animate-in delay-150"
           />
           <StatTile
             label={t("dashboard.stat.totalOrders")}
             value={formatCompact(view.kpis.total)}
             delta={view.ordersDelta}
+            className="animate-in delay-200"
           />
           <StatTile
             label={t("dashboard.stat.fromSocial")}
             value={`${Math.round(view.kpis.socialShare * 100)}%`}
             accentClassName="text-[#eb6834] dark:text-orange-400"
+            className="animate-in delay-200"
           />
         </div>
 
         {isEmpty ? (
-          <div className="mt-6 rounded-2xl border border-border bg-surface-raised p-12 text-center text-sm text-text-muted shadow-sm">
+          <div className="mt-6 rounded-2xl bg-surface p-12 text-center text-sm text-text-muted neu-raised">
             {t("dashboard.empty")}
           </div>
         ) : (
@@ -432,7 +436,7 @@ export default function AdminOverviewPage() {
               <ChartCard
                 title={t("dashboard.topProducts")}
                 subtitle={t("dashboard.topProductsSubtitle")}
-                className="lg:col-span-2"
+                className="lg:col-span-2 animate-in delay-225"
               >
                 {view.topProducts.length === 0 ? (
                   <p className="text-xs text-text-muted">{t("dashboard.noProductData")}</p>
@@ -453,7 +457,7 @@ export default function AdminOverviewPage() {
               <ChartCard
                 title={t("dashboard.revenueByCategory")}
                 subtitle={t("dashboard.revenueByCategorySubtitle")}
-                className="lg:col-span-2"
+                className="lg:col-span-2 animate-in delay-225"
               >
                 {view.categoryRevenue.length === 0 ? (
                   <p className="text-xs text-text-muted">{t("dashboard.noCategoryData")}</p>
@@ -473,7 +477,7 @@ export default function AdminOverviewPage() {
               <ChartCard
                 title={t("dashboard.ordersByChannel")}
                 subtitle={t("dashboard.ordersByChannelSubtitle")}
-                className="lg:col-span-2"
+                className="lg:col-span-2 animate-in delay-225"
               >
                 <HorizontalBarChart
                   variant="segmented"
@@ -490,7 +494,7 @@ export default function AdminOverviewPage() {
 
             {/* Grid C: orders by status / top delivery zones */}
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
-              <ChartCard title={t("dashboard.ordersByStatus")} className="lg:col-span-3">
+              <ChartCard title={t("dashboard.ordersByStatus")} className="lg:col-span-3 animate-in delay-300">
                 <HorizontalBarChart
                   color={seriesColors.retail}
                   rows={view.statuses.map((s) => ({
@@ -501,7 +505,7 @@ export default function AdminOverviewPage() {
                 />
               </ChartCard>
 
-              <ChartCard title={t("dashboard.topZones")} className="lg:col-span-3">
+              <ChartCard title={t("dashboard.topZones")} className="lg:col-span-3 animate-in delay-300">
                 {view.zones.length === 0 ? (
                   <p className="text-xs text-text-muted">{t("dashboard.noZoneData")}</p>
                 ) : (

@@ -25,9 +25,9 @@ export function CategoryList({ tree, isLoading, onDelete }: CategoryListProps) {
 
   const renderNode = (node: CategoryTree, depth: number = 0) => {
     return (
-      <div key={node.id} className="flex flex-col border-b border-border last:border-0">
+      <div key={node.id} className="flex flex-col border-b border-border/10 last:border-0">
         <div
-          className="flex items-center justify-between py-4 pe-6 hover:bg-surface"
+          className="flex items-center justify-between py-4 pe-6 transition-all hover:bg-surface-raised/30"
           style={{ paddingInlineStart: `${depth * 2 + 1.5}rem` }}
         >
           <div className="flex items-center gap-4">
@@ -48,17 +48,17 @@ export function CategoryList({ tree, isLoading, onDelete }: CategoryListProps) {
           </div>
           <div className="flex items-center gap-4">
             <span
-              className={`rounded-full px-2 py-1 text-xs ${
+              className={`rounded-lg px-2 py-1 text-xs neu-pressed-sm ${
                 node.is_active
-                  ? "bg-success/10 text-success"
-                  : "bg-surface text-text-muted"
+                  ? "text-success"
+                  : "text-text-muted"
               }`}
             >
               {node.is_active ? t("categories.list.active") : t("categories.list.hidden")}
             </span>
             <Link
               href={`/admin/categories/edit/${node.id}`}
-              className="rounded p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
+              className="rounded-xl p-2 text-brand-500 transition-all neu-raised-sm hover:neu-raised"
               title={t("categories.list.edit")}
             >
               <Edit className="h-4 w-4" />
@@ -69,7 +69,7 @@ export function CategoryList({ tree, isLoading, onDelete }: CategoryListProps) {
                   onDelete(node.id);
                 }
               }}
-              className="rounded p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+              className="rounded-xl p-2 text-danger transition-all neu-raised-sm hover:neu-raised"
               title={t("categories.list.delete")}
             >
               <Trash2 className="h-4 w-4" />

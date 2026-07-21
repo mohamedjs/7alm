@@ -28,25 +28,25 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-surface p-6 transition-colors">
+    <div className="min-h-screen flex items-center justify-center bg-surface p-6 transition-colors">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold text-gradient">
             7alm
           </h1>
-          <p className="text-gray-500 dark:text-text-muted mt-2">{t("auth.brandSubtitle")}</p>
+          <p className="text-text-muted mt-2">{t("auth.brandSubtitle")}</p>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-white dark:bg-surface-raised border border-gray-200 dark:border-border rounded-2xl p-8 shadow-xl">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-text-primary mb-6">{t("auth.signIn")}</h2>
+        {/* Login Card — neumorphic raised */}
+        <div className="bg-surface rounded-2xl p-8 neu-raised">
+          <h2 className="text-xl font-bold text-text-primary mb-6">{t("auth.signIn")}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="admin-email"
-                className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-2"
+                className="block text-sm font-medium text-text-muted mb-2"
               >
                 {t("auth.email")}
               </label>
@@ -58,14 +58,14 @@ export default function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@7alm.com"
                 dir="ltr"
-                className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-3 text-gray-900 dark:text-text-primary placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                className="w-full neu-input rounded-xl px-4 py-3 transition-all"
               />
             </div>
 
             <div>
               <label
                 htmlFor="admin-password"
-                className="block text-sm font-medium text-gray-700 dark:text-text-muted mb-2"
+                className="block text-sm font-medium text-text-muted mb-2"
               >
                 {t("auth.password")}
               </label>
@@ -77,12 +77,12 @@ export default function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 dir="ltr"
-                className="w-full bg-white dark:bg-surface border border-gray-300 dark:border-border rounded-lg px-4 py-3 text-gray-900 dark:text-text-primary placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                className="w-full neu-input rounded-xl px-4 py-3 transition-all"
               />
             </div>
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
+              <div className="neu-pressed rounded-xl p-3 text-danger text-sm">
                 {error}
               </div>
             )}
@@ -90,7 +90,7 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold py-3 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-3 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed neu-btn"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

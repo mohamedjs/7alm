@@ -45,7 +45,7 @@ export default function ProductList({
 
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface-raised py-16 text-center shadow-sm">
+      <div className="rounded-2xl bg-surface py-16 text-center neu-raised">
         <div className="mb-4 text-text-muted">
           <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -58,7 +58,7 @@ export default function ProductList({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-surface-raised shadow-sm">
+    <div className="overflow-x-auto rounded-2xl bg-surface neu-raised">
       <table className="w-full text-start text-sm text-text-muted">
         <thead className="bg-surface text-text-primary">
           <tr>
@@ -72,7 +72,7 @@ export default function ProductList({
         </thead>
         <tbody className="divide-y divide-border">
           {products.map((product) => (
-            <tr key={product.id} className="transition-colors hover:bg-surface">
+            <tr key={product.id} className="transition-all hover:bg-surface-raised/50">
               <td className="flex items-center gap-3 px-6 py-4">
                 {product.main_image ? (
                   <div className="relative h-10 w-10">
@@ -84,7 +84,7 @@ export default function ProductList({
                     />
                   </div>
                 ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-xs text-text-muted">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface text-xs text-text-muted neu-pressed-sm">
                     {t("products.list.na")}
                   </div>
                 )}
@@ -104,10 +104,10 @@ export default function ProductList({
               <td className="px-6 py-4">{product.quantity}</td>
               <td className="px-6 py-4">
                 <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${
+                  className={`rounded-lg px-2 py-1 text-xs font-medium neu-pressed-sm ${
                     product.is_active
-                      ? "bg-success/10 text-success"
-                      : "bg-danger/10 text-danger"
+                      ? "text-success"
+                      : "text-danger"
                   }`}
                 >
                   {product.is_active ? t("products.list.active") : t("products.list.inactive")}
@@ -117,10 +117,10 @@ export default function ProductList({
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => handleCopyLink(`${product.slug}`, product.id)}
-                    className={`inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${
                       copiedId === product.id
-                        ? "border border-success/20 bg-success/10 text-success"
-                        : "border border-border bg-surface text-text-primary hover:border-text-muted"
+                        ? "neu-pressed-sm text-success"
+                        : "bg-surface text-text-primary neu-raised-sm hover:neu-raised"
                     }`}
                   >
                     {copiedId === product.id ? t("products.list.copied") : t("products.list.copyUrl")}
@@ -129,10 +129,10 @@ export default function ProductList({
                     <button
                       onClick={() => handleCopyLink(`${product.slug}?utm_source=facebook`, `${product.id}-fb`)}
                       title={t("products.list.copyFb")}
-                      className={`inline-flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-all ${
+                      className={`inline-flex flex-1 items-center justify-center rounded-xl py-1.5 text-xs font-medium transition-all ${
                         copiedId === `${product.id}-fb`
-                          ? "border border-success/20 bg-success/10 text-success"
-                          : "border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
+                          ? "neu-pressed-sm text-success"
+                          : "bg-blue-500/10 text-blue-500 dark:text-blue-400 neu-raised-sm"
                       }`}
                     >
                       {copiedId === `${product.id}-fb` ? "✓" : "FB"}
@@ -140,10 +140,10 @@ export default function ProductList({
                     <button
                       onClick={() => handleCopyLink(`${product.slug}?utm_source=instagram`, `${product.id}-ig`)}
                       title={t("products.list.copyIg")}
-                      className={`inline-flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-all ${
+                      className={`inline-flex flex-1 items-center justify-center rounded-xl py-1.5 text-xs font-medium transition-all ${
                         copiedId === `${product.id}-ig`
-                          ? "border border-success/20 bg-success/10 text-success"
-                          : "border border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 dark:border-pink-500/20 dark:bg-pink-500/10 dark:text-pink-400 dark:hover:bg-pink-500/20"
+                          ? "neu-pressed-sm text-success"
+                          : "bg-pink-500/10 text-pink-500 dark:text-pink-400 neu-raised-sm"
                       }`}
                     >
                       {copiedId === `${product.id}-ig` ? "✓" : "IG"}
@@ -151,10 +151,10 @@ export default function ProductList({
                     <button
                       onClick={() => handleCopyLink(`${product.slug}?utm_source=tiktok`, `${product.id}-tk`)}
                       title={t("products.list.copyTk")}
-                      className={`inline-flex flex-1 items-center justify-center rounded-lg py-1.5 text-xs font-medium transition-all ${
+                      className={`inline-flex flex-1 items-center justify-center rounded-xl py-1.5 text-xs font-medium transition-all ${
                         copiedId === `${product.id}-tk`
-                          ? "border border-success/20 bg-success/10 text-success"
-                          : "border border-border bg-surface text-text-primary hover:bg-border"
+                          ? "neu-pressed-sm text-success"
+                          : "bg-surface text-text-primary neu-raised-sm"
                       }`}
                     >
                       {copiedId === `${product.id}-tk` ? "✓" : "TK"}

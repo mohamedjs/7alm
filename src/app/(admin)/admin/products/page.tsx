@@ -31,7 +31,7 @@ export default function ProductsPage() {
         </div>
         <Link
           href="/admin/products/create"
-          className="w-full rounded-lg bg-brand-500 px-5 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-brand-600 sm:w-auto"
+          className="w-full rounded-xl bg-brand-500 px-5 py-2.5 text-center text-sm font-bold text-white transition-all sm:w-auto neu-btn"
         >
           {t("products.add")}
         </Link>

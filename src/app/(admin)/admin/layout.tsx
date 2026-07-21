@@ -64,7 +64,7 @@ export default function AdminLayout({
           }}
         />
       </head>
-      <body className="bg-gray-50 dark:bg-surface text-gray-900 dark:text-text-primary antialiased font-sans transition-colors">
+      <body className="bg-surface text-text-primary antialiased font-sans transition-colors">
         <ReduxProvider>
           <LocaleProvider>
             <AdminLayoutClient>{children}</AdminLayoutClient>
