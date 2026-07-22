@@ -9,6 +9,20 @@ import { useLocale } from "@/features/i18n/i18n.hooks";
 import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 
+/**
+ * Curated theme-color swatches for the Lookbook hero accent — chosen to
+ * read well against the storefront's dark background (see spec 007).
+ * A free-form hex input is offered alongside these for edge cases.
+ */
+const THEME_COLOR_PRESETS = [
+  "#06b6d4", // cyan (brand default)
+  "#f59e0b", // amber
+  "#f43f5e", // rose
+  "#a855f7", // violet
+  "#10b981", // emerald
+  "#38bdf8", // sky
+];
+
 interface ProductFormProps {
   formData: ProductInput;
   setFormData: (data: ProductInput) => void;
@@ -591,6 +605,57 @@ export default function ProductForm({
           >
             {t("products.form.isActive")}
           </label>
+        </div>
+
+        <div className="space-y-3 pt-4 border-t border-border/20">
+          <div>
+            <label className={labelClasses}>{t("products.form.themeColor")}</label>
+            <p className="text-xs text-text-muted mb-2">{t("products.form.themeColorHint")}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              {THEME_COLOR_PRESETS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, theme_color: color })}
+                  aria-label={color}
+                  className={`w-8 h-8 rounded-full transition-all ${
+                    formData.theme_color === color
+                      ? "ring-2 ring-offset-2 ring-brand-500 ring-offset-surface scale-110"
+                      : "neu-raised-sm"
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+              <input
+                type="text"
+                value={formData.theme_color || "#06b6d4"}
+                onChange={(e) =>
+                  setFormData({ ...formData, theme_color: e.target.value })
+                }
+                dir="ltr"
+                placeholder={t("products.form.themeColorCustom")}
+                className={`${inputClasses} w-32 ms-2`}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isFeatured"
+              checked={formData.is_featured ?? false}
+              onChange={(e) =>
+                setFormData({ ...formData, is_featured: e.target.checked })
+              }
+              className="w-4 h-4 rounded accent-brand-500"
+            />
+            <label
+              htmlFor="isFeatured"
+              className="text-sm font-medium text-text-muted"
+            >
+              {t("products.form.isFeatured")}
+            </label>
+          </div>
         </div>
 
         <div className="pt-4 flex justify-end gap-3">

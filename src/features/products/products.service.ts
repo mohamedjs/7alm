@@ -1,4 +1,5 @@
 import { productRepository } from "./products.repository";
+import { categoryService } from "@/features/categories/categories.service";
 import type { ActiveProductDto, Product } from "@/features/shared/types";
 
 export class ProductService {
@@ -54,6 +55,84 @@ export class ProductService {
 
   async getProductBySlug(slug: string): Promise<Product | null> {
     return productRepository.getProductBySlug(slug);
+  }
+
+  /**
+   * Reserved single-segment route slugs that the (store) route group's
+   * static routes always win over (Next.js matches static segments before
+   * dynamic ones). A product using one of these slugs would have its
+   * `(landing)/[slug]` funnel page permanently shadowed.
+   */
+  static readonly RESERVED_SLUGS = [
+    "products",
+    "category",
+    "product",
+    "cart",
+    "checkout",
+    "privacy",
+    "admin",
+  ] as const;
+
+  /**
+   * Throws if `slug` collides with a reserved route segment. Called from the
+   * admin product create/update path before the row is written.
+   */
+  validateProductSlug(slug: string): void {
+    if (ProductService.RESERVED_SLUGS.includes(slug as never)) {
+      throw new Error(
+        `Slug "${slug}" is reserved for a store route and cannot be used for a product.`
+      );
+    }
+  }
+
+  /**
+   * Throws if `color` isn't a `#rrggbb` hex color. Called from the admin
+   * product create/update path when `theme_color` is present in the body.
+   */
+  validateThemeColor(color: string): void {
+    if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+      throw new Error(`theme_color "${color}" must be a #rrggbb hex color.`);
+    }
+  }
+
+  /**
+   * Active products flagged `is_featured` — the Lookbook homepage's hero
+   * thumbnail row.
+   */
+  async getFeaturedProducts(): Promise<Product[]> {
+    return productRepository.getFeaturedProducts();
+  }
+
+  /**
+   * Active products in a category, looked up by either the category's
+   * UUID or its slug (storefront links use slugs; internal callers may
+   * already have the id). Includes products assigned directly to
+   * immediate subcategories too — e.g. `electronics-accessories`'s
+   * existing phone cases live on its `cover` child, not the parent
+   * itself, and should still show up under the top-level category page.
+   */
+  async getActiveProductsByCategory(categoryIdOrSlug: string): Promise<Product[]> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      categoryIdOrSlug
+    );
+    const categoryId = isUuid
+      ? categoryIdOrSlug
+      : (await categoryService.getCategoryBySlug(categoryIdOrSlug))?.id;
+    if (!categoryId) return [];
+
+    const allCategories = await categoryService.getAllCategories();
+    const childIds = allCategories
+      .filter((c) => c.parent_id === categoryId)
+      .map((c) => c.id);
+
+    return productRepository.getActiveProductsByCategoryIds([categoryId, ...childIds]);
+  }
+
+  /**
+   * Every active product across all categories.
+   */
+  async getAllActiveProducts(): Promise<Product[]> {
+    return productRepository.getAllActiveProducts();
   }
 
   async decrementStock(productId: string, quantity: number): Promise<boolean> {

@@ -467,6 +467,43 @@
   .delay-200 { animation-delay: 200ms; }
   .delay-225 { animation-delay: 225ms; }
   .delay-300 { animation-delay: 300ms; }
+
+  /*
+   * ================================================================
+   * Dynamic Lookbook (007) — radial glow + morph-in, additive only.
+   * Color is always set via inline style (per-product `theme_color`);
+   * these utilities own shape/position/blur/timing.
+   * ================================================================
+   */
+  .lookbook-glow {
+    position: absolute;
+    inset-inline-start: 50%;
+    top: 50%;
+    width: 600px;
+    height: 600px;
+    max-width: 90vw;
+    border-radius: 9999px;
+    filter: blur(64px);
+    opacity: 0.25;
+    transform: translate(-50%, -50%);
+    transition: background-color 0.5s ease;
+    pointer-events: none;
+  }
+
+  .lookbook-morph {
+    animation: lookbook-morph 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes lookbook-morph {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 /* Swiper Customizations */

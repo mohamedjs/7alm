@@ -68,6 +68,10 @@ export interface Product {
   main_image: string | null;
   gallery: string[];
   is_active: boolean;
+  /** Hex color (e.g. "#06b6d4") — drives the Lookbook hero glow/CTA accent for this product. */
+  theme_color: string;
+  /** Hero-eligible on the store homepage's featured thumbnail row. */
+  is_featured: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -167,10 +171,24 @@ export type OrderStatus =
   | "cancelled"
   | "returned";
 
+// --- Order Items (additive line-item annex for multi-product cart orders) ---
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string | null;
+  product?: Product;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  created_at: string;
+}
+
 export interface OrderWithDetails extends Order {
   customer: Customer;
   address: Address & { zone: Zone & { city: City } };
   product: Product | null;
+  /** Always populated: order_items rows when present, else a single-entry array synthesized from product_id/quantity (legacy funnel orders). */
+  items: OrderItem[];
 }
 
 // --- Form Data from Landing Page ---
@@ -182,6 +200,8 @@ export interface CreateOrderInput {
   street_details: string;
   product_id?: string;
   quantity?: number;
+  /** Multi-item cart checkout — when present, the order is created with order_items rows instead of the legacy product_id/quantity path. */
+  items?: Array<{ product_id: string; quantity: number }>;
   platform_source?: string;
   ip_address?: string;
   ip_country?: string;
@@ -230,6 +250,8 @@ export interface N8nOrderNotification {
   trackingId: string | null;
   totalPrice: number;
   quantity: number;
+  /** Always populated — one element for a legacy single-product funnel order, N elements for a cart order. */
+  items: Array<{ productName: string; quantity: number; unitPrice: number; totalPrice: number }>;
 }
 
 /**

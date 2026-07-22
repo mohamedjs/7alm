@@ -23,7 +23,9 @@ export class ProductRepository {
       .single();
 
     if (error) {
-      console.error("Error fetching product by id:", error);
+      if (error.code !== "PGRST116") { // not found — expected, not an error
+        console.error("Error fetching product by id:", error);
+      }
       return null;
     }
     return data;
@@ -38,10 +40,67 @@ export class ProductRepository {
       .single();
 
     if (error) {
-      console.error("Error fetching product by slug:", error);
+      if (error.code !== "PGRST116") { // not found — expected, not an error
+        console.error("Error fetching product by slug:", error);
+      }
       return null;
     }
     return data;
+  }
+
+  /**
+   * Active products flagged `is_featured` — the Lookbook homepage's
+   * hero thumbnail row (Phase 2).
+   */
+  async getFeaturedProducts(): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .eq("is_featured", true)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching featured products:", error);
+      return [];
+    }
+    return data || [];
+  }
+
+  /**
+   * Active products belonging to any of the given category ids.
+   */
+  async getActiveProductsByCategoryIds(categoryIds: string[]): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .in("category_id", categoryIds)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching products by category:", error);
+      return [];
+    }
+    return data || [];
+  }
+
+  /**
+   * Every active product, across all categories — used by `/products`
+   * (Phase 3) and the public `/api/products` route (no filter).
+   */
+  async getAllActiveProducts(): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching active products:", error);
+      return [];
+    }
+    return data || [];
   }
 
   async updateStock(
