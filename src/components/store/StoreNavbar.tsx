@@ -10,6 +10,7 @@ import { useCart } from "@/features/cart/cart.hooks";
 import { useTheme } from "@/features/theme/theme.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
 import CartDrawer from "./CartDrawer";
+import BrandLogo from "./BrandLogo";
 
 interface StoreNavbarProps {
   categories: Category[];
@@ -98,9 +99,8 @@ export default function StoreNavbar({ categories }: StoreNavbarProps) {
       >
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-5 sm:px-10">
           {/* Start: wordmark */}
-          <Link href="/" className="flex shrink-0 items-center gap-1.5 font-heading text-lg font-extrabold">
-            <span className="text-brand-600 dark:text-brand-400">{t("store.footer.brand")}</span>
-            <span className="text-text-primary">7alm</span>
+          <Link href="/" className="flex shrink-0 items-center">
+            <BrandLogo className="h-8 w-auto text-text-primary" />
           </Link>
 
           {/* Center: flat micro-label nav (desktop) */}

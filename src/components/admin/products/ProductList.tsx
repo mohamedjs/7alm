@@ -11,6 +11,7 @@ interface ProductListProps {
   isLoading: boolean;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
+  onToggleFeatured: (id: string, featured: boolean) => void;
 }
 
 export default function ProductList({
@@ -18,6 +19,7 @@ export default function ProductList({
   isLoading,
   onEdit,
   onDelete,
+  onToggleFeatured,
 }: ProductListProps) {
   const { t } = useLocale();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -66,6 +68,7 @@ export default function ProductList({
             <th className="px-6 py-4 font-medium">{t("products.list.price")}</th>
             <th className="px-6 py-4 font-medium">{t("products.list.stock")}</th>
             <th className="px-6 py-4 font-medium">{t("products.list.status")}</th>
+            <th className="px-4 py-4 text-center font-medium">{t("products.list.featured")}</th>
             <th className="px-6 py-4 font-medium">{t("products.list.shareLinks")}</th>
             <th className="px-6 py-4 font-medium">{t("products.list.actions")}</th>
           </tr>
@@ -112,6 +115,22 @@ export default function ProductList({
                 >
                   {product.is_active ? t("products.list.active") : t("products.list.inactive")}
                 </span>
+              </td>
+              <td className="px-4 py-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => onToggleFeatured(product.id, !product.is_featured)}
+                  aria-label={product.is_featured ? t("products.list.unfeatured") : t("products.list.setFeatured")}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${
+                    product.is_featured ? "bg-brand-500" : "bg-border"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      product.is_featured ? "translate-x-6 rtl:-translate-x-6" : "translate-x-1 rtl:-translate-x-1"
+                    }`}
+                  />
+                </button>
               </td>
               <td className="px-6 py-4">
                 <div className="flex flex-col gap-2">

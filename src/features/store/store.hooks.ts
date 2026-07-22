@@ -8,11 +8,11 @@ export interface LookbookSection {
   index: number;
 }
 
-const MAX_HERO_SECTIONS = 4;
-
 /** Orders featured products by the admin-settable `featured_sort` (ascending,
  *  nulls last), falling back to `created_at ASC` as a tiebreaker for products
- *  that haven't been given an explicit value yet. Caps at MAX_HERO_SECTIONS. */
+ *  that haven't been given an explicit value yet. No hard cap — the hero's
+ *  scroll height (`N × 100vh`) and filmstrip both scale dynamically with the
+ *  number of featured products the admin has flagged. */
 export function useLookbookSections(featuredProducts: Product[]): LookbookSection[] {
   return useMemo(
     () =>
@@ -25,7 +25,6 @@ export function useLookbookSections(featuredProducts: Product[]): LookbookSectio
           if (b.featured_sort == null) return -1;
           return a.featured_sort - b.featured_sort;
         })
-        .slice(0, MAX_HERO_SECTIONS)
         .map((product, index) => ({ product, index })),
     [featuredProducts],
   );

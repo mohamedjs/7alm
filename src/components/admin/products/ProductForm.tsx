@@ -610,32 +610,48 @@ export default function ProductForm({
         <div className="space-y-3 pt-4 border-t border-border/20">
           <div>
             <label className={labelClasses}>{t("products.form.themeColor")}</label>
-            <p className="text-xs text-text-muted mb-2">{t("products.form.themeColorHint")}</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {THEME_COLOR_PRESETS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, theme_color: color })}
-                  aria-label={color}
-                  className={`w-8 h-8 rounded-full transition-all ${
-                    formData.theme_color === color
-                      ? "ring-2 ring-offset-2 ring-brand-500 ring-offset-surface scale-110"
-                      : "neu-raised-sm"
-                  }`}
-                  style={{ backgroundColor: color }}
+            <p className="text-xs text-text-muted mb-3">{t("products.form.themeColorHint")}</p>
+            <div className="flex items-center gap-4">
+              {/* Large color preview rectangle */}
+              <label className="relative flex-shrink-0 cursor-pointer group">
+                <div
+                  className="h-16 w-24 rounded-2xl neu-raised-sm transition-transform group-hover:scale-105"
+                  style={{ backgroundColor: formData.theme_color || "#06b6d4" }}
                 />
-              ))}
-              <input
-                type="color"
-                value={formData.theme_color || "#06b6d4"}
-                onChange={(e) =>
-                  setFormData({ ...formData, theme_color: e.target.value })
-                }
-                dir="ltr"
-                placeholder={t("products.form.themeColorCustom")}
-                className={`${inputClasses} w-32 ms-2`}
-              />
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white/80 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">
+                  {t("products.form.themeColorPick")}
+                </span>
+                <input
+                  type="color"
+                  value={formData.theme_color || "#06b6d4"}
+                  onChange={(e) =>
+                    setFormData({ ...formData, theme_color: e.target.value })
+                  }
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
+              </label>
+              {/* Preset swatches + hex value */}
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {THEME_COLOR_PRESETS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, theme_color: color })}
+                      aria-label={color}
+                      className={`w-8 h-8 rounded-full transition-all ${
+                        formData.theme_color === color
+                          ? "ring-2 ring-offset-2 ring-brand-500 ring-offset-surface scale-110"
+                          : "neu-raised-sm"
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <span dir="ltr" className="text-xs font-mono text-text-muted tracking-widest">
+                  {formData.theme_color || "#06b6d4"}
+                </span>
+              </div>
             </div>
           </div>
 

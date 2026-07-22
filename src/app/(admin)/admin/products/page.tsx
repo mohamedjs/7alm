@@ -1,6 +1,7 @@
 "use client";
 
 import { useProductsManager } from "@/features/products/products.hooks";
+import { useUpdateProductMutation } from "@/features/products/products.api";
 import { useRealtime } from "@/features/realtime/realtime.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
 import ProductList from "@/components/admin/products/ProductList";
@@ -14,6 +15,8 @@ export default function ProductsPage() {
     refetch,
     removeProduct,
   } = useProductsManager();
+
+  const [updateProduct] = useUpdateProductMutation();
 
   // Realtime: auto-refresh on any change to the products table
   useRealtime("products", { event: "*", onEvent: () => refetch() });
@@ -44,6 +47,17 @@ export default function ProductsPage() {
         onDelete={async (id) => {
           try {
             await removeProduct(id);
+          } catch (err: unknown) {
+            const message =
+              err instanceof Error
+                ? err.message
+                : t("products.deleteFailed");
+            alert(message);
+          }
+        }}
+        onToggleFeatured={async (id, featured) => {
+          try {
+            await updateProduct({ id, is_featured: featured }).unwrap();
           } catch (err: unknown) {
             const message =
               err instanceof Error

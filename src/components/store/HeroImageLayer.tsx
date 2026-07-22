@@ -133,20 +133,20 @@ export default function HeroImageLayer({
           <Image
             src={section.product.main_image}
             alt={section.product.name}
-            width={460}
-            height={460}
+            width={320}
+            height={320}
             priority
-            className="h-auto w-full max-w-[300px] object-contain drop-shadow-2xl sm:max-w-[380px] lg:max-w-[460px]"
+            className="h-auto w-full max-w-[240px] object-contain drop-shadow-2xl sm:max-w-[280px] lg:max-w-[300px]"
           />
         </motion.div>
       ) : (
         <Image
           src={section.product.main_image}
           alt={section.product.name}
-          width={460}
-          height={460}
+          width={320}
+          height={320}
           priority={i === 0}
-          className="h-auto w-full max-w-[300px] object-contain drop-shadow-2xl sm:max-w-[380px] lg:max-w-[460px]"
+          className="h-auto w-full max-w-[240px] object-contain drop-shadow-2xl sm:max-w-[280px] lg:max-w-[300px]"
         />
       )}
     </motion.div>

@@ -207,10 +207,10 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
                   <Image
                     src={activeItem.main_image}
                     alt={activeItem.name}
-                    width={420}
-                    height={420}
+                    width={320}
+                    height={320}
                     priority
-                    className="w-full max-w-[320px] lg:max-w-[420px] h-auto object-contain drop-shadow-2xl"
+                    className="w-full max-w-[240px] lg:max-w-[300px] h-auto object-contain drop-shadow-2xl"
                   />
                 </motion.div>
               )}
