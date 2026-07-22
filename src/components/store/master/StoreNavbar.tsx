@@ -9,7 +9,7 @@ import { useHeroNavVisible } from "@/features/store/store.hooks";
 import { useCart } from "@/features/cart/cart.hooks";
 import { useTheme } from "@/features/theme/theme.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
-import CartDrawer from "./CartDrawer";
+import CartDrawer from "../cart/CartDrawer";
 import BrandLogo from "./BrandLogo";
 
 interface StoreNavbarProps {

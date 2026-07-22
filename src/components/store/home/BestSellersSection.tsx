@@ -3,7 +3,7 @@
 import type { Product } from "@/features/shared/types";
 import { useCart } from "@/features/cart/cart.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
-import ProductCard from "./ProductCard";
+import ProductCard from "../product/ProductCard";
 
 interface BestSellersSectionProps {
   products: Product[];

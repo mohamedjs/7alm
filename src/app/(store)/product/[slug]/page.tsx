@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { productService } from "@/features/products/products.service";
 import { categoryService } from "@/features/categories/categories.service";
-import StoreNavbar from "@/components/store/StoreNavbar";
-import ProductDetail from "@/components/store/ProductDetail";
-import StoreFooter from "@/components/store/StoreFooter";
+import StoreNavbar from "@/components/store/master/StoreNavbar";
+import ProductDetail from "@/components/store/product/ProductDetail";
+import StoreFooter from "@/components/store/master/StoreFooter";
 
 export const dynamic = "force-dynamic";
 

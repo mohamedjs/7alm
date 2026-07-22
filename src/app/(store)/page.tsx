@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { productService } from "@/features/products/products.service";
 import { categoryService } from "@/features/categories/categories.service";
-import StoreNavbar from "@/components/store/StoreNavbar";
-import LookbookHero from "@/components/store/LookbookHero";
-import BestSellersSection from "@/components/store/BestSellersSection";
-import CategoryGrid from "@/components/store/CategoryGrid";
-import StoreFooter from "@/components/store/StoreFooter";
+import StoreNavbar from "@/components/store/master/StoreNavbar";
+import LookbookHero from "@/components/store/home/LookbookHero";
+import BestSellersSection from "@/components/store/home/BestSellersSection";
+import CategoryGrid from "@/components/store/home/CategoryGrid";
+import StoreFooter from "@/components/store/master/StoreFooter";
 
 // Server-rendered on demand rather than prerendered — avoids requiring
 // Supabase access at build time (there is no dynamic param here, unlike
