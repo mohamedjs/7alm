@@ -733,7 +733,9 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/{{ $('Merge All Channels').first().json.igUserId }}/messages",
+        "url": "=https://graph.instagram.com/v23.0/{{ $('Merge All Channels').first().json.igUserId }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -745,7 +747,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} },\n  \"access_token\": \"IGAAV0Gw2akkVBZAFlkcno4aUhzNlNBeHU0T215ZA1c4Q2E4YnV5SlpZAQ2RXNk5XOExEaDRmbFJEcGhUaDRzdHZAXYlJaMUpfOTB2bm4wSGJDTFlwY2ZAGRWxRMDY3NDBIZAFJwRUpCVG5wTVFmWlIxY214RE5TMWpEZADNaNl9KWDJUOAZDZD\"\n}",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} }\n}",
         "options": {}
       },
       "id": "584017eb-589b-4222-a534-26f89217ffad",
@@ -756,12 +758,20 @@
         -752
       ],
       "typeVersion": 4.2,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "<placeholder>",
+          "name": "Instagram token -2"
+        }
+      },
       "notes": "Sends a DM reply via Instagram Messaging API. Uses the connected Facebook Page's access token."
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://graph.facebook.com/v21.0/{{ $('Merge All Channels').first().json.senderId }}/messages",
+        "url": "=https://graph.instagram.com/v23.0/{{ $('Merge All Channels').first().json.igUserId }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -773,7 +783,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} },\n  \"access_token\": \"IGAAV0Gw2akkVBZAFlkcno4aUhzNlNBeHU0T215ZA1c4Q2E4YnV5SlpZAQ2RXNk5XOExEaDRmbFJEcGhUaDRzdHZAXYlJaMUpfOTB2bm4wSGJDTFlwY2ZAGRWxRMDY3NDBIZAFJwRUpCVG5wTVFmWlIxY214RE5TMWpEZADNaNl9KWDJUOAZDZD\"\n}",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} }\n}",
         "options": {}
       },
       "id": "8344dafc-d11d-4538-96fd-b2e758355f97",
@@ -784,6 +794,12 @@
         -576
       ],
       "typeVersion": 4.2,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "<placeholder>",
+          "name": "Instagram token -2"
+        }
+      },
       "notes": "When someone comments on Instagram, sends them a private DM reply instead of a public comment."
     },
     {
