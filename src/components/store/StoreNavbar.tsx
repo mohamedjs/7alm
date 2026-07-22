@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Moon, ShoppingBag, Sun, X } from "lucide-react";
 import type { Category } from "@/features/shared/types";
-import { useScrollGlass } from "@/features/store/store.hooks";
+import { useHeroNavVisible } from "@/features/store/store.hooks";
 import { useCart } from "@/features/cart/cart.hooks";
 import { useTheme } from "@/features/theme/theme.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
@@ -16,13 +16,18 @@ interface StoreNavbarProps {
 }
 
 /**
- * Flat, full-width header (McLaren-headphones reference redesign) —
- * flush to the top edge, no detached pill, no rounded corners, no
- * neumorphic relief. It keeps `.store-glass` (theme-reactive
- * translucency + blur, see globals.css) as its background so the nav
- * text stays legible over the light `bg-surface` pages and the hero's
- * color wash alike; scrolling past the top adds only a hairline border
- * and soft shadow, never a shape change.
+ * Flat, transparent header floating over the top of the full-bleed
+ * Lookbook hero. It is technically `fixed` but behaves like part of the
+ * hero, not a sticky viewport bar: `useHeroNavVisible` keeps it on
+ * screen for the whole pinned filmstrip scroll sequence (the hero holds
+ * the viewport for N×100vh — an `absolute` bar would scroll away on the
+ * first wheel tick while the slider is still playing), then slides it
+ * up and away once the hero un-pins; on hero-less pages it leaves as
+ * soon as the visitor scrolls. Text stays legible because every color
+ * is a theme token over the token-driven `bg-surface` stage. While the
+ * mobile menu is open the bar becomes a glass sheet (`.store-glass`,
+ * rounded bottom) so the bento panel never hangs on a transparent
+ * strip.
  *
  * Layout (logical properties only — mirrors correctly under RTL):
  * - Start: wordmark.
@@ -33,11 +38,12 @@ interface StoreNavbarProps {
  *   underline instead of a pill background.
  * - End: flat icon buttons (theme toggle, cart with live count badge)
  *   and a minimal EN/AR text pair.
- * - Mobile: center links collapse into a dropdown under the bar,
- *   controls stay visible in the compact header.
+ * - Mobile: the burger opens a detached bento-grid panel of chunky
+ *   neumorphic link tiles (`neu-raised-sm` / active `neu-pressed-sm`,
+ *   the admin design language) instead of a flat link list.
  */
 export default function StoreNavbar({ categories }: StoreNavbarProps) {
-  const isScrolled = useScrollGlass();
+  const isNavVisible = useHeroNavVisible();
   const { itemCount } = useCart();
   const pathname = usePathname();
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -82,13 +88,15 @@ export default function StoreNavbar({ categories }: StoreNavbarProps) {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ${
-          isScrolled
-            ? "store-glass border-b border-border/60 shadow-md shadow-black/5"
-            : "border-b border-transparent bg-transparent"
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          isNavVisible ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-full opacity-0"
+        } ${
+          isMobileMenuOpen
+            ? "store-glass rounded-b-3xl border-b border-border/60 shadow-lg shadow-black/10"
+            : "bg-transparent"
         }`}
       >
-        <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
+        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-5 sm:px-10">
           {/* Start: wordmark */}
           <Link href="/" className="flex shrink-0 items-center gap-1.5 font-heading text-lg font-extrabold">
             <span className="text-brand-600 dark:text-brand-400">{t("store.footer.brand")}</span>
@@ -164,21 +172,31 @@ export default function StoreNavbar({ categories }: StoreNavbarProps) {
           </div>
         </nav>
 
-        {/* Mobile nav dropdown */}
+        {/* Mobile nav — bento-grid panel in the admin's neumorphic
+            design language: a 2-column grid of chunky link tiles
+            (`neu-raised-sm`; the active route pressed-in with
+            `neu-pressed-sm` + brand tint); the last odd tile spans both
+            columns so the grid always closes cleanly. The language
+            switch sits in a full-width pressed tray below. While open,
+            the whole bar becomes a rounded glass card (see header
+            class) so the grid never hangs on a transparent strip. */}
         {isMobileMenuOpen && (
-          <div className="border-t border-border/60 px-4 py-3 md:hidden">
-            <nav className="flex flex-col gap-1">
-              {navLinks.map((link) => {
+          <div className="px-3 pb-3 md:hidden">
+            <nav className="grid grid-cols-2 gap-2">
+              {navLinks.map((link, index) => {
                 const isActive = pathname === link.href;
+                const spansBoth = index === navLinks.length - 1 && navLinks.length % 2 === 1;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`py-2 transition-colors ${navLabelClass} ${
+                    className={`flex min-h-16 items-center justify-center rounded-2xl bg-surface px-4 py-3 text-center transition-all ${navLabelClass} ${
+                      spansBoth ? "col-span-2" : ""
+                    } ${
                       isActive
-                        ? "text-brand-600 dark:text-brand-400"
-                        : "text-text-muted hover:text-text-primary"
+                        ? "neu-pressed-sm text-brand-600 dark:text-brand-400"
+                        : "neu-raised-sm text-text-primary/80 hover:text-text-primary"
                     }`}
                   >
                     {link.label}
@@ -186,12 +204,36 @@ export default function StoreNavbar({ categories }: StoreNavbarProps) {
                 );
               })}
             </nav>
-            <div className="mt-2 flex w-fit items-center sm:hidden">
-              {localeButton("en", "EN", "English")}
-              <span aria-hidden="true" className="text-xs text-text-muted/50">
-                /
-              </span>
-              {localeButton("ar", "AR", "العربية")}
+            <div className="mt-2 flex items-center justify-between rounded-2xl bg-surface/70 px-4 py-2.5 neu-pressed-sm">
+              <span className="text-xs font-semibold text-text-muted">{t("action.language")}</span>
+              <div className="flex items-center gap-0.5 rounded-xl bg-surface p-0.5 neu-raised-sm">
+                <button
+                  type="button"
+                  onClick={() => setLocale("en")}
+                  aria-pressed={locale === "en"}
+                  aria-label="English"
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                    locale === "en"
+                      ? "neu-pressed-sm text-brand-600 dark:text-brand-400"
+                      : "text-text-muted"
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocale("ar")}
+                  aria-pressed={locale === "ar"}
+                  aria-label="العربية"
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                    locale === "ar"
+                      ? "neu-pressed-sm text-brand-600 dark:text-brand-400"
+                      : "text-text-muted"
+                  }`}
+                >
+                  AR
+                </button>
+              </div>
             </div>
           </div>
         )}

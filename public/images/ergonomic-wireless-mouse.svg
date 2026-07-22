@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Dark titanium body finish -->
+    <linearGradient id="body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="50%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <!-- Metallic copper/gold accent -->
+    <linearGradient id="metal-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+
+    <!-- Rubberized grip pattern -->
+    <pattern id="grip-pattern" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1.2" fill="#0F172A" />
+    </pattern>
+
+    <!-- Mouse shadow -->
+    <filter id="mouse-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <g filter="url(#mouse-shadow)" transform="translate(100, 200)">
+    <!-- Sculpted thumb rest wing (left side extension) -->
+    <path d="M40,240 C10,240 0,180 5,140 C10,100 30,80 50,80 L60,80 L60,260 Z" fill="#1E293B" stroke="#0F172A" stroke-width="2" />
+    <!-- Textured grip area on thumb rest -->
+    <path d="M35,210 C20,210 12,170 15,140 C18,110 30,95 45,95 Z" fill="url(#grip-pattern)" opacity="0.3" />
+
+    <!-- Main Mouse Body (Ergonomic curve, asymmetric) -->
+    <path d="M50,40 C100,40 160,50 165,110 C170,170 172,250 150,300 C130,340 70,340 50,300 C35,270 38,200 40,110 C42,50 48,40 50,40 Z" 
+          fill="url(#body-grad)" stroke="#0F172A" stroke-width="2.5" />
+
+    <!-- Left / Right Click Split Line -->
+    <path d="M102,41 L102,130" stroke="#0F172A" stroke-width="2" fill="none" />
+
+    <!-- Scroll Wheel Slot -->
+    <rect x="94" y="60" width="16" height="42" rx="4" fill="#0F172A" />
+    <!-- Scroll Wheel (Metallic with ridge cuts) -->
+    <rect x="98" y="63" width="8" height="34" rx="2" fill="url(#metal-accent)" />
+    <!-- Ridges on wheel -->
+    <line x1="98" y1="73" x2="106" y2="73" stroke="#451A03" stroke-width="1.5" />
+    <line x1="98" y1="80" x2="106" y2="80" stroke="#451A03" stroke-width="1.5" />
+    <line x1="98" y1="87" x2="106" y2="87" stroke="#451A03" stroke-width="1.5" />
+
+    <!-- Battery / DPI indicator LEDs (Three tiny glowing dots on left side) -->
+    <circle cx="28" cy="130" r="2" fill="#10B981" />
+    <circle cx="28" cy="138" r="2" fill="#10B981" />
+    <circle cx="28" cy="146" r="2" fill="#10B981" />
+
+    <!-- Metallic thumb scroll wheel (Side wheel) -->
+    <rect x="22" y="100" width="8" height="20" rx="1.5" fill="url(#metal-accent)" />
+
+    <!-- Subtle body seam/groove lines for premium 3D detail -->
+    <path d="M40,110 C60,110 80,120 102,130 C120,130 140,120 160,110" stroke="#0F172A" stroke-width="1.5" stroke-opacity="0.5" fill="none" />
+    <path d="M102,130 L102,320" stroke="#0F172A" stroke-width="1.5" stroke-opacity="0.3" fill="none" />
+  </g>
+</svg>

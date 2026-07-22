@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Aluminum body gradient -->
+    <linearGradient id="body-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <!-- Keycap light -->
+    <linearGradient id="key-light" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#475569" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+
+    <!-- Keycap white -->
+    <linearGradient id="key-white" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+
+    <!-- Keycap accent (Teal) -->
+    <linearGradient id="key-accent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#0891B2" />
+    </linearGradient>
+
+    <!-- RGB glow effect underneath keys -->
+    <filter id="rgb-glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06B6D4" flood-opacity="0.65" />
+    </filter>
+
+    <filter id="keyboard-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <g filter="url(#keyboard-shadow)" transform="translate(0, 150)">
+    <!-- Keyboard main frame base -->
+    <rect x="30" y="200" width="340" height="150" rx="14" fill="url(#body-grad)" stroke="#334155" stroke-width="2.5" />
+    <!-- Metallic chamfered outer highlight -->
+    <rect x="32" y="202" width="336" height="146" rx="12" fill="none" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="1.5" />
+
+    <!-- RGB glow ring (simulated acrylic layer) -->
+    <rect x="38" y="208" width="324" height="134" rx="8" fill="none" stroke="#3B82F6" stroke-width="3" filter="url(#rgb-glow)" opacity="0.4" />
+
+    <!-- Rows of keys (chunky mechanical keys) -->
+    <!-- Row 1 (F-keys / Escape) -->
+    <g transform="translate(42, 214)">
+      <!-- Escape (Teal) -->
+      <rect x="0" y="0" width="18" height="16" rx="3.5" fill="url(#key-accent)" />
+      <!-- F1-F4 (Dark slate) -->
+      <rect x="24" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="46" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="68" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="90" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <!-- F5-F8 (White) -->
+      <rect x="118" y="0" width="18" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="140" y="0" width="18" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="162" y="0" width="18" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="184" y="0" width="18" height="16" rx="3.5" fill="url(#key-white)" />
+      <!-- F9-F12 (Dark slate) -->
+      <rect x="212" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="234" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="256" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="278" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <!-- Extras -->
+      <rect x="300" y="0" width="16" height="16" rx="3.5" fill="url(#key-accent)" />
+    </g>
+
+    <!-- Row 2 (Numbers) -->
+    <g transform="translate(42, 236)">
+      <rect x="0" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <!-- 1-10 -->
+      <rect x="20" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="40" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="60" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="80" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="100" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="120" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="140" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="160" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="180" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="200" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <!-- Backspace (Accent) -->
+      <rect x="220" y="0" width="36" height="16" rx="3.5" fill="url(#key-accent)" />
+      <rect x="260" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="280" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="300" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+    </g>
+
+    <!-- Row 3 (QWERTY) -->
+    <g transform="translate(42, 258)">
+      <rect x="0" y="0" width="26" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="30" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="50" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="70" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="90" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="110" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="130" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="150" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="170" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="190" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="210" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="230" y="0" width="26" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="260" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="280" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="300" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+    </g>
+
+    <!-- Row 4 (ASDF) -->
+    <g transform="translate(42, 280)">
+      <rect x="0" y="0" width="32" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="36" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="56" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="76" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="96" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="116" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="136" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="156" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="176" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="196" y="0" width="16" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="216" y="0" width="40" height="16" rx="3.5" fill="url(#key-accent)" />
+      <rect x="260" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="280" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="300" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+    </g>
+
+    <!-- Row 5 (Spacebar / Bottom Row) -->
+    <g transform="translate(42, 302)">
+      <rect x="0" y="0" width="22" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="26" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="48" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <!-- Spacebar (White) -->
+      <rect x="70" y="0" width="110" height="16" rx="3.5" fill="url(#key-white)" />
+      <rect x="184" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="206" y="0" width="18" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="228" y="0" width="28" height="16" rx="3.5" fill="url(#key-light)" />
+      <!-- Directional Arrows -->
+      <rect x="260" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="280" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+      <rect x="300" y="0" width="16" height="16" rx="3.5" fill="url(#key-light)" />
+    </g>
+
+    <!-- Glowing Rotary Knob on top right (Classic luxury mechanical keyboard feature) -->
+    <circle cx="340" cy="222" r="9" fill="url(#key-accent)" stroke="#0E172A" stroke-width="1.5" />
+    <circle cx="340" cy="222" r="5" fill="#0F172A" />
+  </g>
+</svg>

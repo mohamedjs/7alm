@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Premium walnut wood texture -->
+    <linearGradient id="walnut-wood" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4A2E1B" />
+      <stop offset="30%" stop-color="#5C3A21" />
+      <stop offset="70%" stop-color="#3B2314" />
+      <stop offset="100%" stop-color="#4A2E1B" />
+    </linearGradient>
+    
+    <!-- Premium matte dark aluminum legs -->
+    <linearGradient id="leg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <!-- Bevel light highlight -->
+    <linearGradient id="bevel-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+
+    <!-- Riser shadow -->
+    <filter id="riser-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Monitor Stand Centered Composition -->
+  <g filter="url(#riser-shadow)" transform="translate(0, 160)">
+    <!-- Wooden Shelf Top Board (Thick luxury walnut, tilted in perspective) -->
+    <path d="M40,280 L360,280 L340,160 L60,160 Z" fill="url(#walnut-wood)" stroke="url(#bevel-grad)" stroke-width="1.5" />
+    
+    <!-- Front edge bezel for 3D thickness -->
+    <path d="M40,280 L360,280 L360,296 L40,296 Z" fill="#3B2314" />
+    <path d="M40,280 L60,160 L60,176 L40,296 Z" fill="#2E1C10" />
+
+    <!-- Left Leg Assembly (Matte Aluminum) -->
+    <g transform="translate(70, 296)">
+      <!-- Angled front leg block -->
+      <path d="M0,0 L24,0 L18,70 L6,70 Z" fill="url(#leg-grad)" />
+      <!-- Silicone base foot pad -->
+      <rect x="5" y="70" width="14" height="4" rx="1" fill="#1E293B" />
+      <!-- Support brace -->
+      <path d="M12,0 L12,40 L30,40" stroke="#1E293B" stroke-width="3" fill="none" />
+    </g>
+
+    <!-- Right Leg Assembly (Matte Aluminum) -->
+    <g transform="translate(286, 296)">
+      <!-- Angled front leg block -->
+      <path d="M0,0 L-24,0 L-18,70 L-6,70 Z" fill="url(#leg-grad)" />
+      <!-- Silicone base foot pad -->
+      <rect x="-19" y="70" width="14" height="4" rx="1" fill="#1E293B" />
+      <!-- Support brace -->
+      <path d="-M12,0 L-12,40 L-30,40" stroke="#1E293B" stroke-width="3" fill="none" />
+    </g>
+
+    <!-- Under shelf accessory storage drawer outline (acrylic drawer tray) -->
+    <path d="M120,296 L260,296 L250,336 L130,336 Z" fill="#1E293B" fill-opacity="0.25" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1" />
+    <rect x="175" y="310" width="36" height="8" rx="4" fill="#334155" opacity="0.7" />
+  </g>
+</svg>

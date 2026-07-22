@@ -6,7 +6,7 @@ import { AtSign, Check, ChevronLeft, ChevronRight, MessageCircle, Send, Shopping
 import { useState, useRef, type CSSProperties } from "react";
 import { useScroll, useTransform, useReducedMotion, motion, useMotionValueEvent } from "motion/react";
 import type { Product } from "@/features/shared/types";
-import { useLookbookSections } from "@/features/store/store.hooks";
+import { LOOKBOOK_HERO_ID, useLookbookSections } from "@/features/store/store.hooks";
 import LookbookGlow from "./LookbookGlow";
 import HeroContentLayer from "./HeroContentLayer";
 import HeroImageLayer from "./HeroImageLayer";
@@ -225,15 +225,17 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
   return (
     <div
       ref={containerRef}
+      id={LOOKBOOK_HERO_ID}
       style={{ height: prefersReducedMotion ? "100vh" : `${N * 100}vh` }}
       className="relative w-full"
     >
-      {/* Framed showcase card (McLaren-headphones reference) — the sticky
-          viewport keeps a strip of page background visible around a
-          rounded stage, and top padding clears the flat fixed navbar so
-          the card starts just below it. */}
-      <div className="sticky top-0 h-screen w-full px-2.5 pb-2.5 pt-[4.25rem] sm:px-4 sm:pb-4 sm:pt-[4.75rem]">
-        <div className="relative h-full w-full overflow-hidden rounded-[1.75rem] bg-surface sm:rounded-[2.5rem]">
+      {/* Full-bleed showcase stage (user request) — spans the whole
+          viewport width, rounded only at the two bottom corners; the
+          transparent, non-sticky navbar floats over its top edge so
+          the nav reads as living inside the stage like the McLaren
+          reference. */}
+      <div className="sticky top-0 h-screen w-full">
+        <div className="relative h-full w-full overflow-hidden rounded-b-[2rem] bg-surface sm:rounded-b-[3rem]">
           {/* Full-bleed color wash — smooth per-section color gradient,
               reusing the same glowColorRaw MotionValue that drives the
               radial glow so both stay in perfect sync. Its opacity comes

@@ -48,6 +48,41 @@ export function useScrollGlass(threshold = 24): boolean {
   return isScrolled;
 }
 
+/** DOM id the Lookbook hero's scroll container announces itself under —
+ *  `useHeroNavVisible` reads it to know how long the pinned stage lasts. */
+export const LOOKBOOK_HERO_ID = "lookbook-hero";
+
+/**
+ * Whether the floating store navbar should be on screen. The navbar is
+ * deliberately NOT sticky (user request) — but it must stay visible for
+ * the whole pinned Lookbook-hero scroll sequence (the hero holds the
+ * viewport for N×100vh while the filmstrip plays, and the nav floats
+ * over its top edge the entire time). So:
+ * - On pages with the hero (`#lookbook-hero` exists): visible until the
+ *   sticky stage un-pins (scrollY passes container bottom − viewport).
+ * - Elsewhere: visible only near the top of the page, then it slides
+ *   away like any static header would.
+ */
+export function useHeroNavVisible(): boolean {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const hero = document.getElementById(LOOKBOOK_HERO_ID);
+      const heroPinEnd = hero
+        ? hero.offsetTop + hero.offsetHeight - window.innerHeight
+        : 0;
+      const threshold = heroPinEnd > 0 ? heroPinEnd : 80;
+      setVisible(window.scrollY < threshold);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return visible;
+}
+
 export type ProductSortOption = "newest" | "price-asc" | "price-desc";
 
 interface UseProductFiltersResult {

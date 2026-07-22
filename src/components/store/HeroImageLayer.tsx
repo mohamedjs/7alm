@@ -23,6 +23,28 @@ interface HeroImageLayerProps {
 const EPS = 1e-6;
 
 /**
+ * Pads keyframe tracks so they explicitly cover offsets 0 and 1 by
+ * holding the edge values flat. WAAPI (which Motion uses to
+ * hardware-accelerate these scroll-linked transforms) inserts IMPLICIT
+ * keyframes at 0/1 from the element's underlying style when they're
+ * missing — an opacity track ending mid-range at 0 would otherwise
+ * interpolate back up toward the underlying 1 as scroll approaches the
+ * end, resurrecting hidden layers as ghosts (and likewise snapping
+ * x/scale back toward rest).
+ */
+function padTo01(inputs: number[], ...tracks: (string | number)[][]) {
+  if (inputs.length === 0) return;
+  if (inputs[0] > EPS) {
+    inputs.unshift(0);
+    for (const track of tracks) track.unshift(track[0]);
+  }
+  if (inputs[inputs.length - 1] < 1 - EPS) {
+    inputs.push(1);
+    for (const track of tracks) track.push(track[track.length - 1]);
+  }
+}
+
+/**
  * One featured product's showcase image inside the multi-section Lookbook
  * hero (see `LookbookHero.tsx`), redesigned as a horizontal filmstrip
  * (McLaren-headphones reference): the active product sits large in the
@@ -34,11 +56,10 @@ const EPS = 1e-6;
  * The keyframes span up to two steps either side of this section's own
  * breakpoint so a section two-or-more steps away is fully transparent —
  * only the active product and its immediate neighbours are ever visible.
- * Offsets that would fall outside [0, 1] are dropped (not clamped or
- * extrapolated): Motion hardware-accelerates these scroll-linked
- * transforms through WAAPI (`Element.animate`), which throws on keyframe
- * offsets outside [0, 1] or out of order, so every input array must stay
- * in-range and strictly increasing.
+ * Keyframe hygiene (WAAPI rules): offsets outside [0, 1] are dropped
+ * (not clamped or extrapolated — `Element.animate` throws on offsets
+ * outside [0, 1] or out of order), and the track is then padded to
+ * explicitly cover 0 and 1 (see `padTo01`).
  *
  * Extracted component (not inlined in the parent's `.map()`) so the
  * `useTransform` hooks stay at a component's top level — Rules of Hooks.
@@ -79,6 +100,7 @@ export default function HeroImageLayer({
       scaleFrames.push(scale);
       opacityFrames.push(opacity);
     }
+    padTo01(inputs, xFrames, scaleFrames, opacityFrames);
     return { inputs, xFrames, scaleFrames, opacityFrames };
   }, [curr, step, sign]);
 

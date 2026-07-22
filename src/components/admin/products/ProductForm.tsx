@@ -627,7 +627,7 @@ export default function ProductForm({
                 />
               ))}
               <input
-                type="text"
+                type="color"
                 value={formData.theme_color || "#06b6d4"}
                 onChange={(e) =>
                   setFormData({ ...formData, theme_color: e.target.value })

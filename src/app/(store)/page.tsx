@@ -37,7 +37,7 @@ export default async function StoreHomePage() {
       <StoreNavbar categories={categories} />
       <LookbookHero featuredProducts={featuredProducts} />
       <BestSellersSection products={bestSellers} />
-      <CategoryGrid categories={categories} />
+      {/* <CategoryGrid categories={categories} /> */}
       <StoreFooter />
     </main>
   );

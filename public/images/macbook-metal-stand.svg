@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Aluminum Silver Gradients -->
+    <linearGradient id="alum-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="30%" stop-color="#E2E8F0" />
+      <stop offset="70%" stop-color="#CBD5E1" />
+      <stop offset="100%" stop-color="#94A3B8" />
+    </linearGradient>
+    <linearGradient id="alum-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#64748B" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <!-- Gray silicone pads -->
+    <linearGradient id="silicone-pad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#475569" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <!-- Stand Shadow -->
+    <filter id="stand-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#0F172A" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <!-- Laptop Stand Composition Centered (0 0 400 800) -->
+  <g filter="url(#stand-shadow)" transform="translate(0, 80)">
+    <!-- Base Plate (Resting on Desk) -->
+    <rect x="80" y="460" width="240" height="24" rx="12" fill="url(#alum-dark)" />
+    <rect x="82" y="462" width="236" height="6" rx="3" fill="#FFFFFF" opacity="0.3" />
+    <!-- Silicone feet on base -->
+    <rect x="100" y="480" width="40" height="4" rx="2" fill="#1E293B" />
+    <rect x="260" y="480" width="40" height="4" rx="2" fill="#1E293B" />
+
+    <!-- Vertical / Angled Main Supporting Arm -->
+    <path d="M160,460 L140,240 C140,225 152,212 167,212 L233,212 C248,212 260,225 260,240 L240,460 Z" fill="url(#alum-light)" />
+    <!-- Arm cutout for cable management & style -->
+    <path d="M178,410 L166,260 C165,252 171,245 179,245 L221,245 C229,245 235,252 234,260 L222,410 Z" fill="#0F172A" opacity="0.1" />
+
+    <!-- Joint Mechanism (Circle accent) -->
+    <circle cx="200" cy="225" r="16" fill="url(#alum-dark)" />
+    <circle cx="200" cy="225" r="8" fill="#E2E8F0" />
+
+    <!-- Upper Laptop Cradle Plate (Angled upwards) -->
+    <g transform="rotate(-12, 200, 220)">
+      <!-- Main plate -->
+      <rect x="70" y="170" width="260" height="40" rx="10" fill="url(#alum-light)" />
+      <!-- Left support arm extending forward -->
+      <path d="M85,170 L85,100 C85,90 93,82 103,82 L120,82 L120,170 Z" fill="url(#alum-light)" />
+      <!-- Right support arm extending forward -->
+      <path d="M280,170 L280,100 C280,90 288,82 298,82 L315,82 L315,170 Z" fill="url(#alum-light)" />
+
+      <!-- Left anti-slip hook -->
+      <path d="M103,82 C103,72 113,64 123,64 L135,64 L135,82 Z" fill="url(#alum-dark)" />
+      <!-- Right anti-slip hook -->
+      <path d="M298,82 C298,72 308,64 318,64 L330,64 L330,82 Z" fill="url(#alum-dark)" />
+
+      <!-- Silicone protection pads on the hooks -->
+      <path d="M115,64 L130,64 L130,76 L115,76 Z" fill="url(#silicone-pad)" />
+      <path d="M310,64 L325,64 L325,76 L310,76 Z" fill="url(#silicone-pad)" />
+
+      <!-- Large silicone pads on the cradle arms -->
+      <rect x="90" y="100" width="24" height="60" rx="4" fill="url(#silicone-pad)" />
+      <rect x="286" y="100" width="24" height="60" rx="4" fill="url(#silicone-pad)" />
+    </g>
+  </g>
+</svg>

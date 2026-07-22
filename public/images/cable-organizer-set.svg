@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Silicone organizer base (Dark graphite) -->
+    <linearGradient id="base-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A3F4D" />
+      <stop offset="50%" stop-color="#282C35" />
+      <stop offset="100%" stop-color="#181A20" />
+    </linearGradient>
+
+    <!-- Cable 1: Cyan braided sleeve -->
+    <linearGradient id="cable-cyan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#0891B2" />
+    </linearGradient>
+
+    <!-- Cable 2: Coral Red -->
+    <linearGradient id="cable-red" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F87171" />
+      <stop offset="100%" stop-color="#DC2626" />
+    </linearGradient>
+
+    <!-- Cable 3: White silicone -->
+    <linearGradient id="cable-white" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#CBD5E1" />
+    </linearGradient>
+
+    <!-- Metallic USB-C connectors -->
+    <linearGradient id="metal-conn" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#CBD5E1" />
+      <stop offset="50%" stop-color="#E2E8F0" />
+      <stop offset="100%" stop-color="#94A3B8" />
+    </linearGradient>
+
+    <!-- Shadow -->
+    <filter id="organizer-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <g filter="url(#organizer-shadow)" transform="translate(0, 180)">
+    <!-- Base block (Tactile silicone pad with 5 cable grooves) -->
+    <rect x="50" y="240" width="300" height="70" rx="24" fill="url(#base-grad)" stroke="#181A20" stroke-width="1.5" />
+    <rect x="53" y="243" width="294" height="64" rx="21" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1.5" />
+
+    <!-- Cable Slots / Indentations -->
+    <!-- Slot 1 -->
+    <rect x="92" y="234" width="16" height="82" rx="8" fill="#181A20" />
+    <!-- Slot 2 -->
+    <rect x="146" y="234" width="16" height="82" rx="8" fill="#181A20" />
+    <!-- Slot 3 -->
+    <rect x="200" y="234" width="16" height="82" rx="8" fill="#181A20" />
+    <!-- Slot 4 -->
+    <rect x="254" y="234" width="16" height="82" rx="8" fill="#181A20" />
+    <!-- Slot 5 -->
+    <rect x="308" y="234" width="16" height="82" rx="8" fill="#181A20" />
+
+    <!-- Cables running through slots -->
+    <!-- Cable 1 (Left - Cyan braided) -->
+    <g>
+      <!-- Cable line going down -->
+      <path d="M100,100 C100,150 100,200 100,380" stroke="url(#cable-cyan)" stroke-width="10" stroke-linecap="round" fill="none" />
+      <!-- USB-C metal tip on top -->
+      <rect x="94" y="60" width="12" height="18" rx="2.5" fill="url(#metal-conn)" />
+      <!-- USB-C plastic collar -->
+      <rect x="92" y="78" width="16" height="24" rx="3.5" fill="#1E293B" stroke="#0F172A" stroke-width="1" />
+      <circle cx="100" cy="90" r="2.5" fill="#06B6D4" />
+    </g>
+
+    <!-- Cable 2 (Middle - Coral Red) -->
+    <g>
+      <path d="M208,120 C208,160 208,200 208,380" stroke="url(#cable-red)" stroke-width="10" stroke-linecap="round" fill="none" />
+      <!-- Lightning plug tip -->
+      <rect x="204" y="80" width="8" height="18" rx="1.5" fill="url(#metal-conn)" />
+      <line x1="204" y1="84" x2="212" y2="84" stroke="#475569" stroke-width="1" />
+      <line x1="204" y1="88" x2="212" y2="88" stroke="#475569" stroke-width="1" />
+      <!-- Plastic collar -->
+      <rect x="200" y="98" width="16" height="24" rx="3.5" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1" />
+    </g>
+
+    <!-- Cable 3 (Right - White USB-C) -->
+    <g>
+      <path d="M316,140 C316,180 316,220 316,380" stroke="url(#cable-white)" stroke-width="10" stroke-linecap="round" fill="none" />
+      <!-- USB-C metal tip -->
+      <rect x="310" y="100" width="12" height="18" rx="2.5" fill="url(#metal-conn)" />
+      <!-- Plastic collar -->
+      <rect x="308" y="118" width="16" height="24" rx="3.5" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1" />
+    </g>
+
+    <!-- Detailed slot retainer clips (silicone caps that hold cables in place) -->
+    <rect x="90" y="260" width="20" height="30" rx="4" fill="#282C35" stroke="#181A20" stroke-width="1" />
+    <rect x="144" y="260" width="20" height="30" rx="4" fill="#282C35" stroke="#181A20" stroke-width="1" />
+    <rect x="198" y="260" width="20" height="30" rx="4" fill="#282C35" stroke="#181A20" stroke-width="1" />
+    <rect x="252" y="260" width="20" height="30" rx="4" fill="#282C35" stroke="#181A20" stroke-width="1" />
+    <rect x="306" y="260" width="20" height="30" rx="4" fill="#282C35" stroke="#181A20" stroke-width="1" />
+  </g>
+</svg>
