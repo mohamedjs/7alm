@@ -93,6 +93,12 @@
               "name": "quantity",
               "type": "number",
               "value": "={{ $json.body.quantity || 1 }}"
+            },
+            {
+              "id": "pass-items",
+              "name": "items",
+              "type": "array",
+              "value": "={{ $json.body.items }}"
             }
           ]
         },
@@ -222,7 +228,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 👋\\n\\nتم قبول طلبك من متجر حلم! 🎉\\n\\n📦 المنتج: {{ $json.productName }}\\n📊 الكمية: {{ $json.quantity }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nللتأكيد وبدء تجهيز الشحنة رد على الرسالة دي بكلمة «تأكيد» ✅\\nولو حابب تلغي الطلب رد بكلمة «إلغاء» ❌\\n\\nمتجر حلم — شكراً لثقتك فينا 🙏\"\n}",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 👋\\n\\nتم قبول طلبك من متجر حلم! 🎉\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nللتأكيد وبدء تجهيز الشحنة رد على الرسالة دي بكلمة «تأكيد» ✅\\nولو حابب تلغي الطلب رد بكلمة «إلغاء» ❌\\n\\nمتجر حلم — شكراً لثقتك فينا 🙏\"\n}",
         "options": {}
       },
       "id": "wa-approved-001",
@@ -252,7 +258,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nشكراً لتأكيد طلبك!\\n\\n📦 المنتج: {{ $json.productName }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\\nشكراً لثقتك في متجر حلم! 🙏\"\n}",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nشكراً لتأكيد طلبك!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\\nشكراً لثقتك في متجر حلم! 🙏\"\n}",
         "options": {}
       },
       "id": "wa-confirmed-001",
@@ -282,7 +288,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🚚\\n\\nطلبك في الطريق إليك!\\n\\n📦 المنتج: {{ $json.productName }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\\n\\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\\nشكراً لصبرك! 😊\"\n}",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🚚\\n\\nطلبك في الطريق إليك!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\\n\\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\\nشكراً لصبرك! 😊\"\n}",
         "options": {}
       },
       "id": "wa-shipped-001",
@@ -312,7 +318,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nتم توصيل طلبك بنجاح!\\n\\n📦 المنتج: {{ $json.productName }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\\nشكراً لتسوقك من متجر حلم! ⭐\"\n}",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nتم توصيل طلبك بنجاح!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\\nشكراً لتسوقك من متجر حلم! ⭐\"\n}",
         "options": {}
       },
       "id": "wa-delivered-001",
@@ -342,7 +348,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }}\\n\\nتم إلغاء طلبك.\\n\\n📦 المنتج: {{ $json.productName }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\\nمتجر حلم دايمًا في خدمتك 🙏\"\n}",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }}\\n\\nتم إلغاء طلبك.\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\\nمتجر حلم دايمًا في خدمتك 🙏\"\n}",
         "options": {}
       },
       "id": "wa-cancelled-001",

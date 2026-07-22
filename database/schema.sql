@@ -174,3 +174,7 @@ VALUES (
     '/images/product-main.jpg',
     '["\/images\/product-1.jpg", "\/images\/product-2.jpg", "\/images\/product-3.jpg"]'::jsonb
 );
+
+-- 009-a: manual sort order for the Lookbook hero's featured products
+ALTER TABLE public.products
+  ADD COLUMN IF NOT EXISTS featured_sort INTEGER DEFAULT NULL;

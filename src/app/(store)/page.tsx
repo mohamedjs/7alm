@@ -3,6 +3,7 @@ import { productService } from "@/features/products/products.service";
 import { categoryService } from "@/features/categories/categories.service";
 import StoreNavbar from "@/components/store/StoreNavbar";
 import LookbookHero from "@/components/store/LookbookHero";
+import BestSellersSection from "@/components/store/BestSellersSection";
 import CategoryGrid from "@/components/store/CategoryGrid";
 import StoreFooter from "@/components/store/StoreFooter";
 
@@ -19,19 +20,23 @@ export const metadata: Metadata = {
 
 /**
  * Dynamic Lookbook homepage — `/`. Server Component: fetches featured
- * products + active categories, then hands them to client islands
- * (StoreNavbar/LookbookHero own their own interactivity via hooks).
+ * products, active categories, and order-count-ranked best sellers, then
+ * hands them to client islands (StoreNavbar/LookbookHero/BestSellersSection
+ * own their own interactivity via hooks). Order: Navbar → Hero → Best
+ * Sellers → Categories → Footer.
  */
 export default async function StoreHomePage() {
-  const [featuredProducts, categories] = await Promise.all([
+  const [featuredProducts, categories, bestSellers] = await Promise.all([
     productService.getFeaturedProducts(),
     categoryService.getActiveCategories(),
+    productService.getBestSellerProducts(8),
   ]);
 
   return (
-    <main className="min-h-screen bg-dark-900">
+    <main className="min-h-screen">
       <StoreNavbar categories={categories} />
       <LookbookHero featuredProducts={featuredProducts} />
+      <BestSellersSection products={bestSellers} />
       <CategoryGrid categories={categories} />
       <StoreFooter />
     </main>

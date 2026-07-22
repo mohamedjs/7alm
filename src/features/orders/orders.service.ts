@@ -464,17 +464,23 @@ export class OrderService {
       trackingId: order.shipping_tracking_id,
       totalPrice: order.total_price,
       quantity: order.quantity,
-      // Always populated: today every order is single-product (order_items
-      // multi-item carts land in a later phase), so this is a one-element
-      // array derived from the existing legacy fields — never from order_items.
-      items: [
-        {
-          productName: order.product?.name || "طلبك",
-          quantity: order.quantity,
-          unitPrice: order.product?.price ?? (order.quantity ? order.total_price / order.quantity : order.total_price),
-          totalPrice: order.total_price,
-        },
-      ],
+      // Populated from order.items if available (multi-item support),
+      // falling back to legacy single-product columns if empty.
+      items: order.items.length > 0
+        ? order.items.map((item) => ({
+            productName: item.product?.name || "طلبك",
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            totalPrice: item.total_price,
+          }))
+        : [
+            {
+              productName: order.product?.name || "طلبك",
+              quantity: order.quantity,
+              unitPrice: order.product?.price ?? order.total_price,
+              totalPrice: order.total_price,
+            },
+          ],
     };
 
     // Fire-and-forget — don't await

@@ -1,5 +1,7 @@
+import { motion, type MotionValue } from "motion/react";
+
 interface LookbookGlowProps {
-  color: string;
+  color: string | MotionValue<string>;
   className?: string;
 }
 
@@ -12,7 +14,7 @@ interface LookbookGlowProps {
  */
 export default function LookbookGlow({ color, className = "" }: LookbookGlowProps) {
   return (
-    <div
+    <motion.div
       aria-hidden="true"
       className={`lookbook-glow ${className}`}
       style={{ backgroundColor: color }}

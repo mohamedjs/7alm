@@ -40,7 +40,7 @@ export default async function StoreProductPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-dark-900">
+    <main className="min-h-screen bg-surface transition-colors">
       <StoreNavbar categories={categories} />
       <div className="container mx-auto px-6 pt-32 pb-20 lg:pt-44">
         <ProductDetail product={product} />

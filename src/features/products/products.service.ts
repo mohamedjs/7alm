@@ -104,6 +104,15 @@ export class ProductService {
   }
 
   /**
+   * Best sellers by total order count — the store homepage's "Best
+   * Sellers" section. See `productRepository.getBestSellerProducts` for
+   * the tally + fallback-padding logic.
+   */
+  async getBestSellerProducts(limit = 8): Promise<Product[]> {
+    return productRepository.getBestSellerProducts(limit);
+  }
+
+  /**
    * Active products in a category, looked up by either the category's
    * UUID or its slug (storefront links use slugs; internal callers may
    * already have the id). Includes products assigned directly to

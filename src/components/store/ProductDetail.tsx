@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "@/features/shared/types";
 import { useCart } from "@/features/cart/cart.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 
 interface ProductDetailProps {
   product: Product;
@@ -12,10 +13,11 @@ interface ProductDetailProps {
 
 /**
  * Store product-detail client island: gallery, price, quantity stepper,
- * add-to-cart.
+ * add-to-cart. Token-driven + bilingual.
  */
 export default function ProductDetail({ product }: ProductDetailProps) {
   const { addItem } = useCart();
+  const { t } = useLocale();
   const gallery = [
     ...(product.main_image ? [product.main_image] : []),
     ...(product.gallery || []),
@@ -47,7 +49,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
       {/* Gallery */}
       <div>
-        <div className="relative aspect-square rounded-2xl overflow-hidden bg-dark-800 neu-raised-sm">
+        <div className="relative aspect-square rounded-2xl overflow-hidden bg-surface neu-raised-sm">
           {activeImage ? (
             <Image
               src={activeImage}
@@ -81,42 +83,42 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
       {/* Info */}
       <div className="text-start">
-        <h1 className="font-heading text-3xl lg:text-4xl font-extrabold text-white mb-4">
+        <h1 className="font-heading text-3xl lg:text-4xl font-extrabold text-text-primary mb-4">
           {product.name}
         </h1>
 
         <div className="flex items-center gap-3 mb-6">
-          <span className="font-heading text-2xl font-bold text-white">
-            {product.price} ج.م
+          <span className="font-heading text-2xl font-bold text-text-primary">
+            {product.price} {t("store.product.currency")}
           </span>
           {hasDiscount && (
-            <span className="text-lg text-gray-500 line-through">
-              {product.compare_at_price} ج.م
+            <span className="text-lg text-text-muted line-through">
+              {product.compare_at_price} {t("store.product.currency")}
             </span>
           )}
         </div>
 
         {product.description && (
-          <p className="text-gray-400 leading-relaxed mb-8">{product.description}</p>
+          <p className="text-text-muted leading-relaxed mb-8">{product.description}</p>
         )}
 
         <div className="flex items-center gap-4 mb-8">
-          <span className="text-sm font-medium text-gray-400">الكمية</span>
+          <span className="text-sm font-medium text-text-muted">{t("store.detail.quantity")}</span>
           <div className="flex items-center gap-3 rounded-xl neu-pressed-sm px-3 py-2">
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              aria-label="تقليل الكمية"
-              className="text-gray-300 hover:text-white transition-colors"
+              aria-label={t("store.cart.decreaseQty")}
+              className="text-text-muted hover:text-text-primary transition-colors"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="w-6 text-center text-white font-medium">{quantity}</span>
+            <span className="w-6 text-center text-text-primary font-medium">{quantity}</span>
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              aria-label="زيادة الكمية"
-              className="text-gray-300 hover:text-white transition-colors"
+              aria-label={t("store.cart.increaseQty")}
+              className="text-text-muted hover:text-text-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -126,19 +128,17 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         <button
           type="button"
           onClick={handleAddToCart}
-          className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-bold transition-colors ${
-            justAdded ? "bg-brand-500 text-dark-950" : "bg-brand-500 hover:bg-brand-400 text-dark-950"
-          }`}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-500 px-8 py-4 font-bold text-white transition-all neu-btn"
         >
           {justAdded ? (
             <>
               <Check className="w-5 h-5" />
-              تمت الإضافة للسلة
+              {t("store.detail.added")}
             </>
           ) : (
             <>
               <ShoppingBag className="w-5 h-5" />
-              أضف للسلة
+              {t("store.detail.addToCart")}
             </>
           )}
         </button>

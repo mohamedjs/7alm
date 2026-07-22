@@ -639,22 +639,44 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isFeatured"
-              checked={formData.is_featured ?? false}
-              onChange={(e) =>
-                setFormData({ ...formData, is_featured: e.target.checked })
-              }
-              className="w-4 h-4 rounded accent-brand-500"
-            />
-            <label
-              htmlFor="isFeatured"
-              className="text-sm font-medium text-text-muted"
-            >
-              {t("products.form.isFeatured")}
-            </label>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isFeatured"
+                checked={formData.is_featured ?? false}
+                onChange={(e) =>
+                  setFormData({ ...formData, is_featured: e.target.checked })
+                }
+                className="w-4 h-4 rounded accent-brand-500"
+              />
+              <label
+                htmlFor="isFeatured"
+                className="text-sm font-medium text-text-muted"
+              >
+                {t("products.form.isFeatured")}
+              </label>
+            </div>
+            
+            {formData.is_featured && (
+              <div className="ms-6">
+                <label className="block text-sm font-medium text-text-muted mb-1">
+                  {t("products.form.featuredSort")}
+                </label>
+                <input
+                  type="number"
+                  value={formData.featured_sort ?? ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, featured_sort: e.target.value ? parseInt(e.target.value) : null })
+                  }
+                  className={inputClasses}
+                  placeholder="0"
+                />
+                <p className="text-xs text-text-muted/60 mt-1">
+                  {t("products.form.featuredSortHint")}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

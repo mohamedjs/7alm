@@ -72,6 +72,8 @@ export interface Product {
   theme_color: string;
   /** Hero-eligible on the store homepage's featured thumbnail row. */
   is_featured: boolean;
+  /** Admin-settable sort order for the Lookbook hero. */
+  featured_sort: number | null;
   created_at: string;
   updated_at: string;
 }

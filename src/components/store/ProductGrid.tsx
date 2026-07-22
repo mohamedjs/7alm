@@ -2,12 +2,12 @@
 
 import type { Product } from "@/features/shared/types";
 import { useCart } from "@/features/cart/cart.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
 import ProductCard from "./ProductCard";
 
 interface ProductGridProps {
   products: Product[];
   isLoading?: boolean;
-  emptyMessage?: string;
 }
 
 /**
@@ -19,9 +19,9 @@ interface ProductGridProps {
 export default function ProductGrid({
   products,
   isLoading = false,
-  emptyMessage = "لا توجد منتجات هنا حالياً.",
 }: ProductGridProps) {
   const { addItem } = useCart();
+  const { t } = useLocale();
 
   const handleAddToCart = (product: Product) => {
     addItem(
@@ -43,7 +43,7 @@ export default function ProductGrid({
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="aspect-square rounded-2xl bg-dark-800 animate-pulse"
+            className="aspect-square rounded-2xl bg-surface-raised animate-pulse"
           />
         ))}
       </div>
@@ -52,8 +52,8 @@ export default function ProductGrid({
 
   if (products.length === 0) {
     return (
-      <div className="rounded-2xl border border-white/5 py-16 text-center text-gray-500">
-        {emptyMessage}
+      <div className="rounded-2xl border border-border py-16 text-center text-text-muted">
+        {t("store.product.noProducts")}
       </div>
     );
   }

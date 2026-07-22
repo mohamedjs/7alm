@@ -34,7 +34,7 @@ As a visitor landing on `/`, scrolling down smoothly transitions through the sto
 
 ### User Story 2 - The navbar stays legible and functional over the immersive hero (Priority: P1)
 
-As a visitor scrolling through the hero, the fixed navbar (logo, nav links, cart, theme/locale toggles) remains visible and legible the entire time, transitioning from transparent (over the hero's dark stage) to a glass surface once scrolled far enough — exactly as it already does today.
+As a visitor scrolling through the hero, the fixed navbar (logo, nav links, cart, theme/locale toggles) remains visible and legible the entire time, transitioning from transparent (over the hero's stage) to a glass surface once scrolled far enough — exactly as it already does today.
 
 **Why this priority**: The hero takes the full viewport for up to 300vh of scroll distance; the navbar is the only persistent wayfinding/action surface during that span.
 
@@ -42,7 +42,7 @@ As a visitor scrolling through the hero, the fixed navbar (logo, nav links, cart
 
 **Acceptance Scenarios**:
 
-1. **Given** the hero's dark stage is showing, **When** the navbar is at the transparent (top-of-page) state, **Then** its logo/links/icons remain legible against the dark stage (this already holds today since the stage is dark and nav text is light — verified, not re-designed, here).
+1. **Given** the hero stage is showing, **When** the navbar is at the transparent (top-of-page) state, **Then** its logo/links/icons remain legible against the stage in whichever theme is active — the navbar uses `008`'s theme-reactive tokens, so nav ink tracks the theme alongside the light-default stage.
 2. **Given** the visitor scrolls far enough to trigger the navbar's glass state, **When** it activates, **Then** it uses `008`'s theme-reactive `.store-glass` utility, not a hero-specific one-off.
 
 ---
@@ -80,7 +80,7 @@ As a visitor with `prefers-reduced-motion` enabled, or on a very short/slow view
 - **FR-006**: The number of scroll sections MUST equal the number of eligible featured products, capped at 4 (not hardcoded to the brief's literal "3") — with a graceful single-frame fallback when fewer than 2 are eligible (see Edge Cases).
 - **FR-007**: The navbar (from `008`) MUST remain fixed, transparent→glass exactly as already implemented, unaffected in mechanism by this feature — this spec does not re-implement navbar scroll detection.
 - **FR-008**: The animation MUST respect `prefers-reduced-motion` via Motion's `useReducedMotion()` — reduced-motion visitors get the dot-nav-driven, short-crossfade experience described in User Story 3, not the continuous scroll-linked version.
-- **FR-009**: The hero's dark background "stage" (`#0B0B0F`-class near-black base + radial glow) is exempt from `008`'s light/dark theme toggle — it renders as a deliberately dark immersive stage in both themes (RESOLVED 2026-07-22 — user decision: hero stays dark as-is) — while the navbar and any hero chrome outside the stage remain theme-reactive per `008`.
+- **FR-009**: The hero stage is theme-reactive and **light by default** (REVERSED 2026-07-22 — the earlier "deliberately dark stage in both themes" decision was overturned by the user, who asked for the whole home page to be light like the admin). It uses `008`'s store surface tokens (`bg-surface`, `text-text-primary`, `text-text-muted`) so light mode renders a soft lavender-grey stage; dark mode stays available via the toggle. The per-product `theme_color` radial glow + full-bleed color wash crossfade still play in both themes, tuned per-theme via `--hero-glow-opacity` / `--hero-wash-opacity` / `--hero-halftone-dot`.
 - **FR-010**: Any horizontal layout split (text column vs. showcase column) MUST use logical properties / DOM-order-driven placement, not hardcoded `lg:order-1`/`lg:order-2` physical assumptions — carried forward from 007's existing RTL discipline in this component.
 - **FR-011**: Vertical translate animations (image up/down between sections) require no RTL-specific handling since they are direction-agnostic — explicitly confirmed here so it isn't mistakenly "fixed" for RTL during implementation.
 - **FR-012**: All hero copy (eyebrow, CTA labels, fallback headline/description, dot-nav `aria-label`s) MUST be sourced from `008`'s `store.*` dictionary — no new hardcoded Arabic string is introduced by this feature.
@@ -116,7 +116,7 @@ As a visitor with `prefers-reduced-motion` enabled, or on a very short/slow view
 
 ## Open Questions
 
-1. **RESOLVED (2026-07-22 — user decision): hero stays dark as-is.** The hero's background stage (`#0B0B0F`-class base + radial glow) stays a deliberately dark, immersive "stage" regardless of the active theme, exactly as it renders today — no light-mode variant of the stage itself. The rest of the page (nav, everything below the hero) fully honors `008`'s toggle. FR-009 is confirmed as written, no longer contingent.
+1. **SUPERSEDED (2026-07-22 — later user decision): hero is theme-reactive, light by default.** The earlier resolution ("hero stays a deliberately dark stage in both themes") was overturned: the user asked for the whole home page — hero included — to be light like the admin, keeping the framer `theme_color` glow effect over a light background. The hero now uses `008`'s surface tokens and follows the theme toggle (light default). See the updated FR-009.
 2. **RESOLVED (2026-07-22 — user decision): manual featured sort, not `created_at`.** The user wants explicit, admin-controlled ordering rather than the `created_at ASC` fallback originally recommended. This adds one small additive migration — a nullable `featured_sort` integer column on `products` — plus an admin-facing numeric field to set it (mirrors how `007` added `theme_color`/`is_featured` to `ProductForm.tsx` as additive fields). See FR-002a and plan.md's "Featured-Sort Migration" section for the exact DDL and ordering rule (`featured_sort ASC NULLS LAST, created_at ASC` as a tiebreaker for products that haven't been given an explicit value yet, so behavior is sane immediately after the migration with zero admin action required).
 3. **Cap of 4 vs. the brief's literal "3" — unchanged, low-risk default, not raised by the user's latest reply.** Cap stays at 4 (matches the current real featured count). If a 5th product is later marked featured, `featured_sort` (now that it exists) gives the admin explicit control over which products lead, rather than an implicit `created_at`-based ordering — a side benefit of decision #2 above.
 4. **Should `ProductThumbRow`'s dot-nav be visually distinct from a "thumbnail" vs. a plain dot?** Unchanged — still resolve during implementation, not blocking.
