@@ -5,6 +5,8 @@ import StoreNavbar from "@/components/store/master/StoreNavbar";
 import LookbookHero from "@/components/store/home/LookbookHero";
 import BestSellersSection from "@/components/store/home/BestSellersSection";
 import CategoryGrid from "@/components/store/home/CategoryGrid";
+import ProductCollections from "@/components/store/home/ProductCollections";
+import Testimonials from "@/components/store/home/Testimonials";
 import StoreFooter from "@/components/store/master/StoreFooter";
 
 // Server-rendered on demand rather than prerendered — avoids requiring
@@ -20,16 +22,21 @@ export const metadata: Metadata = {
 
 /**
  * Dynamic Lookbook homepage — `/`. Server Component: fetches featured
- * products, active categories, and order-count-ranked best sellers, then
- * hands them to client islands (StoreNavbar/LookbookHero/BestSellersSection
- * own their own interactivity via hooks). Order: Navbar → Hero → Best
- * Sellers → Categories → Footer.
+ * products, active categories, order-count-ranked best sellers, and the
+ * full active catalog, then hands them to client islands
+ * (StoreNavbar/LookbookHero/BestSellersSection/ProductCollections/
+ * Testimonials own their own interactivity via hooks). Order: Navbar →
+ * Hero → Best Sellers → Product Collections → Testimonials → Footer.
  */
+import { testimonialsService } from "@/features/testimonials/testimonials.service";
+
 export default async function StoreHomePage() {
-  const [featuredProducts, categories, bestSellers] = await Promise.all([
+  const [featuredProducts, categories, bestSellers, allProducts, testimonials] = await Promise.all([
     productService.getFeaturedProducts(),
     categoryService.getActiveCategories(),
     productService.getBestSellerProducts(8),
+    productService.getAllActiveProducts(),
+    testimonialsService.getActiveTestimonials(),
   ]);
 
   return (
@@ -37,7 +44,8 @@ export default async function StoreHomePage() {
       <StoreNavbar categories={categories} />
       <LookbookHero featuredProducts={featuredProducts} />
       <BestSellersSection products={bestSellers} />
-      {/* <CategoryGrid categories={categories} /> */}
+      <ProductCollections products={allProducts} categories={categories} />
+      <Testimonials testimonials={testimonials} />
       <StoreFooter />
     </main>
   );

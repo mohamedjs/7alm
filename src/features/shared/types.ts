@@ -121,6 +121,7 @@ export interface Zone {
   city_id: string;
   english_name: string;
   arabic_name: string;
+  shipping_price: number;
 }
 
 export interface ZoneWithCity extends Zone {
@@ -157,6 +158,7 @@ export interface Order {
   ip_address: string | null;
   ip_country: string | null;
   ip_city: string | null;
+  shipping_cost: number;
   status: OrderStatus;
   shipping_provider: string | null;
   shipping_tracking_id: string | null;
@@ -263,4 +265,18 @@ export interface N8nOrderNotification {
 export interface WhatsAppOrderAction {
   orderId: string;
   action: "confirm" | "cancel";
+}
+
+// --- Testimonials ---
+export interface Testimonial {
+  id: string;
+  name_ar: string;
+  name_en: string | null;
+  role_ar: string | null;
+  role_en: string | null;
+  text_ar: string;
+  text_en: string | null;
+  rating: number;
+  is_active: boolean;
+  created_at: string;
 }

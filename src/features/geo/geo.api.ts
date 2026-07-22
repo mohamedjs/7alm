@@ -8,6 +8,7 @@ export interface Zone {
   arabic_name: string;
   english_name: string;
   city_name: string;
+  shipping_price: number;
 }
 
 interface ApiEnvelope<T> {

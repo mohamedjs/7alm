@@ -24,6 +24,7 @@ const en = {
   "nav.orders": "Orders",
   "nav.products": "Products",
   "nav.categories": "Categories",
+  "nav.testimonials": "Testimonials",
 
   // ---------------------------------------------------------------
   // action.* — verbs reused across the admin
@@ -35,6 +36,9 @@ const en = {
   "action.openMenu": "Open menu",
   "action.closeMenu": "Close menu",
   "action.userMenu": "Open user menu",
+  "action.cancel": "Cancel",
+  "action.loading": "Loading...",
+  "action.save": "Save",
 
   // ---------------------------------------------------------------
   // common.* — shared verbs/words used by several forms/lists
@@ -331,6 +335,33 @@ const en = {
   "store.home.bestSellersSubtitle": "The products our customers keep coming back for",
   "store.home.categories": "Shop by Category",
   "store.home.categoriesSubtitle": "Browse our curated categories",
+  "store.home.collections": "Our Product Collections",
+  "store.home.collectionsSubtitle": "Browse our catalog by collection",
+  "store.home.collectionsAll": "All",
+  "store.home.collectionsLatest": "Latest",
+  "store.home.collectionsBestSellers": "Best Sellers",
+  "store.home.collectionsFeatured": "Featured",
+  "store.home.collectionsEmpty": "No products in this collection yet.",
+  "store.home.testimonials": "What Our Clients Say",
+  "store.home.testimonialsSubtitle": "Real stories from real customers",
+  "store.testimonial.1.name": "Sarah Ahmed",
+  "store.testimonial.1.role": "Verified Buyer",
+  "store.testimonial.1.text": "The quality exceeded my expectations and shipping was incredibly fast. Will definitely order again!",
+  "store.testimonial.2.name": "Mohamed Youssef",
+  "store.testimonial.2.role": "Verified Buyer",
+  "store.testimonial.2.text": "Excellent customer service and the product looks even better in person. Highly recommend this store.",
+  "store.testimonial.3.name": "Nour El-Din",
+  "store.testimonial.3.role": "Verified Buyer",
+  "store.testimonial.3.text": "I was skeptical at first, but the checkout process was smooth and my order arrived in just two days.",
+  "store.testimonial.4.name": "Laila Hassan",
+  "store.testimonial.4.role": "Verified Buyer",
+  "store.testimonial.4.text": "Beautiful packaging and premium quality. This has become my go-to store for gifts.",
+  "store.testimonial.5.name": "Omar Khaled",
+  "store.testimonial.5.role": "Verified Buyer",
+  "store.testimonial.5.text": "Great prices for the quality you get. The support team helped me choose the perfect size.",
+  "store.testimonial.6.name": "Yasmin Adel",
+  "store.testimonial.6.role": "Verified Buyer",
+  "store.testimonial.6.text": "Five stars all the way! Fast delivery, accurate description, and beautiful products.",
 
   // store.product.*
   "store.product.addToCart": "Add to Cart",
@@ -343,7 +374,8 @@ const en = {
   // store.cart.*
   "store.cart.title": "Cart",
   "store.cart.empty": "Your cart is empty.",
-  "store.cart.subtotal": "Total",
+  "store.cart.subtotal": "Subtotal",
+  "store.cart.total": "Total",
   "store.cart.checkout": "Checkout",
   "store.cart.viewFull": "View full cart",
   "store.cart.closeLabel": "Close cart",
@@ -370,6 +402,7 @@ const en = {
   "store.checkout.emptyCart": "Cart is empty — add products first.",
   "store.checkout.namePlaceholder": "John Doe",
   "store.checkout.streetPlaceholder": "Building number, street name, landmark...",
+  "store.checkout.shipping": "Shipping",
 
   // store.footer.*
   "store.footer.brand": "7alm",
@@ -381,6 +414,10 @@ const en = {
   "store.detail.quantity": "Quantity",
   "store.detail.addToCart": "Add to Cart",
   "store.detail.added": "Added to Cart",
+  "store.detail.buyMoreSave": "Buy More, Save More",
+  "store.detail.bestValue": "Best Value",
+  "store.detail.specialOffer": "Special Offer",
+  "store.detail.perUnit": "Price per piece",
 
   // store.products.* (page-level)
   "store.products.title": "All Products",
@@ -403,6 +440,7 @@ const ar: Record<DictKey, string> = {
   "nav.orders": "الطلبات",
   "nav.products": "المنتجات",
   "nav.categories": "الأقسام",
+  "nav.testimonials": "التقييمات",
 
   "action.logout": "تسجيل الخروج",
   "action.themeToLight": "التبديل إلى الوضع الفاتح",
@@ -411,6 +449,9 @@ const ar: Record<DictKey, string> = {
   "action.openMenu": "فتح القائمة",
   "action.closeMenu": "إغلاق القائمة",
   "action.userMenu": "فتح قائمة المستخدم",
+  "action.cancel": "إلغاء",
+  "action.loading": "جاري التحميل...",
+  "action.save": "حفظ",
 
   "common.save": "حفظ",
   "common.saving": "جارٍ الحفظ...",
@@ -688,6 +729,33 @@ const ar: Record<DictKey, string> = {
   "store.home.bestSellersSubtitle": "المنتجات التي يفضلها عملاؤنا دائماً",
   "store.home.categories": "تسوق حسب الفئة",
   "store.home.categoriesSubtitle": "استكشف الفئات المختارة بعناية",
+  "store.home.collections": "تشكيلة منتجاتنا",
+  "store.home.collectionsSubtitle": "تصفح كتالوجنا حسب التشكيلة",
+  "store.home.collectionsAll": "الكل",
+  "store.home.collectionsLatest": "أحدث المنتجات",
+  "store.home.collectionsBestSellers": "الأكثر مبيعاً",
+  "store.home.collectionsFeatured": "مميزة",
+  "store.home.collectionsEmpty": "لا توجد منتجات في هذه التشكيلة حالياً.",
+  "store.home.testimonials": "ماذا يقول عملاؤنا",
+  "store.home.testimonialsSubtitle": "قصص حقيقية من عملاء حقيقيين",
+  "store.testimonial.1.name": "سارة أحمد",
+  "store.testimonial.1.role": "عميلة موثقة",
+  "store.testimonial.1.text": "الجودة فاقت توقعاتي والشحن كان سريع جداً. بالتأكيد هطلب تاني!",
+  "store.testimonial.2.name": "محمد يوسف",
+  "store.testimonial.2.role": "عميل موثق",
+  "store.testimonial.2.text": "خدمة عملاء ممتازة والمنتج شكله أحلى في الواقع. أنصح بشدة بهذا المتجر.",
+  "store.testimonial.3.name": "نور الدين",
+  "store.testimonial.3.role": "عميل موثق",
+  "store.testimonial.3.text": "كنت متردد في الأول، بس عملية الشراء كانت سهلة والطلب وصلني خلال يومين بس.",
+  "store.testimonial.4.name": "ليلى حسن",
+  "store.testimonial.4.role": "عميلة موثقة",
+  "store.testimonial.4.text": "تغليف جميل وجودة ممتازة. بقى المتجر المفضل عندي للهدايا.",
+  "store.testimonial.5.name": "عمر خالد",
+  "store.testimonial.5.role": "عميل موثق",
+  "store.testimonial.5.text": "أسعار ممتازة مقابل الجودة. فريق الدعم ساعدني أختار المقاس المناسب.",
+  "store.testimonial.6.name": "ياسمين عادل",
+  "store.testimonial.6.role": "عميلة موثقة",
+  "store.testimonial.6.text": "خمس نجوم بجد! توصيل سريع ووصف دقيق ومنتجات جميلة.",
 
   // store.product.*
   "store.product.addToCart": "أضف للسلة",
@@ -700,7 +768,8 @@ const ar: Record<DictKey, string> = {
   // store.cart.*
   "store.cart.title": "السلة",
   "store.cart.empty": "السلة فارغة.",
-  "store.cart.subtotal": "الإجمالي",
+  "store.cart.subtotal": "المجموع الفرعي",
+  "store.cart.total": "الإجمالي",
   "store.cart.checkout": "إتمام الطلب",
   "store.cart.viewFull": "عرض السلة كاملة",
   "store.cart.closeLabel": "إغلاق السلة",
@@ -727,6 +796,7 @@ const ar: Record<DictKey, string> = {
   "store.checkout.emptyCart": "السلة فارغة — أضف منتجات أولاً.",
   "store.checkout.namePlaceholder": "محمد أحمد",
   "store.checkout.streetPlaceholder": "رقم المبنى، اسم الشارع، علامة مميزة...",
+  "store.checkout.shipping": "الشحن",
 
   // store.footer.*
   "store.footer.brand": "حلم",
@@ -738,6 +808,10 @@ const ar: Record<DictKey, string> = {
   "store.detail.quantity": "الكمية",
   "store.detail.addToCart": "أضف للسلة",
   "store.detail.added": "تمت الإضافة للسلة",
+  "store.detail.buyMoreSave": "اشتري أكثر ووفّر أكثر",
+  "store.detail.bestValue": "أفضل قيمة",
+  "store.detail.specialOffer": "عرض خاص",
+  "store.detail.perUnit": "السعر للقطعة",
 
   // store.products.* (page-level)
   "store.products.title": "كل المنتجات",

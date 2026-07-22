@@ -13,8 +13,8 @@ interface BestSellersSectionProps {
  * Home page "Best Sellers" section — products ranked by total order count
  * (`productService.getBestSellerProducts`, see `page.tsx`). Reuses
  * `ProductCard` (same catalog card as every other store surface) inside a
- * light bento-ish grid: the #1 seller gets a wider tile at `sm+`, and the
- * top three carry a small neumorphic rank badge. Owns its own cart wiring
+ * uniform grid (2 cols mobile, 4 cols desktop); the top three carry a small
+ * neumorphic rank badge. Owns its own cart wiring
  * like `ProductGrid` does, since it's the client boundary receiving plain
  * `products` data from the server `page.tsx`.
  */
@@ -47,12 +47,9 @@ export default function BestSellersSection({ products }: BestSellersSectionProps
         <p className="text-text-muted">{t("store.home.bestSellersSubtitle")}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
         {products.map((product, index) => (
-          <div
-            key={product.id}
-            className={index === 0 ? "col-span-2 sm:col-span-2" : ""}
-          >
+          <div key={product.id}>
             <div className="relative">
               {index < 3 && (
                 <span

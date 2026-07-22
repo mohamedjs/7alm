@@ -11,6 +11,7 @@ export class GeoRepository {
         city_id,
         english_name,
         arabic_name,
+        shipping_price,
         city:cities (
           name,
           country:countries (
@@ -32,6 +33,7 @@ export class GeoRepository {
       city_id: zone.city_id as string,
       english_name: zone.english_name as string,
       arabic_name: zone.arabic_name as string,
+      shipping_price: (zone.shipping_price as number) || 0,
       city: zone.city as unknown as { name: string; country: { name: string } },
     }));
   }
@@ -47,6 +49,7 @@ export class GeoRepository {
         city_id,
         english_name,
         arabic_name,
+        shipping_price,
         city:cities (
           name,
           country:countries (
@@ -68,6 +71,7 @@ export class GeoRepository {
       city_id: data.city_id,
       english_name: data.english_name,
       arabic_name: data.arabic_name,
+      shipping_price: data.shipping_price || 0,
       city: data.city as unknown as { name: string; country: { name: string } },
     };
   }

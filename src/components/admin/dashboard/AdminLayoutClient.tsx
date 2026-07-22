@@ -68,6 +68,7 @@ export default function AdminLayoutClient({
     { key: "nav.orders", path: "/admin/orders" },
     { key: "nav.products", path: "/admin/products" },
     { key: "nav.categories", path: "/admin/categories" },
+    { key: "nav.testimonials", path: "/admin/testimonials" },
   ];
 
   const ThemeIcon = theme === "dark" ? SunIcon : MoonIcon;

@@ -54,6 +54,14 @@ export class OrderService {
         }
       }
 
+      // 3b. Add shipping cost from zone
+      let shippingCost = 0;
+      const zone = await geoService.getZoneById(input.zone_id);
+      if (zone) {
+        shippingCost = zone.shipping_price || 0;
+      }
+      totalPrice += shippingCost;
+
       // 4. Create order
       const order = await orderRepository.createOrder({
         customer_id: customer.id,
@@ -61,6 +69,7 @@ export class OrderService {
         product_id: productId,
         quantity: input.quantity || 1,
         total_price: totalPrice,
+        shipping_cost: shippingCost,
         platform_source: input.platform_source,
         ip_address: input.ip_address,
         ip_country: input.ip_country,
@@ -167,8 +176,16 @@ export class OrderService {
         });
       }
 
-      const totalPrice = resolvedItems.reduce((sum, i) => sum + i.total_price, 0);
+      let totalPrice = resolvedItems.reduce((sum, i) => sum + i.total_price, 0);
       const firstItem = resolvedItems[0];
+
+      // 3b. Add shipping cost from zone
+      let shippingCost = 0;
+      const zone = await geoService.getZoneById(input.zone_id);
+      if (zone) {
+        shippingCost = zone.shipping_price || 0;
+      }
+      totalPrice += shippingCost;
 
       // 4. Create the orders row (product_id/quantity from the first item
       // — see doc comment above)
@@ -178,6 +195,7 @@ export class OrderService {
         product_id: firstItem.product_id,
         quantity: firstItem.quantity,
         total_price: totalPrice,
+        shipping_cost: shippingCost,
         platform_source: input.platform_source,
         ip_address: input.ip_address,
         ip_country: input.ip_country,

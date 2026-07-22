@@ -14,6 +14,8 @@ export default function StoreCheckoutForm() {
   const {
     items,
     subtotal,
+    shippingCost,
+    total,
     zones,
     fields,
     setFullName,
@@ -204,9 +206,19 @@ export default function StoreCheckoutForm() {
             </div>
           ))}
         </div>
-        <div className="flex items-center justify-between text-text-primary font-bold border-t border-border pt-4">
+        <div className="flex items-center justify-between text-text-muted text-sm py-2">
           <span>{t("store.cart.subtotal")}</span>
           <span>{subtotal} {t("store.product.currency")}</span>
+        </div>
+        {fields.zoneId && (
+          <div className="flex items-center justify-between text-text-muted text-sm py-2">
+            <span>{t("store.checkout.shipping")}</span>
+            <span>{shippingCost} {t("store.product.currency")}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between text-text-primary font-bold border-t border-border pt-4">
+          <span>{t("store.cart.total")}</span>
+          <span>{total} {t("store.product.currency")}</span>
         </div>
       </div>
     </div>
