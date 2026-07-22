@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Silicone outer gradient (Deep Plum Violet) -->
+    <linearGradient id="violet-body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4D385E" />
+      <stop offset="40%" stop-color="#3A284A" />
+      <stop offset="100%" stop-color="#241730" />
+    </linearGradient>
+    
+    <!-- Silicone bevel highlight -->
+    <linearGradient id="bevel-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+
+    <!-- Camera module raised base gradient -->
+    <linearGradient id="violet-camera-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B4470" />
+      <stop offset="100%" stop-color="#1B1026" />
+    </linearGradient>
+
+    <!-- Lens glass gradient -->
+    <radialGradient id="lens-glass" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2A1B3D" />
+      <stop offset="70%" stop-color="#0E0717" />
+      <stop offset="100%" stop-color="#020005" />
+    </radialGradient>
+
+    <!-- Apple logo gradient (subtle debossed look) -->
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#160D21" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#5B4470" stop-opacity="0.15" />
+    </linearGradient>
+
+    <!-- Drop shadow for the case -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Side Buttons (under the case/extruded) -->
+  <!-- Action Button -->
+  <rect x="34" y="165" width="8" height="22" rx="2.5" fill="#3D294F" />
+  <!-- Volume Up -->
+  <rect x="34" y="215" width="8" height="50" rx="3" fill="#3D294F" />
+  <!-- Volume Down -->
+  <rect x="34" y="285" width="8" height="50" rx="3" fill="#3D294F" />
+  <!-- Power Button -->
+  <rect x="358" y="220" width="8" height="70" rx="3.5" fill="#3D294F" />
+  <!-- Recessed Camera Control Button -->
+  <rect x="358" y="340" width="8" height="70" rx="4" fill="#1C1026" stroke="#3D294F" stroke-width="1.5" />
+
+  <!-- Main Case Body -->
+  <rect x="40" y="40" width="320" height="720" rx="60" fill="url(#violet-body-grad)" filter="url(#shadow)" stroke="url(#bevel-grad)" stroke-width="2" />
+  
+  <!-- Screen/lip inner edge highlight (subtle inset line for depth) -->
+  <rect x="42" y="42" width="316" height="716" rx="58" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5" />
+
+  <!-- Camera Protection Bump (Raised Square, iPhone 17 styling with larger lenses) -->
+  <g>
+    <!-- Raised square base -->
+    <rect x="62" y="62" width="130" height="130" rx="32" fill="url(#violet-camera-grad)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1" />
+    <!-- Raised inner rim -->
+    <rect x="66" y="66" width="122" height="122" rx="28" fill="none" stroke="#000000" stroke-opacity="0.2" stroke-width="1.5" />
+    
+    <!-- Lens 1 (Top Left - Ultra Wide) -->
+    <g transform="translate(97, 97)">
+      <circle cx="0" cy="0" r="25" fill="#20152B" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" />
+      <circle cx="0" cy="0" r="21" fill="url(#lens-glass)" />
+      <circle cx="-5" cy="-5" r="8" fill="#000000" />
+      <!-- Reflection -->
+      <circle cx="-6" cy="-6" r="2" fill="#ffffff" opacity="0.4" />
+    </g>
+
+    <!-- Lens 2 (Bottom Left - Telephoto) -->
+    <g transform="translate(97, 157)">
+      <circle cx="0" cy="0" r="25" fill="#20152B" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" />
+      <circle cx="0" cy="0" r="21" fill="url(#lens-glass)" />
+      <circle cx="-5" cy="-5" r="8" fill="#000000" />
+      <!-- Reflection -->
+      <circle cx="-6" cy="-6" r="2" fill="#ffffff" opacity="0.4" />
+    </g>
+
+    <!-- Lens 3 (Right Center - Main Wide 48MP) -->
+    <g transform="translate(157, 127)">
+      <circle cx="0" cy="0" r="27" fill="#20152B" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1" />
+      <circle cx="0" cy="0" r="23" fill="url(#lens-glass)" />
+      <circle cx="-6" cy="-6" r="9" fill="#000000" />
+      <!-- Reflection -->
+      <circle cx="-7" cy="-7" r="2.5" fill="#ffffff" opacity="0.45" />
+    </g>
+
+    <!-- Flash (New ring flash style) -->
+    <circle cx="157" cy="95" r="10" fill="#EAECEE" stroke="#5D4770" stroke-width="1" />
+    <circle cx="157" cy="95" r="8" fill="#1C1026" />
+    <circle cx="157" cy="95" r="5" fill="#F4D03F" opacity="0.9" />
+    
+    <!-- LiDAR Sensor / Modern Multi-spectral Sensor -->
+    <circle cx="157" cy="157" r="8" fill="#2C3E50" stroke="#1A252F" stroke-width="1" />
+    <circle cx="157" cy="157" r="6" fill="#111" />
+    
+    <!-- Mic hole -->
+    <circle cx="129" cy="145" r="3" fill="#0E0717" />
+  </g>
+
+  <!-- Apple Logo (Debossed/Subtle) -->
+  <path d="M200,380 C194,380 188.5,376 182,376 C175.5,376 170.5,380.5 164.5,380.5 C156.5,380.5 147,370.5 147,354 C147,337 157.5,328 168.5,328 C174.5,328 179.5,331.5 183,331.5 C186.5,331.5 190.5,328 197.5,328 C207.5,328 215.5,333.5 219.5,341 C208,346.5 208,361.5 219,366 C216.5,373 210,380.5 200,380 Z M192.5,324 C192.5,315 199.5,308 207.5,308 C208.5,317 199.5,325 192.5,324 Z" 
+        fill="url(#logo-grad)" opacity="0.85" />
+</svg>

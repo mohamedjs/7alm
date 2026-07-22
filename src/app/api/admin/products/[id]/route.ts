@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { productService } from "@/features/products/products.service";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -28,6 +29,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const body = await req.json();
+
+    if (typeof body.slug === "string") productService.validateProductSlug(body.slug);
+    if (typeof body.theme_color === "string") productService.validateThemeColor(body.theme_color);
 
     const { data, error } = await supabase
       .from("products")

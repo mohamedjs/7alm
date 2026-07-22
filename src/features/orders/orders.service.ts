@@ -7,6 +7,7 @@ import type {
   CreateOrderInput,
   N8nOrderNotification,
   OrderWithDetails,
+  Product,
   ShippingProviderName,
 } from "@/features/shared/types";
 
@@ -41,7 +42,7 @@ export class OrderService {
         return { success: false, error: "Failed to create address" };
       }
 
-      // 3. Determine total price from product
+      // 3. Determine total price from product (tiered-pricing aware)
       let totalPrice = 0;
       let productId: string | undefined;
       if (input.product_id) {
@@ -49,29 +50,7 @@ export class OrderService {
         if (product) {
           productId = product.id;
           const quantity = input.quantity || 1;
-          const tiers = product.quantity_prices;
-
-          if (tiers && Array.isArray(tiers) && tiers.length > 0) {
-            // Sort tiers by min_quantity descending to match the highest applicable tier first
-            const sortedTiers = [...tiers].sort((a, b) => b.min_quantity - a.min_quantity);
-            const matchingTier = sortedTiers.find((t) => quantity >= t.min_quantity);
-
-            if (matchingTier) {
-              if (quantity === matchingTier.min_quantity) {
-                totalPrice = matchingTier.price;
-              } else {
-                // If quantity exceeds the tier min_quantity, scale by the unit price of this tier
-                const unitPrice = matchingTier.price / matchingTier.min_quantity;
-                totalPrice = unitPrice * quantity;
-              }
-            } else {
-              // Fallback if quantity is less than any tier's min_quantity
-              totalPrice = product.price * quantity;
-            }
-          } else {
-            // Fallback to base product price if no tiers are configured
-            totalPrice = product.price * quantity;
-          }
+          totalPrice = this.calculateLineTotal(product, quantity);
         }
       }
 
@@ -95,6 +74,126 @@ export class OrderService {
       return { success: true, orderId: order.id };
     } catch (err) {
       console.error("Error processing order:", err);
+      return { success: false, error: "Internal server error" };
+    }
+  }
+
+  /**
+   * Resolve a line's total price for `quantity` units of `product`,
+   * honoring quantity-tier pricing when configured. Shared by
+   * `processNewOrder` (single-product funnel) and `processCartOrder`
+   * (multi-item cart) so both price identically.
+   */
+  private calculateLineTotal(product: Product, quantity: number): number {
+    const tiers = product.quantity_prices;
+    if (tiers && Array.isArray(tiers) && tiers.length > 0) {
+      // Sort tiers by min_quantity descending to match the highest applicable tier first
+      const sortedTiers = [...tiers].sort((a, b) => b.min_quantity - a.min_quantity);
+      const matchingTier = sortedTiers.find((t) => quantity >= t.min_quantity);
+
+      if (matchingTier) {
+        if (quantity === matchingTier.min_quantity) {
+          return matchingTier.price;
+        }
+        // If quantity exceeds the tier min_quantity, scale by the unit price of this tier
+        const unitPrice = matchingTier.price / matchingTier.min_quantity;
+        return unitPrice * quantity;
+      }
+      // Fallback if quantity is less than any tier's min_quantity
+      return product.price * quantity;
+    }
+    // Fallback to base product price if no tiers are configured
+    return product.price * quantity;
+  }
+
+  /**
+   * Process a multi-item cart checkout — the `(store)` surface's
+   * counterpart to `processNewOrder`. Unit prices are always resolved
+   * server-side from the DB (never trusted from the client).
+   *
+   * `orders.product_id`/`quantity` are populated from the FIRST resolved
+   * item so every existing single-product reader (`OrdersTable`,
+   * `OrderDetailsDrawer`, n8n's legacy top-level fields) keeps rendering
+   * something correct; the full breakdown lives in `order_items`, read
+   * back via `OrderWithDetails.items`.
+   */
+  async processCartOrder(
+    input: CreateOrderInput
+  ): Promise<{ success: boolean; orderId?: string; error?: string }> {
+    if (!input.items || input.items.length === 0) {
+      return { success: false, error: "No items provided for cart order" };
+    }
+
+    try {
+      // 1. Find or create customer
+      const customer = await customerService.findOrCreate(
+        input.phone,
+        input.full_name,
+        input.email
+      );
+      if (!customer) {
+        return { success: false, error: "Failed to create/find customer" };
+      }
+
+      // 2. Create address
+      const address = await orderRepository.createAddress(
+        customer.id,
+        input.zone_id,
+        input.street_details
+      );
+      if (!address) {
+        return { success: false, error: "Failed to create address" };
+      }
+
+      // 3. Validate every product and resolve server-side prices
+      const resolvedItems: Array<{
+        product_id: string;
+        quantity: number;
+        unit_price: number;
+        total_price: number;
+      }> = [];
+
+      for (const item of input.items) {
+        const product = await productService.getProductById(item.product_id);
+        if (!product) {
+          return { success: false, error: `Product ${item.product_id} not found` };
+        }
+        const quantity = Math.max(1, item.quantity || 1);
+        resolvedItems.push({
+          product_id: product.id,
+          quantity,
+          unit_price: product.price,
+          total_price: this.calculateLineTotal(product, quantity),
+        });
+      }
+
+      const totalPrice = resolvedItems.reduce((sum, i) => sum + i.total_price, 0);
+      const firstItem = resolvedItems[0];
+
+      // 4. Create the orders row (product_id/quantity from the first item
+      // — see doc comment above)
+      const order = await orderRepository.createOrder({
+        customer_id: customer.id,
+        address_id: address.id,
+        product_id: firstItem.product_id,
+        quantity: firstItem.quantity,
+        total_price: totalPrice,
+        platform_source: input.platform_source,
+        ip_address: input.ip_address,
+        ip_country: input.ip_country,
+        ip_city: input.ip_city,
+      });
+
+      if (!order) {
+        return { success: false, error: "Failed to create order" };
+      }
+
+      // 5. Persist the full line-item breakdown
+      await orderRepository.createOrderItems(order.id, resolvedItems);
+
+      return { success: true, orderId: order.id };
+    } catch (err) {
+      console.error("Error processing cart order:", err);
       return { success: false, error: "Internal server error" };
     }
   }
@@ -365,6 +464,23 @@ export class OrderService {
       trackingId: order.shipping_tracking_id,
       totalPrice: order.total_price,
       quantity: order.quantity,
+      // Populated from order.items if available (multi-item support),
+      // falling back to legacy single-product columns if empty.
+      items: order.items.length > 0
+        ? order.items.map((item) => ({
+            productName: item.product?.name || "طلبك",
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            totalPrice: item.total_price,
+          }))
+        : [
+            {
+              productName: order.product?.name || "طلبك",
+              quantity: order.quantity,
+              unitPrice: order.product?.price ?? order.total_price,
+              totalPrice: order.total_price,
+            },
+          ],
     };
 
     // Fire-and-forget — don't await

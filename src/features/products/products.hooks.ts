@@ -24,6 +24,8 @@ const EMPTY_FORM: ProductInput = {
   gallery: [],
   video_url: "",
   is_active: true,
+  theme_color: "#06b6d4",
+  is_featured: false,
 };
 
 /**

@@ -13,6 +13,7 @@ export type ProductInput = Partial<Product> & {
   quantity: number;
   category_id?: string | null;
   quantity_prices?: QuantityPriceTier[] | null;
+  featured_sort?: number | null;
 };
 
 interface ApiEnvelope<T> {

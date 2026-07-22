@@ -1,0 +1,1230 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "evolution-whatsapp-webhook",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "28a4f46b-a397-46aa-a1eb-00b42f636c79",
+      "name": "Evolution API Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        544,
+        -1232
+      ],
+      "webhookId": "wa-trigger-webhook",
+      "typeVersion": 1.1,
+      "notes": "Listens for incoming WhatsApp messages from Evolution API. Configure your Evolution API instance to send MESSAGES_UPSERT events to this webhook URL. In Evolution API dashboard: set webhook URL to https://your-n8n-domain/webhook/evolution-whatsapp-webhook and enable the MESSAGES_UPSERT event."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "skip-from-me",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ String($json.body?.data?.key?.fromMe ?? $json.data?.key?.fromMe ?? false) }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "047a4f14-f045-424e-b818-d95cab13d733",
+      "name": "Skip Own Messages",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        736,
+        -1232
+      ],
+      "typeVersion": 2.2,
+      "notes": "Filters out messages sent by the bot itself to prevent infinite loops. Evolution API sends webhook events for ALL messages including outgoing ones."
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "facebook-webhook",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "368f1c0c-c1db-492a-a618-8409ae956071",
+      "name": "Facebook Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        544,
+        -1008
+      ],
+      "webhookId": "fb-webhook-id",
+      "typeVersion": 1.1,
+      "notes": "Receives Facebook Page messages and feed (comments) via webhook. Subscribe this URL in your Meta App's Webhooks settings for the Page subscription fields: messages, feed."
+    },
+    {
+      "parameters": {
+        "httpMethod": "=GET",
+        "path": "facebook-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "45053df6-99fd-4701-b8c6-28f8d42dd7fe",
+      "name": "Facebook Verify Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        496,
+        -336
+      ],
+      "webhookId": "fb-verify-webhook-id",
+      "typeVersion": 1.1,
+      "notes": "Handles the GET verification challenge from Meta when subscribing the webhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "fb-verify-check",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d6f27f4e-1b8e-46fa-a512-4733a89c7623",
+      "name": "Is Verification?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        736,
+        -336
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "5429a401-a5b5-4468-a978-5987355548ce",
+      "name": "Respond with Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        1008,
+        -352
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram-webhook",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "2fb357cb-91ff-4df5-8dcd-941e393dc8b4",
+      "name": "Instagram Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        560,
+        -784
+      ],
+      "webhookId": "ig-webhook-id",
+      "typeVersion": 1.1,
+      "notes": "Receives Instagram DMs and comment mentions via webhook. Subscribe this URL in your Meta App's Webhooks settings for the Instagram subscription fields: messages, comments."
+    },
+    {
+      "parameters": {
+        "httpMethod": "=GET",
+        "path": "instagram-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "72396186-0205-4a3e-838a-f663282adb0c",
+      "name": "Instagram Verify Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        496,
+        -512
+      ],
+      "webhookId": "ig-verify-webhook-id",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ig-verify-check",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "80f5dad8-997e-451e-8cd9-8e78eaadb4cd",
+      "name": "IG Is Verification?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        736,
+        -512
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "61418f8e-7d26-4ce9-9f19-ae3e6b7f9e57",
+      "name": "IG Respond with Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        992,
+        -528
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "wa-sender-id",
+              "name": "senderId",
+              "type": "string",
+              "value": "={{ ($json.body?.data?.key?.remoteJid || $json.data?.key?.remoteJid || '').replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "id": "wa-message-text",
+              "name": "messageText",
+              "type": "string",
+              "value": "={{ $json.body?.data?.message?.conversation || $json.data?.message?.conversation || $json.body?.data?.message?.extendedTextMessage?.text || $json.data?.message?.extendedTextMessage?.text || $json.body?.data?.message?.buttonsResponseMessage?.selectedButtonId || '' }}"
+            },
+            {
+              "id": "wa-instance-name",
+              "name": "instanceName",
+              "type": "string",
+              "value": "={{ $json.body?.instance || $json.instance || '' }}"
+            },
+            {
+              "id": "wa-platform",
+              "name": "platform",
+              "type": "string",
+              "value": "whatsapp"
+            },
+            {
+              "id": "wa-message-type",
+              "name": "messageType",
+              "type": "string",
+              "value": "message"
+            },
+            {
+              "id": "wa-push-name",
+              "name": "pushName",
+              "type": "string",
+              "value": "={{ $json.body?.data?.pushName || $json.data?.pushName || '' }}"
+            },
+            {
+              "id": "wa-is-self",
+              "name": "isSelf",
+              "type": "string",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "41850b2b-826e-4a8a-967d-37fed7de2d7b",
+      "name": "Normalize WhatsApp",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        912,
+        -1232
+      ],
+      "typeVersion": 3.4,
+      "notes": "Normalizes Evolution API webhook payload. Key paths: data.key.remoteJid (sender), data.message.conversation (text), data.pushName (display name), instance (instance name)."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fb-sender-id",
+              "name": "senderId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.messaging?.[0]?.sender?.id || $json.body?.entry?.[0]?.changes?.[0]?.value?.from?.id || '' }}"
+            },
+            {
+              "id": "fb-message-text",
+              "name": "messageText",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.messaging?.[0]?.message?.text || $json.body?.entry?.[0]?.changes?.[0]?.value?.message || '' }}"
+            },
+            {
+              "id": "fb-page-id",
+              "name": "pageId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.id || '' }}"
+            },
+            {
+              "id": "fb-platform",
+              "name": "platform",
+              "type": "string",
+              "value": "facebook"
+            },
+            {
+              "id": "fb-message-type",
+              "name": "messageType",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.messaging ? 'message' : 'comment' }}"
+            },
+            {
+              "id": "fb-comment-id",
+              "name": "commentId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.changes?.[0]?.value?.comment_id || '' }}"
+            },
+            {
+              "id": "fb-post-id",
+              "name": "postId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.changes?.[0]?.value?.post_id || '' }}"
+            },
+            {
+              "id": "fb-is-self",
+              "name": "isSelf",
+              "type": "string",
+              "value": "={{ ($json.body?.entry?.[0]?.messaging?.[0]?.message?.is_echo === true) || (($json.body?.entry?.[0]?.changes?.[0]?.value?.from?.id || '') === ($json.body?.entry?.[0]?.id || '__page')) ? 'true' : 'false' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "56ba0aaf-95e0-443d-84b0-053f87f4ca63",
+      "name": "Normalize Facebook",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        912,
+        -1008
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ig-sender-id",
+              "name": "senderId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.messaging?.[0]?.sender?.id || $json.body?.entry?.[0]?.changes?.[0]?.value?.from?.id || '' }}"
+            },
+            {
+              "id": "ig-message-text",
+              "name": "messageText",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.messaging?.[0]?.message?.text || $json.body?.entry?.[0]?.changes?.[0]?.value?.text || '' }}"
+            },
+            {
+              "id": "ig-ig-user-id",
+              "name": "igUserId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.id || '' }}"
+            },
+            {
+              "id": "ig-platform",
+              "name": "platform",
+              "type": "string",
+              "value": "instagram"
+            },
+            {
+              "id": "ig-message-type",
+              "name": "messageType",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.messaging ? 'message' : 'comment' }}"
+            },
+            {
+              "id": "ig-comment-id",
+              "name": "commentId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.changes?.[0]?.value?.id || '' }}"
+            },
+            {
+              "id": "ig-media-id",
+              "name": "mediaId",
+              "type": "string",
+              "value": "={{ $json.body?.entry?.[0]?.changes?.[0]?.value?.media?.id || '' }}"
+            },
+            {
+              "id": "ig-is-self",
+              "name": "isSelf",
+              "type": "string",
+              "value": "={{ ($json.body?.entry?.[0]?.messaging?.[0]?.message?.is_echo === true) || (($json.body?.entry?.[0]?.changes?.[0]?.value?.from?.id || '') === ($json.body?.entry?.[0]?.id || '__page')) ? 'true' : 'false' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0473b85-75ea-409e-b6f7-3b6fc80c6007",
+      "name": "Normalize Instagram",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        912,
+        -784
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "e6c3bc01-dbb6-4aa4-9c5e-7515d7a410e1",
+      "name": "Merge All Channels",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1280,
+        -928
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "filter-empty",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.messageText }}",
+              "rightValue": ""
+            },
+            {
+              "id": "filter-self",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.isSelf || 'false' }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "36508bfd-7bf8-4651-8606-a8a64be9a13e",
+      "name": "Skip Empty Messages",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1536,
+        -928
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Merge All Channels').first().json.messageText }}",
+        "options": {
+          "systemMessage": "=أنت «حلم»، موظف مبيعات وخدمة عملاء في متجر حلم المصري. اتكلم بالعربي المصري الطبيعي، بود واحترام، من غير أسلوب آلي أو رسائل محفوظة.\n\n## القاعدة الأهم — ممنوع إنشاء طلب ببيانات ناقصة\nأداة create_order ليها شرطان لازم يتحققوا الاتنين مع بعض قبل أي استدعاء:\n1) كل بنود «قائمة التحقق الإجبارية» أدناه مكتملة من كلام العميل نفسه في المحادثة دي.\n2) العميل شاف رسالة الملخص النهائي ورد عليها بموافقة صريحة.\nلو أي بند ناقص — حتى لو العميل قال «اعمل الطلب» أو «أكد» — ما تستدعيش الأداة؛ قوله بلطف إيه اللي ناقص واسأله عنه. وممنوع نهائيًا تخمين أي قيمة، أو استخدام قيمة افتراضية أو نص فاضي أو «غير محدد»، أو بيانات قديمة من غير ما العميل يأكدها من جديد.\n\n## سياق المنتجات\nالقائمة التالية جاية مباشرة من المتجر وهي المصدر الوحيد لأي معلومة عن المنتجات، وقد تحتوي على منتج واحد أو أكثر:\n{{ JSON.stringify($('Load Active Product Context').first().json.data) }}\n\nافهم حقول كل منتج كالتالي:\n- id: قيمة product_id المطلوبة عند إنشاء الطلب للمنتج المختار.\n- name وdescription: اسم المنتج ووصفه.\n- availability.can_order: هل الطلب متاح الآن؛ لو false ما تعرضش المنتج للبيع ولا تنشئ له طلبًا.\n- pricing.unit_price: سعر القطعة بالجنيه المصري.\n- pricing.compare_at_price وpricing.discount_percentage: السعر قبل الخصم ونسبة الخصم.\n- quantity_offers: عروض الكميات؛ استخدم السعر المناسب للكمية المطلوبة.\n\n## سياق المناطق\nقائمة المناطق المتاحة للتوصيل:\n{{ JSON.stringify($json.data) }}\n\n## خطوات البيع بالترتيب\nامشي على الترتيب ده وما تقفزش خطوة أبدًا:\n1. اعرض المنتجات وجاوب أسئلة العميل لحد ما يحدد منتج وكمية.\n2. اجمع بيانات التوصيل واحدة واحدة: الاسم الكامل، رقم الموبايل، المنطقة، العنوان التفصيلي. اسأل عن معلومة واحدة بس في كل رسالة.\n3. لما كل البيانات تكمل وتعدي التدقيق، ابعت رسالة ملخص فيها: الاسم، الرقم، المنطقة، العنوان، المنتج، الكمية، والإجمالي المحسوب، واسأله سؤال واحد: يأكد الطلب؟\n4. لو رد بموافقة صريحة على رسالة الملخص نفسها، ساعتها بس استدعِ create_order مرة واحدة بالقيم الدقيقة: full_name وphone وzone_id وstreet_details وproduct_id وquantity. لا ترسل سعرًا إلى الأداة.\n\n## قائمة التحقق الإجبارية\nراجعها بند بند قبل الملخص وقبل استدعاء الأداة، وأي بند مش متحقق اسأل العميل عنه:\n- product_id: العميل اختار منتجًا can_order بتاعه true، وخدت قيمة id حرفيًا من قائمة المنتجات من غير خلط بين منتجين.\n- quantity: كمية قالها العميل، رقم صحيح موجب، وطبّق عرض الكمية المناسب من quantity_offers عند حساب الإجمالي.\n- full_name: اسم قاله العميل بنفسه، اسمين على الأقل؛ لو قال اسم واحد اطلب باقي الاسم بلطف.\n- phone: رقم كتبه العميل بنفسه في المحادثة. حوّل الأرقام العربية (٠١٢٣٤٥٦٧٨٩) لأرقام إنجليزية، شيل المسافات والشُرط، وحوّل أي بادئة +20 أو 0020 أو 20 لصفر في الأول. الناتج النهائي لازم يكون 11 رقم يبدأ بـ 01، ولو مش كده اطلب رقم صحيح. ما تستخدمش رقم حساب الواتساب أو أي رقم ما كتبهوش العميل.\n- zone_id: طابق منطقة العميل مع arabic_name أو english_name حتى لو كتبها مختصرة أو بصيغة مختلفة (مثلًا «اكتوبر» تعني «السادس من أكتوبر»)، وخد قيمة id (UUID) كما هي حرفيًا. لو فيه أكتر من احتمال اعرضهم واسأله يحدد، ولو منطقته مش في القائمة اعتذر إن التوصيل مش متاح ليها حاليًا ولا تنشئ طلبًا. عمرك ما تبعت اسم المنطقة مكان الـ id.\n- street_details: عنوان تفصيلي فيه الشارع والعمارة وعلامة مميزة؛ اسم مدينة أو منطقة لوحده مش عنوان.\n- الموافقة الصريحة: كلمة موافقة واضحة (زي «تمام أكد» أو «اه اعمل الطلب») جت بعد رسالة الملخص مباشرة؛ أي موافقة قبل عرض الملخص لا تُحسب.\n\n## بعد استدعاء الأداة\n- الطلب ناجح فقط لو رجعت create_order بقيمة success=true وorderId؛ ساعتها أكد للعميل واذكر رقم الطلب نصًا في ردك، وإنه هيوصله تأكيد على واتساب.\n- لو الأداة رجعت خطأ، اعتذر باختصار واطلب تصحيح البيانات المحددة في الخطأ؛ لا تدّعي نجاح الطلب، وما تعيدش المحاولة غير مرة واحدة بعد التصحيح.\n- عمرك ما تنشئ طلبين لنفس التأكيد الواحد.\n\n## طلب جديد أم طلب قائم\n- افتكر رقم آخر طلب ناجح من سياق المحادثة الحالية.\n- لو العميل رجع يتكلم بعد ما عمل طلب، افهم الأول: هو بيسأل عن الطلب القائم (الحالة، تعديل العنوان، إلغاء) ولا عايز طلب جديد؟ لو مش واضح اسأله مباشرة.\n- أسئلة الطلب القائم: استخدم رقم الطلب المذكور في المحادثة، ولو مش موجود اطلب رقم الطلب أو رقم الموبايل المسجل.\n- الطلب الجديد: أكد بيانات التوصيل من جديد قبل إنشائه؛ ممكن تقترح نفس البيانات السابقة بس لازم العميل يأكدها.\n\n## أسلوب المحادثة\n- رد في 1 إلى 3 جمل قصيرة، ومن غير عناوين أو قوائم إلا لو العميل طلب تفاصيل.\n- جاوب سؤال العميل مباشرة، وبعدها اسأل سؤال واحد مفيد يحرك المحادثة للخطوة التالية.\n- في أول تحية، رحّب واذكر المنتجات المتاحة طبيعيًا واسأل سؤالًا مرتبطًا بيها.\n- لو العميل مهتم، اسأله عن الكمية عشان تعرض عليه أفضل سعر متاح.\n- ما تكررّش سؤال العميل، وما تضغطش عليه، وما تستخدمش أكتر من إيموجي واحد عند الحاجة.\n- لا تقول إنك ذكاء اصطناعي، ولا تذكر الأدوات أو JSON أو أسماء الحقول الداخلية.\n- لا تخترع سعرًا أو ميزة أو سياسة. لو المعلومة مش موجودة قل إنك هتراجعها مع الفريق.\n\n## معلومات ثابتة عن المتجر\n- الدفع عند الاستلام.\n- التوصيل متاح داخل مصر.\n- لا تحدد تكلفة أو مدة الشحن إلا لو كانت موجودة في البيانات المتاحة.\n\nلو عند العميل شكوى، اعتذر بصدق واسأله عن أهم تفصيلة ناقصة لحلها."
+        }
+      },
+      "id": "ebeb0706-4494-4aff-a3bd-bbbef89a0179",
+      "name": "7alm AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2176,
+        -1200
+      ],
+      "typeVersion": 1.6
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "route-wa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $('Merge All Channels').first().json.platform }}",
+                    "rightValue": "whatsapp"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "WhatsApp"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "route-fb",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $('Merge All Channels').first().json.platform }}",
+                    "rightValue": "facebook"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Facebook"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "route-ig",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $('Merge All Channels').first().json.platform }}",
+                    "rightValue": "instagram"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Instagram"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "94a1e00f-5c0d-4b2c-9b79-3cc7a984de9f",
+      "name": "Route by Platform",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        2560,
+        -928
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $('Merge All Channels').first().json.senderId }}\",\n  \"text\": {{ JSON.stringify($json.output) }}\n}",
+        "options": {}
+      },
+      "id": "93f177d6-084f-47a8-93e6-2076a56a86b8",
+      "name": "Reply via WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2912,
+        -1136
+      ],
+      "typeVersion": 4.2,
+      "notes": "Sends a text reply via Evolution API sendText endpoint (instance: mypersonal)."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "fb-is-dm",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Merge All Channels').first().json.messageType }}",
+              "rightValue": "message"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "beec86fb-cd20-4a7f-a801-2a9de7da6640",
+      "name": "FB: DM or Comment?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        2912,
+        -928
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Merge All Channels').first().json.pageId }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} },\n  \"messaging_type\": \"RESPONSE\",\n  \"access_token\": \"EAA4VV5APbDkBSPbz1WAsXbstTijWJsfqIS7rjzNejPe2XSZAaHHpR103TCDnubPVlzpFLBZAOdH9cjxZCuRRINpukMzu8ufxT7QNyRr36yXC01TBxZAKLZCuZBxSi3qeZBZAAET6u1KzU21QJ7tGqDJ98zb2hglMaOrdkSCtFJznSJ4vZCskbm1KALQkhPxVaWzXAhDiiTLNIdgZDZD\"\n}",
+        "options": {}
+      },
+      "id": "534631ca-9347-4811-9896-a46df76d4cd3",
+      "name": "FB: Reply DM",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3200,
+        -1120
+      ],
+      "typeVersion": 4.2,
+      "notes": "Sends a DM reply via Facebook Page Messaging API."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Merge All Channels').first().json.commentId }}/replies",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }},\n  \"access_token\": \"EAA4VV5APbDkBSPbz1WAsXbstTijWJsfqIS7rjzNejPe2XSZAaHHpR103TCDnubPVlzpFLBZAOdH9cjxZCuRRINpukMzu8ufxT7QNyRr36yXC01TBxZAKLZCuZBxSi3qeZBZAAET6u1KzU21QJ7tGqDJ98zb2hglMaOrdkSCtFJznSJ4vZCskbm1KALQkhPxVaWzXAhDiiTLNIdgZDZD\"\n}",
+        "options": {}
+      },
+      "id": "11fa7ab4-5c6b-4c2c-8379-b571c1c0c760",
+      "name": "FB: Reply Comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3200,
+        -928
+      ],
+      "typeVersion": 4.2,
+      "notes": "Replies to a Facebook Page comment publicly."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ig-is-dm",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Merge All Channels').first().json.messageType }}",
+              "rightValue": "message"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3f872020-5537-49c3-ab6e-5a104cf6e0b4",
+      "name": "IG: DM or Comment?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        2912,
+        -688
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/{{ $('Merge All Channels').first().json.igUserId }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} }\n}",
+        "options": {}
+      },
+      "id": "584017eb-589b-4222-a534-26f89217ffad",
+      "name": "IG: Reply DM",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3216,
+        -752
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "<placeholder>",
+          "name": "Instagram token -2"
+        }
+      },
+      "notes": "Sends a DM reply via Instagram Messaging API. Uses the connected Facebook Page's access token."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/{{ $('Merge All Channels').first().json.igUserId }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $('Merge All Channels').first().json.senderId }}\" },\n  \"message\": { \"text\": {{ JSON.stringify($('7alm AI Agent').first().json.output) }} }\n}",
+        "options": {}
+      },
+      "id": "8344dafc-d11d-4538-96fd-b2e758355f97",
+      "name": "IG: DM After Comment",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        3216,
+        -576
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "<placeholder>",
+          "name": "Instagram token -2"
+        }
+      },
+      "notes": "When someone comments on Instagram, sends them a private DM reply instead of a public comment."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-log",
+              "name": "error",
+              "type": "string",
+              "value": "Unrecognized platform or routing error"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "95d04e09-b180-4f17-9e72-936fa79c21b0",
+      "name": "Fallback (Unknown Platform)",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2912,
+        -496
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "url": "https://7alm-pro.up.railway.app/api/n8n/products/active",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f7a893a5-e40c-4ce3-a24e-288d5f34e6c0",
+      "name": "Load Active Product Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1776,
+        -1184
+      ],
+      "typeVersion": 4.2,
+      "notes": "Loads the secured active-product DTO before every agent response so product facts are always current."
+    },
+    {
+      "parameters": {
+        "url": "https://7alm-pro.up.railway.app/api/n8n/zones",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5ab979b4-e26c-45ac-8ba5-b5a821759082",
+      "name": "Load Zones Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1952,
+        -912
+      ],
+      "typeVersion": 4.2,
+      "notes": "Loads delivery zones so the agent can match location without tool calls."
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        -880
+      ],
+      "id": "299063fd-47d1-418b-8096-dfd86bf3716f",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "EbbUdiq5aCjllGWD",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Merge All Channels').first().json.platform + '_' + ($('Merge All Channels').first().json.pageId || $('Merge All Channels').first().json.igUserId || $('Merge All Channels').first().json.instanceName || 'main') + '_' + $('Merge All Channels').first().json.senderId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        2272,
+        -848
+      ],
+      "id": "129bd4ec-f136-4ac7-bf59-92b6a16ddfc5",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Creates a customer order in the store backend. STRICT PRECONDITIONS - call ONLY when ALL are true: (1) the customer themselves provided every field in this conversation: full name (at least two names), valid 11-digit Egyptian phone starting with 01, delivery zone matched to an exact zone id (UUID) from the zones list, detailed street address, chosen product id, and quantity; (2) you already showed the customer a complete order summary with the total price; (3) the customer replied with explicit confirmation AFTER seeing that summary. NEVER call with guessed, default, empty, or placeholder values, and NEVER before explicit confirmation - if anything is missing, ask the customer for it instead of calling this tool. Call at most once per confirmed order.",
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/n8n/orders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"full_name\": {{ JSON.stringify($fromAI('full_name', 'Customer real full name, at least first and last name', 'string')) }},\n  \"phone\": {{ JSON.stringify($fromAI('phone', 'Normalized 11-digit Egyptian mobile number starting with 01, ASCII digits only, no spaces or country code', 'string')) }},\n  \"zone_id\": {{ JSON.stringify($fromAI('zone_id', 'Exact zone id (UUID) copied character-for-character from the zones context list', 'string')) }},\n  \"street_details\": {{ JSON.stringify($fromAI('street_details', 'Complete street, building, floor, and landmark details', 'string')) }},\n  \"product_id\": {{ JSON.stringify($fromAI('product_id', 'id of the product the customer chose, copied from the products context', 'string')) }},\n  \"quantity\": {{ $fromAI('quantity', 'Positive integer quantity explicitly confirmed by the customer', 'number') }},\n  \"platform_source\": \"{{ $('Merge All Channels').first().json.platform }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        2400,
+        -864
+      ],
+      "id": "f8022aa9-c2c0-4e81-98ae-c20fabadd327",
+      "name": "Create Order"
+    }
+  ],
+  "connections": {
+    "Evolution API Webhook": {
+      "main": [
+        [
+          {
+            "node": "Skip Own Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Own Messages": {
+      "main": [
+        [
+          {
+            "node": "Normalize WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Verify Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Verification?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verification?": {
+      "main": [
+        [
+          {
+            "node": "Respond with Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Verify Webhook": {
+      "main": [
+        [
+          {
+            "node": "IG Is Verification?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Is Verification?": {
+      "main": [
+        [
+          {
+            "node": "IG Respond with Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Merge All Channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Facebook": {
+      "main": [
+        [
+          {
+            "node": "Merge All Channels",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Normalize Instagram": {
+      "main": [
+        [
+          {
+            "node": "Merge All Channels",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge All Channels": {
+      "main": [
+        [
+          {
+            "node": "Skip Empty Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Empty Messages": {
+      "main": [
+        [
+          {
+            "node": "Load Active Product Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7alm AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Route by Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Platform": {
+      "main": [
+        [
+          {
+            "node": "Reply via WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FB: DM or Comment?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IG: DM or Comment?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback (Unknown Platform)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FB: DM or Comment?": {
+      "main": [
+        [
+          {
+            "node": "FB: Reply DM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FB: Reply Comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG: DM or Comment?": {
+      "main": [
+        [
+          {
+            "node": "IG: Reply DM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IG: DM After Comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Active Product Context": {
+      "main": [
+        [
+          {
+            "node": "Load Zones Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Zones Context": {
+      "main": [
+        [
+          {
+            "node": "7alm AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "7alm AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "7alm AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Order": {
+      "ai_tool": [
+        [
+          {
+            "node": "7alm AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "c31f5ec5b1eee1ec799e27877c1321810ce9d2d5d1a612b4595d3912ef083f88"
+  }
+}

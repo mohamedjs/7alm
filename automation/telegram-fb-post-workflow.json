@@ -1,0 +1,601 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "7aa9f38d-2383-4be2-9a9e-430a44d4fcb4",
+      "name": "Receive Telegram Messages",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -2592,
+        -2672
+      ],
+      "webhookId": "f913897a-8843-44ec-888b-5bedb9f6b8fe",
+      "typeVersion": 1.1,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "af30c479-4542-405f-b315-37c50c4e2bef",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "a3ca8cd4-fbb2-40b5-829a-24724f2fbc85",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.text || \"\" }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "9bcfdee0-2f09-4037-a7b9-689ef392371d",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "error",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Error"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d0364935-2324-4ddd-9e27-902c9ad144c9",
+      "name": "Voice or Text?",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -2400,
+        -2688
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "id": "8d43b3df-8bf2-4612-9713-4967a36c08fa",
+      "name": "Fetch Voice Message",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2080,
+        -2704
+      ],
+      "webhookId": "d28bd011-ad87-4c15-8f06-7d0ccfd22536",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-2.5-flash",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "options": {}
+      },
+      "id": "1c9dcea9-2ac7-4930-9152-173013204163",
+      "name": "Transcribe a recording",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "position": [
+        -1840,
+        -2704
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pj3wNPsZG5Yic3Ho",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "notes": "This node transcribes audio to text via Google Gemini; provide the Gemini credentials to establish the connection."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b324a329-3c49-4f7f-b683-74331b7fe7f8",
+              "name": "=text",
+              "type": "string",
+              "value": "={{ $json.message ? $json.message.text : ($json.text || $json.content || '') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7fa6ef18-558c-4c7e-85e7-dc7d8f676aa3",
+      "name": "Prepare for LLM",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -2080,
+        -2528
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "url": "https://7alm-pro.up.railway.app/api/n8n/products/active",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "741d59e8-4da3-4164-912d-f6d0f77af2d7",
+      "name": "Load Active Products",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1616,
+        -2528
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Prepare for LLM').first().json.text }}",
+        "options": {
+          "systemMessage": "=أنت مساعد تسويق ذكي لمتجر «حلم» المصري، بتتكلم مع صاحب المتجر نفسه على تليجرام في محادثة عادية. مهمتك: الرد على أسئلته عن المنتجات، وتحضير بوستات فيسبوك معاه بالحوار، ونشر البوست على صفحة الفيسبوك لما يوافق.\n\nبيانات المنتجات النشطة حاليًا وهي المصدر الوحيد لأي معلومة:\n{{ JSON.stringify($('Load Active Products').first().json.data) }}\n\nحقول مهمة لكل منتج: name وdescription وslug وmain_image وpricing (unit_price وcompare_at_price وdiscount_percentage) وquantity_offers وavailability.\n\n## أسلوب المحادثة\n- رد بالعربي المصري الطبيعي كنص عادي، من غير JSON ومن غير تنسيقات معقدة.\n- لو سأل عن المنتجات أو الأسعار أو العروض جاوب من البيانات أعلاه بس، وما تخترعش أي معلومة.\n- لو طلب بوست وما حددش منتج وفيه أكتر من منتج متاح، اسأله الأول عايز بوست عن أنهي واحد.\n\n## تحضير البوست\nلما يطلب بوست، اكتب له مسودة كاملة في رسالتك واسأله رأيه. المسودة لازم تشمل:\n1. سطر افتتاحي (hook) يلفت الانتباه من أول كلمتين.\n2. سطرين أو تلاتة عن أهم فايدة للمنتج من description بأسلوب طبيعي مش مبالغ فيه.\n3. السعر من pricing.unit_price بالجنيه المصري، ولو compare_at_price أكبر منه اذكره كسعر قبل الخصم مع نسبة الخصم discount_percentage.\n4. أفضل عرض كمية من quantity_offers لو موجود.\n5. سطر رابط الطلب — إجباري في كل بوست: ركّب الرابط كده: https://7alm-pro.up.railway.app/ + قيمة slug بتاع المنتج + ?utm_source=facebook (مثال: https://7alm-pro.up.railway.app/7alm-product?utm_source=facebook) بصيغة «اطلب من هنا 👉 الرابط».\n6. من 3 إلى 5 هاشتاجات بالعربي وإيموجي معتدلة.\nلو طلب تعديلات، عدّل على آخر مسودة في سياق المحادثة وحافظ على الباقي (بما فيه رابط الطلب)، واعرض المسودة كاملة تاني.\n\n## اختيار المنصة\n- لما صاحب المتجر يوافق على مسودة، لو رسالته ما حددتش المنصة (فيسبوك / إنستجرام / تيك توك / أكتر من واحدة مع بعض)، اسأله الأول عايز تنشر فين قبل ما تستخدم أي أداة نشر.\n- لو حدد أكتر من منصة في نفس الموافقة، نفّذ كل منصة بقواعدها الخاصة اللي جاية تحت، كل واحدة لوحدها.\n\n## النشر على فيسبوك\n- ما تنشرش أبدًا قبل ما صاحب المتجر يوافق صراحة على آخر مسودة (بأي صيغة موافقة زي: تمام، أوكي، انشر، موافق، ماشي، okay).\n- لما يوافق: حدد صورة المنتج من main_image، ولو بتبدأ بـ / حوّلها لرابط كامل بإضافة https://7alm-pro.up.railway.app في الأول.\n- لو فيه صورة استخدم أداة publish_photo_post بالـ caption النهائي ورابط الصورة. لو مفيش صورة خالص استخدم أداة publish_text_post بالـ caption بس.\n- الـ caption اللي تبعته للأداة هو نص آخر مسودة وافق عليها صاحب المتجر بالظبط، من غير أي إضافات أو تغييرات جديدة.\n- انشر مرة واحدة بس لكل موافقة، وعمرك ما تنشر نفس البوست مرتين.\n- لما تستدعي أداة النشر ابعت القيم كاملة: باراميتر caption فيه نص البوست النهائي حرفيًا بالكامل، وباراميتر image_url فيه رابط الصورة الكامل. ممنوع تستدعي أي أداة بباراميتر فاضي؛ لو حاجة ناقصة اسأل الأول.\n- بعد ما الأداة تنجح، أكد له إن البوست اتنشر على الصفحة. لو الأداة رجعت خطأ، قول له في إيه المشكلة بصراحة وما تدّعيش إن النشر تم.\n- لو رسالته مش واضحة هل هي موافقة ولا طلب تعديل، اسأله يأكد قبل النشر.\n\n## النشر على إنستجرام\n- إنستجرام محتاج صورة إجباري؛ مفيش بوست نصي بس زي فيسبوك. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن ده مش متاح على إنستجرام وما تستخدمش أي أداة نشر لإنستجرام.\n- النشر على إنستجرام خطوتين لازم يتنفذوا مع بعض بالترتيب ده بالظبط: استخدم أداة create_instagram_media بالـ caption ورابط الصورة، هتاخد creation_id من نتيجة الأداة (حقل id)، وعلى طول استخدم أداة publish_instagram_media بنفس الـ creation_id.\n- ما تأكدش لصاحب المتجر إن البوست اتنشر على إنستجرام إلا لما الأداتين الاتنين ينجحوا. لو أي واحدة فيهم رجعت خطأ، قول له بصراحة فين المشكلة وما تدّعيش إن النشر تم، ولا تكمل للخطوة التانية.\n- زي فيسبوك بالظبط: نفّذ الزوج ده (create_instagram_media وبعدين publish_instagram_media) مرة واحدة بس لكل موافقة.\n\n## النشر على تيك توك\n- تيك توك مالوش بوست نصي خالص؛ محتاج صورة إجباري زي إنستجرام. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن النشر على تيك توك مش متاح للمنتج ده، وما تستدعيش أداة publish_tiktok_post بصورة فاضية.\n- استخدم أداة publish_tiktok_post بالـ caption النهائي ورابط الصورة، واستدعيها مرة واحدة بس لكل موافقة.\n- تطبيق تيك توك المربوط بالحساب لسه ما خدش مراجعة (app review) من تيك توك، فأي بوست بينشر دلوقتي بيبقى خاص (private/self-only) على الحساب المربوط بس، مش عام. بعد ما الأداة تنجح، لازم تقول لصاحب المتجر بوضوح إن البوست خاص وشايفه الحساب المربوط بس، وممنوع تقول إنه اتنشر بشكل عام أو ظاهر للناس كلها.\n\n- قاعدة انشر مرة واحدة بس لكل موافقة سارية على الثلاث منصات كلها (فيسبوك، إنستجرام، تيك توك)، وعلى زوج أدوات إنستجرام (create_instagram_media وpublish_instagram_media) كوحدة واحدة، يعني ما تكررش نفس زوج إنستجرام مرتين لنفس الموافقة برضو."
+        }
+      },
+      "id": "d2966caf-600f-47f0-8e1c-20203d7f9fa6",
+      "name": "Generate FB Post",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -1216,
+        -2528
+      ],
+      "typeVersion": 1.6
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "id": "7580d231-b0ab-4075-890e-28a91305689c",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        -1440,
+        -2192
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "openRouterApi": {
+          "id": "EbbUdiq5aCjllGWD",
+          "name": "OpenRouter account"
+        }
+      },
+      "notes": "Free OpenRouter model with strong tool calling (fixes empty caption/image_url tool arguments). Uses the same OpenRouter credential as the ecommerce workflow. For higher daily limits, switch to Groq free tier (openai/gpt-oss-120b) with a free key from console.groq.com."
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ 'tg-fbpost-' + $('Receive Telegram Messages').first().json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "5e73d723-b508-46f9-b826-5f86dc50dc26",
+      "name": "Post Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        -1280,
+        -2192
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "toolDescription": "Publish the approved Facebook post WITH a product image to the store's Facebook Page. Inputs: caption (the exact final post text the owner approved, complete and verbatim) and image_url (absolute https URL of the product image). Call it exactly once, and only after the owner explicitly approved the final draft in chat.",
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/1225286564001507/photos",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"caption\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"url\": {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }},\n  \"access_token\": \"EAAOkmavZAby4BSNHf6p8LP3kOlVDjXbZBG9N1KMFl2hJ7H9tAF6tQx1kCL16bdBOlHpQ2bCuCxV4dCLbTxpdQRaRgUK4iFKD6UP6l9s7ohT7yGekldwZCdNmv2yyyqIVRlcQ2t5dvvYoGokgaOtlWwgBTxaEuxnqPI4mvfVf4PDXicGdZAfoZAqH9OOQZCSnZCpgPQZA\"\n}",
+        "options": {}
+      },
+      "id": "15aef408-195a-404c-a724-9d03cb66f4fc",
+      "name": "publish_photo_post",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -1104,
+        -2192
+      ],
+      "typeVersion": 4.4,
+      "notes": "AI tool: publishes a photo post to the Facebook Page via Graph API. Set FB_PAGE_ID and META_PAGE_ACCESS_TOKEN environment variables in n8n."
+    },
+    {
+      "parameters": {
+        "toolDescription": "Publish the approved Facebook post as TEXT ONLY (no image) to the store's Facebook Page feed. Input: caption (the exact final post text the owner approved, complete and verbatim). Use this only when the chosen product has no image. Call it exactly once, and only after the owner explicitly approved the final draft in chat.",
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/1225286564001507/feed",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"access_token\": \"EAAOkmavZAby4BSNHf6p8LP3kOlVDjXbZBG9N1KMFl2hJ7H9tAF6tQx1kCL16bdBOlHpQ2bCuCxV4dCLbTxpdQRaRgUK4iFKD6UP6l9s7ohT7yGekldwZCdNmv2yyyqIVRlcQ2t5dvvYoGokgaOtlWwgBTxaEuxnqPI4mvfVf4PDXicGdZAfoZAqH9OOQZCSnZCpgPQZA\"\n}",
+        "options": {}
+      },
+      "id": "e20e4655-e8ab-4361-b02a-d04f7e90038f",
+      "name": "publish_text_post",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -928,
+        -2192
+      ],
+      "typeVersion": 4.4,
+      "notes": "AI tool: publishes a text-only post to the Facebook Page feed via Graph API. Set FB_PAGE_ID and META_PAGE_ACCESS_TOKEN environment variables in n8n."
+    },
+    {
+      "parameters": {
+        "toolDescription": "Step 1 of 2 for publishing to Instagram: create a media container on the store's Instagram Business Account. Inputs: image_url (absolute https URL of the product image) and caption (the exact final post text the owner approved, complete and verbatim). Instagram requires an image — never call this without one. The tool result's JSON contains an `id` field — that is the creation_id, and you MUST pass it as creation_id to publish_instagram_media immediately after this call, in the same publish sequence. Do NOT tell the owner the Instagram post succeeded until publish_instagram_media (step 2) also succeeds. Call this once per approval.",
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v21.0/17841439246212022/media",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"image_url\": {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }},\n  \"caption\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n  \"access_token\": \"IGAAV0Gw2akkVBZAFlfSTRvLVJlMF9Yam1rV1l3em5hbkFMemlORVB3Vkl4cWViR0x4SFpDMTdvN19pQnVtTThyR1FmNm0zZA0Y1N0Y1VzdVYTQwcjRxeGt5M2RHeUZAncDVtMUxGMDJ2MUY1R25qSjdxSmw1aUh1OEw5b2ZAfazhpRQZDZD\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-1111-4a2b-8c3d-1a2b3c4d5e6f",
+      "name": "create_instagram_media",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -1104,
+        -2032
+      ],
+      "typeVersion": 4.4,
+      "notes": "AI tool: step 1/2 of Instagram publishing — creates a media container via the Instagram API with Instagram Login (graph.instagram.com), using an IGAA-type Instagram User access token, not a Facebook Page token. Set the IG_LOGIN_ACCESS_TOKEN environment variable in n8n (see CREDENTIALS_GUIDE.md §8). Must be followed by publish_instagram_media using the returned creation_id."
+    },
+    {
+      "parameters": {
+        "toolDescription": "Step 2 of 2 for publishing to Instagram: publish the media container created by create_instagram_media. Input: creation_id (the id value returned by create_instagram_media's result). Call this immediately after create_instagram_media succeeds, in the same publish sequence, and only confirm success to the owner after THIS call succeeds too. Call once per approval — never repeat the create+publish pair for the same approval.",
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v21.0/17841439246212022/media_publish",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"creation_id\": {{ JSON.stringify($fromAI('creation_id', 'The id returned by create_instagram_media', 'string')) }},\n  \"access_token\": \"IGAAV0Gw2akkVBZAFlfSTRvLVJlMF9Yam1rV1l3em5hbkFMemlORVB3Vkl4cWViR0x4SFpDMTdvN19pQnVtTThyR1FmNm0zZA0Y1N0Y1VzdVYTQwcjRxeGt5M2RHeUZAncDVtMUxGMDJ2MUY1R25qSjdxSmw1aUh1OEw5b2ZAfazhpRQZDZD\"\n}",
+        "options": {}
+      },
+      "id": "b2c3d4e5-2222-4b3c-9d4e-2b3c4d5e6f70",
+      "name": "publish_instagram_media",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -928,
+        -2032
+      ],
+      "typeVersion": 4.4,
+      "notes": "AI tool: step 2/2 of Instagram publishing — publishes the container via the Instagram API with Instagram Login (graph.instagram.com), using the same IG_LOGIN_ACCESS_TOKEN environment variable as create_instagram_media. Must be called with the creation_id returned by create_instagram_media."
+    },
+    {
+      "parameters": {
+        "toolDescription": "Publish the approved post WITH a product image to TikTok as a photo post via the Content Posting API. Inputs: caption (the exact final post text the owner approved, complete and verbatim) and image_url (absolute https URL of the product image). TikTok has no text-only post type — never call this tool without an image; if the product has no image, tell the owner TikTok posting isn't possible for it instead of calling this tool. Until the connected TikTok app passes TikTok's app review, every post is forced private/self-only by TikTok — after a successful call, tell the owner the post is private and visible only to the connected account, never say it is public. Call it exactly once, and only after the owner explicitly approved the final draft in chat.",
+        "method": "POST",
+        "url": "=https://open.tiktokapis.com/v2/post/publish/content/init/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post_info\": {\n    \"title\": {{ JSON.stringify($fromAI('caption', 'Exact final approved post text, complete and verbatim', 'string')) }},\n    \"privacy_level\": \"SELF_ONLY\",\n    \"disable_comment\": false\n  },\n  \"source_info\": {\n    \"source\": \"PULL_FROM_URL\",\n    \"photo_cover_index\": 0,\n    \"photo_images\": [ {{ JSON.stringify($fromAI('image_url', 'Absolute https URL of the product image', 'string')) }} ]\n  },\n  \"post_mode\": \"DIRECT_POST\",\n  \"media_type\": \"PHOTO\"\n}",
+        "options": {}
+      },
+      "id": "c3d4e5f6-3333-4c4d-ae5f-3c4d5e6f7081",
+      "name": "publish_tiktok_post",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -1104,
+        -1872
+      ],
+      "typeVersion": 4.4,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "<placeholder>",
+          "name": "TikTok API account"
+        }
+      },
+      "notes": "AI tool: publishes a photo post to TikTok via the Content Posting API (direct post, photo mode). Requires a 'TikTok API account' HTTP Header Auth credential in n8n whose header sends Authorization: Bearer <TikTok access token> (see CREDENTIALS_GUIDE.md §9). Unaudited apps are restricted to SELF_ONLY visibility by TikTok until app review passes. Photo-mode endpoint/field names are a best-effort mapping from TikTok's confirmed video-init shape — re-verify against live TikTok docs before relying on this in production. See specs/001-tiktok-integration/research.md."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Receive Telegram Messages').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "id": "29274aba-3451-4e52-a1d2-75e0f5f273a0",
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -816,
+        -2528
+      ],
+      "webhookId": "send-chat-reply-webhook",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      },
+      "notes": "Sends the assistant's reply back to the owner on Telegram — drafts, answers, and publish confirmations all flow through here."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Receive Telegram Messages').item.json.message.chat.id }}",
+        "text": "معلش، مقدرتش أفهم الرسالة دي 🙏 ابعت تعليمات كنص أو رسالة صوتية.",
+        "additionalFields": {}
+      },
+      "id": "597417df-3c33-4fd1-9217-2acff70e815b",
+      "name": "Telegram Error Reply",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -2400,
+        -2448
+      ],
+      "webhookId": "telegram-error-reply-webhook",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Receive Telegram Messages": {
+      "main": [
+        [
+          {
+            "node": "Voice or Text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice or Text?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Voice Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare for LLM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Error Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Voice Message": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Prepare for LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare for LLM": {
+      "main": [
+        [
+          {
+            "node": "Load Active Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Active Products": {
+      "main": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate FB Post": {
+      "main": [
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "publish_photo_post": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "publish_text_post": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_instagram_media": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "publish_instagram_media": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "publish_tiktok_post": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c31f5ec5b1eee1ec799e27877c1321810ce9d2d5d1a612b4595d3912ef083f88"
+  }
+}

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <!-- Silicone outer gradient (Olive/Forest Green) -->
+    <linearGradient id="s23-body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4B5E53" />
+      <stop offset="40%" stop-color="#37473E" />
+      <stop offset="100%" stop-color="#243029" />
+    </linearGradient>
+    
+    <!-- Bevel highlight -->
+    <linearGradient id="bevel-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+
+    <!-- Lens glass gradient -->
+    <radialGradient id="lens-glass" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1A2420" />
+      <stop offset="70%" stop-color="#0A0E0C" />
+      <stop offset="100%" stop-color="#010302" />
+    </radialGradient>
+
+    <!-- Metallic lens ring gradient -->
+    <linearGradient id="metal-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C9286" />
+      <stop offset="100%" stop-color="#2C3831" />
+    </linearGradient>
+
+    <!-- Drop shadow for the case -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Side Buttons (Samsung: all on the right) -->
+  <!-- Volume Rocker (Volume Up and Down in one piece) -->
+  <rect x="358" y="180" width="8" height="85" rx="3.5" fill="#2E3C34" />
+  <!-- Power Button -->
+  <rect x="358" y="285" width="8" height="45" rx="2.5" fill="#2E3C34" />
+
+  <!-- Main Case Body (Matched size/roundness to iPhone 17 Pro Max) -->
+  <rect x="40" y="40" width="320" height="720" rx="60" fill="url(#s23-body-grad)" filter="url(#shadow)" stroke="url(#bevel-grad)" stroke-width="2.5" />
+  
+  <!-- Screen/lip inner edge highlight (Matched size/roundness to iPhone 17 Pro Max) -->
+  <rect x="42" y="42" width="316" height="716" rx="58" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5" />
+
+  <!-- Individual Camera Lenses (Vertically stacked on the left, S23 signature design) -->
+  <g>
+    <!-- Lens 1 (Top) -->
+    <g transform="translate(90, 95)">
+      <!-- Outer case cutout lip -->
+      <circle cx="0" cy="0" r="23" fill="none" stroke="#243029" stroke-width="2" />
+      <circle cx="0" cy="0" r="21" fill="url(#metal-ring)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1" />
+      <circle cx="0" cy="0" r="17" fill="url(#lens-glass)" />
+      <circle cx="-4" cy="-4" r="6" fill="#000000" />
+      <circle cx="-5" cy="-5" r="1.5" fill="#ffffff" opacity="0.4" />
+    </g>
+
+    <!-- Lens 2 (Middle) -->
+    <g transform="translate(90, 155)">
+      <!-- Outer case cutout lip -->
+      <circle cx="0" cy="0" r="23" fill="none" stroke="#243029" stroke-width="2" />
+      <circle cx="0" cy="0" r="21" fill="url(#metal-ring)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1" />
+      <circle cx="0" cy="0" r="17" fill="url(#lens-glass)" />
+      <circle cx="-4" cy="-4" r="6" fill="#000000" />
+      <circle cx="-5" cy="-5" r="1.5" fill="#ffffff" opacity="0.4" />
+    </g>
+
+    <!-- Lens 3 (Bottom) -->
+    <g transform="translate(90, 215)">
+      <!-- Outer case cutout lip -->
+      <circle cx="0" cy="0" r="23" fill="none" stroke="#243029" stroke-width="2" />
+      <circle cx="0" cy="0" r="21" fill="url(#metal-ring)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1" />
+      <circle cx="0" cy="0" r="17" fill="url(#lens-glass)" />
+      <circle cx="-4" cy="-4" r="6" fill="#000000" />
+      <circle cx="-5" cy="-5" r="1.5" fill="#ffffff" opacity="0.4" />
+    </g>
+
+    <!-- Flash Cutout (To the right of the second camera gap) -->
+    <circle cx="130" cy="125" r="9" fill="none" stroke="#243029" stroke-width="2" />
+    <circle cx="130" cy="125" r="7" fill="#EAECEE" />
+    <circle cx="130" cy="125" r="5" fill="#F4D03F" opacity="0.85" />
+  </g>
+</svg>

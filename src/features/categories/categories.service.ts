@@ -11,6 +11,10 @@ export class CategoryService {
     return categoryRepository.getActiveCategories();
   }
 
+  async getCategoryBySlug(slug: string): Promise<Category | null> {
+    return categoryRepository.getCategoryBySlug(slug);
+  }
+
   async validateCategory(data: Partial<Category>, categoryId?: string): Promise<void> {
     // 1. Check if category is its own parent
     if (categoryId && data.parent_id === categoryId) {

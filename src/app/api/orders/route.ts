@@ -31,6 +31,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Multi-item cart checkout — each item needs product_id + quantity >= 1.
+    // Absent/empty items[] keeps the legacy single-product path untouched.
+    const hasItems = Array.isArray(body.items) && body.items.length > 0;
+    if (hasItems) {
+      for (const item of body.items) {
+        if (!item?.product_id || !item?.quantity || item.quantity < 1) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Invalid items[] — each item needs product_id and quantity >= 1",
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const input: CreateOrderInput = {
       full_name: body.full_name.trim(),
       phone: body.phone.replace(/\s/g, ""),
@@ -43,9 +60,17 @@ export async function POST(request: NextRequest) {
       ip_address: body.ip_address || undefined,
       ip_country: body.ip_country || undefined,
       ip_city: body.ip_city || undefined,
+      items: hasItems
+        ? body.items.map((item: { product_id: string; quantity: number }) => ({
+            product_id: item.product_id,
+            quantity: item.quantity,
+          }))
+        : undefined,
     };
 
-    const result = await orderService.processNewOrder(input);
+    const result = hasItems
+      ? await orderService.processCartOrder(input)
+      : await orderService.processNewOrder(input);
 
     if (!result.success) {
       return NextResponse.json(

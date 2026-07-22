@@ -1,0 +1,458 @@
+{
+  "name": "7alm — Order Status Notifications (Evolution API)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "order-status-changed",
+        "options": {
+          "rawBody": false
+        },
+        "responseMode": "onReceived"
+      },
+      "id": "order-webhook-001",
+      "name": "Order Status Changed",
+      "type": "n8n-nodes-base.webhook",
+      "position": [-800, 200],
+      "webhookId": "order-status-webhook",
+      "typeVersion": 1.1,
+      "notes": "Triggered by 7alm backend when an admin changes an order status. Receives: orderId, newStatus, customerPhone, customerName, productName, trackingId, totalPrice, quantity"
+    },
+
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "validate-phone",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true },
+              "leftValue": "={{ $json.body.customerPhone }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "validate-001",
+      "name": "Has Phone Number?",
+      "type": "n8n-nodes-base.if",
+      "position": [-540, 200],
+      "typeVersion": 2.2
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "format-phone",
+              "name": "formattedPhone",
+              "type": "string",
+              "value": "={{ $json.body.customerPhone.startsWith('2') ? $json.body.customerPhone : '2' + $json.body.customerPhone }}"
+            },
+            {
+              "id": "pass-order-id",
+              "name": "orderId",
+              "type": "string",
+              "value": "={{ $json.body.orderId }}"
+            },
+            {
+              "id": "pass-status",
+              "name": "newStatus",
+              "type": "string",
+              "value": "={{ $json.body.newStatus }}"
+            },
+            {
+              "id": "pass-name",
+              "name": "customerName",
+              "type": "string",
+              "value": "={{ $json.body.customerName }}"
+            },
+            {
+              "id": "pass-product",
+              "name": "productName",
+              "type": "string",
+              "value": "={{ $json.body.productName || 'طلبك' }}"
+            },
+            {
+              "id": "pass-tracking",
+              "name": "trackingId",
+              "type": "string",
+              "value": "={{ $json.body.trackingId || '' }}"
+            },
+            {
+              "id": "pass-total",
+              "name": "totalPrice",
+              "type": "number",
+              "value": "={{ $json.body.totalPrice || 0 }}"
+            },
+            {
+              "id": "pass-quantity",
+              "name": "quantity",
+              "type": "number",
+              "value": "={{ $json.body.quantity || 1 }}"
+            },
+            {
+              "id": "pass-items",
+              "name": "items",
+              "type": "array",
+              "value": "={{ $json.body.items }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-data-001",
+      "name": "Format Notification Data",
+      "type": "n8n-nodes-base.set",
+      "position": [-280, 200],
+      "typeVersion": 3.4,
+      "notes": "Formats the Egyptian phone number to international format (prefix with '2' for Egypt country code) and passes through all order data."
+    },
+
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "status-approved",
+                    "operator": { "type": "string", "operation": "equals" },
+                    "leftValue": "={{ $json.newStatus }}",
+                    "rightValue": "approved"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Approved"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "status-confirmed",
+                    "operator": { "type": "string", "operation": "equals" },
+                    "leftValue": "={{ $json.newStatus }}",
+                    "rightValue": "confirmed"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Confirmed"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "status-shipped",
+                    "operator": { "type": "string", "operation": "equals" },
+                    "leftValue": "={{ $json.newStatus }}",
+                    "rightValue": "shipped"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Shipped"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "status-delivered",
+                    "operator": { "type": "string", "operation": "equals" },
+                    "leftValue": "={{ $json.newStatus }}",
+                    "rightValue": "delivered"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Delivered"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "status-cancelled",
+                    "operator": { "type": "string", "operation": "equals" },
+                    "leftValue": "={{ $json.newStatus }}",
+                    "rightValue": "cancelled"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Cancelled"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "switch-status-001",
+      "name": "Route by Status",
+      "type": "n8n-nodes-base.switch",
+      "position": [0, 200],
+      "typeVersion": 3.2
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 👋\\n\\nتم قبول طلبك من متجر حلم! 🎉\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nللتأكيد وبدء تجهيز الشحنة رد على الرسالة دي بكلمة «تأكيد» ✅\\nولو حابب تلغي الطلب رد بكلمة «إلغاء» ❌\\n\\nمتجر حلم — شكراً لثقتك فينا 🙏\"\n}",
+        "options": {}
+      },
+      "id": "wa-approved-001",
+      "name": "WA: Order Approved (Text)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [340, -80],
+      "typeVersion": 4.2,
+      "notes": "Sends a plain-text approval request via Evolution API sendText. The customer replies in natural language (e.g. تأكيد / إلغاء) and the confirmation workflow detects the intent and matches the order by the sender's phone number."
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nشكراً لتأكيد طلبك!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\\nشكراً لثقتك في متجر حلم! 🙏\"\n}",
+        "options": {}
+      },
+      "id": "wa-confirmed-001",
+      "name": "WA: Order Confirmed",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [340, 60],
+      "typeVersion": 4.2,
+      "notes": "Sent after the customer confirms the order via WhatsApp button. Uses Evolution API sendText endpoint."
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🚚\\n\\nطلبك في الطريق إليك!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\\n\\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\\nشكراً لصبرك! 😊\"\n}",
+        "options": {}
+      },
+      "id": "wa-shipped-001",
+      "name": "WA: Order Shipped",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [340, 200],
+      "typeVersion": 4.2,
+      "notes": "Sends a shipping notification via Evolution API sendText endpoint."
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nتم توصيل طلبك بنجاح!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\\nشكراً لتسوقك من متجر حلم! ⭐\"\n}",
+        "options": {}
+      },
+      "id": "wa-delivered-001",
+      "name": "WA: Order Delivered",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [340, 360],
+      "typeVersion": 4.2,
+      "notes": "Sends a delivery confirmation via Evolution API sendText endpoint."
+    },
+
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }}\\n\\nتم إلغاء طلبك.\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\\nمتجر حلم دايمًا في خدمتك 🙏\"\n}",
+        "options": {}
+      },
+      "id": "wa-cancelled-001",
+      "name": "WA: Order Cancelled",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [340, 540],
+      "typeVersion": 4.2,
+      "notes": "Sends a cancellation notification via Evolution API sendText endpoint."
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fallback-log",
+              "name": "info",
+              "type": "string",
+              "value": "={{ 'Status \"' + $json.newStatus + '\" does not trigger a WhatsApp notification' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "no-notification-001",
+      "name": "No Notification Needed",
+      "type": "n8n-nodes-base.set",
+      "position": [340, 720],
+      "typeVersion": 3.4,
+      "notes": "For status transitions like 'returned' that don't trigger an automatic WhatsApp notification."
+    },
+
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "skip-log",
+              "name": "error",
+              "type": "string",
+              "value": "No phone number provided — cannot send WhatsApp notification"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "no-phone-001",
+      "name": "No Phone — Skip",
+      "type": "n8n-nodes-base.set",
+      "position": [-280, 400],
+      "typeVersion": 3.4
+    }
+  ],
+  "connections": {
+    "Order Status Changed": {
+      "main": [
+        [
+          { "node": "Has Phone Number?", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Has Phone Number?": {
+      "main": [
+        [
+          { "node": "Format Notification Data", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "No Phone — Skip", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Notification Data": {
+      "main": [
+        [
+          { "node": "Route by Status", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Route by Status": {
+      "main": [
+        [
+          { "node": "WA: Order Approved (Text)", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "WA: Order Confirmed", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "WA: Order Shipped", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "WA: Order Delivered", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "WA: Order Cancelled", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "No Notification Needed", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "7alm-order-notifications"
+  }
+}

@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "zuajkdttqzgwwdnsjmjk.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+      },
     ],
   },
   allowedDevOrigins: ['192.168.1.225'],

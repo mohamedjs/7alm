@@ -1,5 +1,88 @@
 import { supabase } from "@/lib/supabase";
-import type { Address, Order, OrderWithDetails } from "@/features/shared/types";
+import type { Address, Order, OrderItem, OrderWithDetails } from "@/features/shared/types";
+
+/**
+ * Shared select string for every order read — additive over the original
+ * (pre-007) shape: adds the `order_items` embed (each with its own nested
+ * `product`) alongside the legacy `product:products (*)` embed. Neither
+ * embed depends on the other; the read-fallback lives in `mapOrderItems`.
+ */
+const ORDER_SELECT = `
+  *,
+  customer:customers (*),
+  address:addresses (
+    *,
+    zone:zones (
+      *,
+      city:cities (*)
+    )
+  ),
+  product:products (*),
+  order_items (
+    *,
+    product:products (*)
+  )
+`;
+
+/**
+ * `OrderWithDetails.items` read-fallback rule: `order_items` rows when
+ * present (multi-item cart order), else a single-entry array synthesized
+ * from the legacy `product_id`/`quantity`/`total_price` columns
+ * (single-product funnel order) — exactly what every existing reader
+ * (`OrdersTable`, `OrderDetailsDrawer`, n8n) already renders today.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapOrderItems(raw: any): OrderItem[] {
+  const rows = raw.order_items as
+    | Array<{
+        id: string;
+        order_id: string;
+        product_id: string | null;
+        product?: unknown;
+        quantity: number;
+        unit_price: number;
+        total_price: number;
+        created_at: string;
+      }>
+    | null
+    | undefined;
+
+  if (rows && rows.length > 0) {
+    return rows.map((row) => ({
+      id: row.id,
+      order_id: row.order_id,
+      product_id: row.product_id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      product: (row.product as any) ?? undefined,
+      quantity: row.quantity,
+      unit_price: row.unit_price,
+      total_price: row.total_price,
+      created_at: row.created_at,
+    }));
+  }
+
+  if (raw.product_id) {
+    return [
+      {
+        id: raw.id,
+        order_id: raw.id,
+        product_id: raw.product_id,
+        product: raw.product ?? undefined,
+        quantity: raw.quantity,
+        unit_price: raw.product?.price ?? raw.total_price,
+        total_price: raw.total_price,
+        created_at: raw.created_at,
+      },
+    ];
+  }
+
+  return [];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toOrderWithDetails(raw: any): OrderWithDetails {
+  return { ...raw, items: mapOrderItems(raw) } as OrderWithDetails;
+}
 
 export class OrderRepository {
   async createAddress(
@@ -59,23 +142,45 @@ export class OrderRepository {
     return order;
   }
 
+  /**
+   * Insert the line-item breakdown for a multi-item cart order. Never
+   * called for the legacy single-product funnel path.
+   */
+  async createOrderItems(
+    orderId: string,
+    items: Array<{
+      product_id: string;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+    }>
+  ): Promise<OrderItem[] | null> {
+    if (items.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from("order_items")
+      .insert(
+        items.map((item) => ({
+          order_id: orderId,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price,
+        }))
+      )
+      .select();
+
+    if (error) {
+      console.error("Error creating order items:", error);
+      return null;
+    }
+    return data;
+  }
+
   async getPendingOrders(): Promise<OrderWithDetails[]> {
     const { data, error } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        customer:customers (*),
-        address:addresses (
-          *,
-          zone:zones (
-            *,
-            city:cities (*)
-          )
-        ),
-        product:products (*)
-      `
-      )
+      .select(ORDER_SELECT)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
@@ -83,52 +188,26 @@ export class OrderRepository {
       console.error("Error fetching pending orders:", error);
       return [];
     }
-    return (data || []) as unknown as OrderWithDetails[];
+    return (data || []).map(toOrderWithDetails);
   }
 
   async getAllOrders(): Promise<OrderWithDetails[]> {
     const { data, error } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        customer:customers (*),
-        address:addresses (
-          *,
-          zone:zones (
-            *,
-            city:cities (*)
-          )
-        ),
-        product:products (*)
-      `
-      )
+      .select(ORDER_SELECT)
       .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching orders:", error);
       return [];
     }
-    return (data || []) as unknown as OrderWithDetails[];
+    return (data || []).map(toOrderWithDetails);
   }
 
   async getOrderById(id: string): Promise<OrderWithDetails | null> {
     const { data, error } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        customer:customers (*),
-        address:addresses (
-          *,
-          zone:zones (
-            *,
-            city:cities (*)
-          )
-        ),
-        product:products (*)
-      `
-      )
+      .select(ORDER_SELECT)
       .eq("id", id)
       .single();
 
@@ -136,7 +215,7 @@ export class OrderRepository {
       console.error("Error fetching order:", error);
       return null;
     }
-    return data as unknown as OrderWithDetails;
+    return toOrderWithDetails(data);
   }
 
   /**
@@ -156,20 +235,7 @@ export class OrderRepository {
 
     const { data, error } = await supabase
       .from("orders")
-      .select(
-        `
-        *,
-        customer:customers (*),
-        address:addresses (
-          *,
-          zone:zones (
-            *,
-            city:cities (*)
-          )
-        ),
-        product:products (*)
-      `
-      )
+      .select(ORDER_SELECT)
       .eq("customer_id", customer.id)
       .eq("status", "approved")
       .order("created_at", { ascending: false })
@@ -177,7 +243,7 @@ export class OrderRepository {
       .maybeSingle();
 
     if (error || !data) return null;
-    return data as unknown as OrderWithDetails;
+    return toOrderWithDetails(data);
   }
 
   async updateOrderStatus(

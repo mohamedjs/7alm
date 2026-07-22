@@ -207,6 +207,9 @@ const en = {
   "products.list.status": "Status",
   "products.list.shareLinks": "Share Links",
   "products.list.actions": "Actions",
+  "products.list.featured": "Featured",
+  "products.list.setFeatured": "Set as Featured",
+  "products.list.unfeatured": "Remove from Featured",
   "products.list.active": "Active",
   "products.list.inactive": "Inactive",
   "products.list.na": "N/A",
@@ -252,6 +255,13 @@ const en = {
   "products.form.addGalleryImage": "+ Add Gallery Image",
   "products.form.removeGalleryImage": "Remove gallery image",
   "products.form.isActive": "Is Active",
+  "products.form.themeColor": "Theme Color",
+  "products.form.themeColorHint": "Accent color used for this product on the store homepage.",
+  "products.form.themeColorCustom": "Custom hex",
+  "products.form.isFeatured": "Featured on Homepage",
+  "products.form.featuredSort": "Featured Sort Order",
+  "products.form.featuredSortHint": "Lower numbers appear first. Leave empty for default order.",
+  "products.form.themeColorPick": "Pick",
   "products.form.saveProduct": "Save Product",
   "products.form.uploadFailed": "Failed to upload file",
   "products.form.saveFailed": "Failed to save product.",
@@ -290,6 +300,99 @@ const en = {
   "categories.form.editTitle": "Edit Category",
   "categories.form.addTitle": "Add Category",
   "categories.form.uploadFailed": "Failed to upload image",
+
+  // ---------------------------------------------------------------
+  // store.* — public storefront (008-store-design-system-alignment)
+  // ---------------------------------------------------------------
+
+  // store.nav.*
+  "store.nav.home": "Home",
+  "store.nav.allProducts": "All Products",
+  "store.nav.cart": "Cart",
+  "store.nav.cartLabel": "Shopping cart",
+
+  // store.hero.*
+  "store.hero.eyebrow": "Curated Collection",
+  "store.hero.defaultHeadline": "Discover Our Collection",
+  "store.hero.defaultDescription": "Shop the latest handpicked products, premium quality with delivery across Egypt.",
+  "store.hero.ctaAdd": "Add to Cart",
+  "store.hero.ctaAdded": "Added",
+  "store.hero.viewDetails": "View Details",
+  "store.hero.selectLabel": "Select product",
+  "store.hero.prevProduct": "Previous product",
+  "store.hero.nextProduct": "Next product",
+
+  // store.category.*
+  "store.category.title": "Shop by Category",
+  "store.category.subtitle": "Pick a category and explore products",
+
+  // store.home.*
+  "store.home.bestSellers": "Best Sellers",
+  "store.home.bestSellersSubtitle": "The products our customers keep coming back for",
+  "store.home.categories": "Shop by Category",
+  "store.home.categoriesSubtitle": "Browse our curated categories",
+
+  // store.product.*
+  "store.product.addToCart": "Add to Cart",
+  "store.product.added": "Added",
+  "store.product.viewProduct": "View Product",
+  "store.product.discount": "Sale",
+  "store.product.currency": "EGP",
+  "store.product.noProducts": "No products available right now.",
+
+  // store.cart.*
+  "store.cart.title": "Cart",
+  "store.cart.empty": "Your cart is empty.",
+  "store.cart.subtotal": "Total",
+  "store.cart.checkout": "Checkout",
+  "store.cart.viewFull": "View full cart",
+  "store.cart.closeLabel": "Close cart",
+  "store.cart.summary": "Order Summary",
+  "store.cart.decreaseQty": "Decrease quantity",
+  "store.cart.increaseQty": "Increase quantity",
+  "store.cart.remove": "Remove from cart",
+  "store.cart.browseProducts": "Browse Products",
+
+  // store.checkout.*
+  "store.checkout.title": "Checkout",
+  "store.checkout.fullName": "Full Name",
+  "store.checkout.phone": "Phone Number",
+  "store.checkout.email": "Email",
+  "store.checkout.emailOptional": "(optional)",
+  "store.checkout.zone": "Zone",
+  "store.checkout.zoneSelect": "Select zone",
+  "store.checkout.streetDetails": "Detailed Address",
+  "store.checkout.submitLoading": "Submitting order...",
+  "store.checkout.submitLabel": "Confirm Order — Cash on Delivery",
+  "store.checkout.successTitle": "Your order has been received!",
+  "store.checkout.successPhone": "We'll contact you on {phone} to confirm",
+  "store.checkout.successThanks": "Thank you for choosing 7alm",
+  "store.checkout.emptyCart": "Cart is empty — add products first.",
+  "store.checkout.namePlaceholder": "John Doe",
+  "store.checkout.streetPlaceholder": "Building number, street name, landmark...",
+
+  // store.footer.*
+  "store.footer.brand": "7alm",
+  "store.footer.tagline": "Best quality at the best price — delivery across Egypt",
+  "store.footer.copyright": "7alm. All rights reserved",
+  "store.footer.privacy": "Privacy Policy",
+
+  // store.detail.*
+  "store.detail.quantity": "Quantity",
+  "store.detail.addToCart": "Add to Cart",
+  "store.detail.added": "Added to Cart",
+
+  // store.products.* (page-level)
+  "store.products.title": "All Products",
+  "store.products.countAvailable": "{count} products available",
+  "store.products.noProducts": "No products available right now.",
+  "store.products.uncategorized": "Other",
+
+  // store.category.sort.* / store.category.filter.* (refinement B, 008 redo)
+  "store.category.sort.newest": "Newest",
+  "store.category.sort.priceAsc": "Price: Low to High",
+  "store.category.sort.priceDesc": "Price: High to Low",
+  "store.category.filter.inStockOnly": "In stock only",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -465,6 +568,9 @@ const ar: Record<DictKey, string> = {
   "products.list.status": "الحالة",
   "products.list.shareLinks": "روابط المشاركة",
   "products.list.actions": "الإجراءات",
+  "products.list.featured": "مميز",
+  "products.list.setFeatured": "تعيين كمميز",
+  "products.list.unfeatured": "إزالة من المميز",
   "products.list.active": "نشط",
   "products.list.inactive": "غير نشط",
   "products.list.na": "غير متاح",
@@ -509,6 +615,13 @@ const ar: Record<DictKey, string> = {
   "products.form.addGalleryImage": "+ إضافة صورة للمعرض",
   "products.form.removeGalleryImage": "حذف صورة المعرض",
   "products.form.isActive": "نشط",
+  "products.form.themeColor": "لون التمييز",
+  "products.form.themeColorHint": "اللون المستخدم لتمييز هذا المنتج في الصفحة الرئيسية للمتجر.",
+  "products.form.themeColorCustom": "كود اللون (Hex)",
+  "products.form.isFeatured": "مميز في الصفحة الرئيسية",
+  "products.form.featuredSort": "ترتيب العرض",
+  "products.form.featuredSortHint": "الأرقام الأقل تظهر أولاً. اترك الحقل فارغاً للترتيب الافتراضي.",
+  "products.form.themeColorPick": "اختر",
   "products.form.saveProduct": "حفظ المنتج",
   "products.form.uploadFailed": "فشل رفع الملف",
   "products.form.saveFailed": "فشل حفظ المنتج.",
@@ -544,6 +657,99 @@ const ar: Record<DictKey, string> = {
   "categories.form.editTitle": "تعديل القسم",
   "categories.form.addTitle": "إضافة قسم",
   "categories.form.uploadFailed": "فشل رفع الصورة",
+
+  // ---------------------------------------------------------------
+  // store.* — public storefront (008-store-design-system-alignment)
+  // ---------------------------------------------------------------
+
+  // store.nav.*
+  "store.nav.home": "الرئيسية",
+  "store.nav.allProducts": "كل المنتجات",
+  "store.nav.cart": "السلة",
+  "store.nav.cartLabel": "سلة المشتريات",
+
+  // store.hero.*
+  "store.hero.eyebrow": "مجموعة مختارة",
+  "store.hero.defaultHeadline": "اكتشف مجموعتنا",
+  "store.hero.defaultDescription": "تسوق أحدث المنتجات المختارة بعناية، بجودة عالية وتوصيل لجميع أنحاء مصر.",
+  "store.hero.ctaAdd": "أضف للسلة",
+  "store.hero.ctaAdded": "تمت الإضافة",
+  "store.hero.viewDetails": "عرض التفاصيل",
+  "store.hero.selectLabel": "اختر المنتج",
+  "store.hero.prevProduct": "المنتج السابق",
+  "store.hero.nextProduct": "المنتج التالي",
+
+  // store.category.*
+  "store.category.title": "تسوق حسب القسم",
+  "store.category.subtitle": "اختر القسم الذي يناسبك واستكشف المنتجات",
+
+  // store.home.*
+  "store.home.bestSellers": "الأكثر مبيعاً",
+  "store.home.bestSellersSubtitle": "المنتجات التي يفضلها عملاؤنا دائماً",
+  "store.home.categories": "تسوق حسب الفئة",
+  "store.home.categoriesSubtitle": "استكشف الفئات المختارة بعناية",
+
+  // store.product.*
+  "store.product.addToCart": "أضف للسلة",
+  "store.product.added": "تمت الإضافة",
+  "store.product.viewProduct": "عرض المنتج",
+  "store.product.discount": "خصم",
+  "store.product.currency": "ج.م",
+  "store.product.noProducts": "لا توجد منتجات هنا حالياً.",
+
+  // store.cart.*
+  "store.cart.title": "السلة",
+  "store.cart.empty": "السلة فارغة.",
+  "store.cart.subtotal": "الإجمالي",
+  "store.cart.checkout": "إتمام الطلب",
+  "store.cart.viewFull": "عرض السلة كاملة",
+  "store.cart.closeLabel": "إغلاق السلة",
+  "store.cart.summary": "ملخص الطلب",
+  "store.cart.decreaseQty": "تقليل الكمية",
+  "store.cart.increaseQty": "زيادة الكمية",
+  "store.cart.remove": "إزالة من السلة",
+  "store.cart.browseProducts": "تصفح المنتجات",
+
+  // store.checkout.*
+  "store.checkout.title": "إتمام الطلب",
+  "store.checkout.fullName": "الاسم الكامل",
+  "store.checkout.phone": "رقم الموبايل",
+  "store.checkout.email": "البريد الإلكتروني",
+  "store.checkout.emailOptional": "(اختياري)",
+  "store.checkout.zone": "المنطقة",
+  "store.checkout.zoneSelect": "اختر المنطقة",
+  "store.checkout.streetDetails": "العنوان بالتفصيل",
+  "store.checkout.submitLoading": "جاري إرسال الطلب...",
+  "store.checkout.submitLabel": "تأكيد الطلب — الدفع عند الاستلام",
+  "store.checkout.successTitle": "تم استلام طلبك بنجاح!",
+  "store.checkout.successPhone": "هنتواصل معاك على رقم {phone} لتأكيد الطلب",
+  "store.checkout.successThanks": "شكراً لاختيارك حلم",
+  "store.checkout.emptyCart": "السلة فارغة — أضف منتجات أولاً.",
+  "store.checkout.namePlaceholder": "محمد أحمد",
+  "store.checkout.streetPlaceholder": "رقم المبنى، اسم الشارع، علامة مميزة...",
+
+  // store.footer.*
+  "store.footer.brand": "حلم",
+  "store.footer.tagline": "أفضل جودة بأفضل سعر — توصيل لجميع أنحاء مصر",
+  "store.footer.copyright": "حلم. جميع الحقوق محفوظة",
+  "store.footer.privacy": "سياسة الخصوصية",
+
+  // store.detail.*
+  "store.detail.quantity": "الكمية",
+  "store.detail.addToCart": "أضف للسلة",
+  "store.detail.added": "تمت الإضافة للسلة",
+
+  // store.products.* (page-level)
+  "store.products.title": "كل المنتجات",
+  "store.products.countAvailable": "{count} منتج متاح",
+  "store.products.noProducts": "لا توجد منتجات متاحة حالياً.",
+  "store.products.uncategorized": "أخرى",
+
+  // store.category.sort.* / store.category.filter.* (refinement B, 008 redo)
+  "store.category.sort.newest": "الأحدث",
+  "store.category.sort.priceAsc": "السعر: من الأقل للأعلى",
+  "store.category.sort.priceDesc": "السعر: من الأعلى للأقل",
+  "store.category.filter.inStockOnly": "المتوفر فقط",
 };
 
 export type Locale = "en" | "ar";
