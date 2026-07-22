@@ -6,6 +6,21 @@
 >
 > Entry format is fixed — keep it so the SessionStart hook can parse it (each entry starts with `## `).
 
+## 2026-07-22 — Lookbook hero + navbar redesigned to McLaren-headphones reference (horizontal filmstrip)
+**By:** Claude (Opus 4.8)
+**Summary:** Redesigned the store homepage hero and navbar to match a McLaren-headphones showcase reference the user shared: flat full-width navbar with centered micro-label nav, and a framed rounded showcase card where featured products travel as a scroll-driven **horizontal filmstrip** (active product centered, neighbours dimmed at the edges) — replacing the old two-column "reel dropping from top" layout. Verified live in Chrome across AR/RTL (default), EN/LTR, dark and light themes; `tsc` + `npm run build` pass. Still uncommitted (on top of the pre-existing uncommitted storefront work).
+**Changes:**
+- `StoreNavbar.tsx`: dropped the detached rounded glass pill (max-w-5xl / rounded-2xl / neu-*) for a flat, flush, full-width `store-glass` bar; centered nav links are uppercase+tracked micro-labels in EN but plain compact labels in AR (letter-spacing visually breaks connected Arabic glyphs — this locale-conditional `navLabelClass` pattern is intentional, keep it); flat borderless icon buttons; EN/AR segmented pill became a minimal "EN / AR" text pair.
+- `HeroImageLayer.tsx`: vertical drop animation replaced with horizontal slide + scale + dim (x ±42/84vw, scale 1→0.5→0.4, opacity 1→0.35→0), all derived from the same `scrollYProgress` so center/edges never desync. **Gotcha fixed en route:** Motion hardware-accelerates these via WAAPI (`Element.animate`), which throws "Offsets must be monotonically non-decreasing" if any keyframe offset falls outside [0,1] — edge sections must *drop* out-of-range keyframes, not extrapolate/clamp them (see the in-file comment). RTL flips the travel axis via a `dir` prop (`sign = dir==="rtl" ? -1 : 1`).
+- `HeroContentLayer.tsx`: giant centered headline column became a compact bottom-start corner info block (eyebrow, name h2, clamped description, price, add-to-cart + details link), per the reference's small-specs-in-corner composition.
+- `LookbookHero.tsx` (multi-section branch): sticky viewport now wraps a padded, rounded "framed showcase card" (page bg visible around it, card starts below the flat navbar); added a bottom-center "select product" color-dot row (one dot per product, tinted by its `theme_color`, ≥md only) and bottom-end circular outline prev/next arrows (`rtl:rotate-180` chevrons — confirmed mirroring live). `ProductThumbRow` is no longer used by the hero (component file left in place). Scroll-driven N×100vh mechanism and reduced-motion click-driven fallback are unchanged.
+- `dictionary.ts`: +3 keys ×2 locales — `store.hero.selectLabel`, `store.hero.prevProduct`, `store.hero.nextProduct`.
+**Files touched:** `src/components/store/{StoreNavbar,LookbookHero,HeroImageLayer,HeroContentLayer}.tsx`, `src/features/i18n/dictionary.ts`
+**Follow-ups:**
+- Everything remains **uncommitted**, stacked on the previous session's uncommitted storefront work.
+- True mobile-width QA couldn't run (WM ignored browser window resize); the info block was preemptively capped at `max-w-[62vw]` on <sm to clear the bottom-end arrows — sanity-check on a real ~390px viewport when possible.
+- The `N < 2` single-product fallback branch kept its old two-column layout (only its entrance animation was softened to match); restyle it to the card look if it ever ships with <2 featured products.
+
 ## 2026-07-22 — B2C storefront expansion planned + implementation in progress (uncommitted)
 **By:** Claude (Fable 5), planning + delegating to Sonnet 5 subagents via `/delegate`
 **Summary:** Planned and began implementing a full B2C storefront (4 categories, many products, cart/checkout) alongside the existing single-product funnel, per user's "Dynamic Lookbook" homepage brief. Plan is written and user-approved; implementation (Phases 0–4 code, Phase 5 seed data) landed in the working tree but is **NOT committed** and Phase 4/5 runtime verification was cut short when the implementing subagent was killed mid-QA. Next session must verify before trusting this as done.

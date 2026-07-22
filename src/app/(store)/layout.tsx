@@ -67,6 +67,7 @@ export default function StoreLayout({
           dangerouslySetInnerHTML={{
             __html: `
           body { background-color: #ecebf6; color: #111827; margin: 0; }
+          .dark body { background-color: #0f172a; color: #e2e8f0; }
           main { min-height: 100vh; }
         `,
           }}

@@ -314,6 +314,9 @@ const en = {
   "store.hero.ctaAdd": "Add to Cart",
   "store.hero.ctaAdded": "Added",
   "store.hero.viewDetails": "View Details",
+  "store.hero.selectLabel": "Select product",
+  "store.hero.prevProduct": "Previous product",
+  "store.hero.nextProduct": "Next product",
 
   // store.category.*
   "store.category.title": "Shop by Category",
@@ -664,6 +667,9 @@ const ar: Record<DictKey, string> = {
   "store.hero.ctaAdd": "أضف للسلة",
   "store.hero.ctaAdded": "تمت الإضافة",
   "store.hero.viewDetails": "عرض التفاصيل",
+  "store.hero.selectLabel": "اختر المنتج",
+  "store.hero.prevProduct": "المنتج السابق",
+  "store.hero.nextProduct": "المنتج التالي",
 
   // store.category.*
   "store.category.title": "تسوق حسب القسم",

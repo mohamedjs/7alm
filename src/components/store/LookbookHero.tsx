@@ -2,13 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AtSign, Check, MessageCircle, Send, ShoppingBag } from "lucide-react";
+import { AtSign, Check, ChevronLeft, ChevronRight, MessageCircle, Send, ShoppingBag } from "lucide-react";
 import { useState, useRef, type CSSProperties } from "react";
 import { useScroll, useTransform, useReducedMotion, motion, useMotionValueEvent } from "motion/react";
 import type { Product } from "@/features/shared/types";
 import { useLookbookSections } from "@/features/store/store.hooks";
 import LookbookGlow from "./LookbookGlow";
-import ProductThumbRow from "./ProductThumbRow";
 import HeroContentLayer from "./HeroContentLayer";
 import HeroImageLayer from "./HeroImageLayer";
 import { useCart } from "@/features/cart/cart.hooks";
@@ -55,7 +54,7 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const { addItem } = useCart();
-  const { t } = useLocale();
+  const { t, dir, locale } = useLocale();
   const [justAdded, setJustAdded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -66,6 +65,7 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
 
   // N breakpoints -> N-1 crossfade zones, e.g. N=4 => [0, 0.33, 0.67, 1]
   const breakpoints = N > 1 ? sections.map((_, i) => i / Math.max(N - 1, 1)) : [0];
+  const step = 1 / Math.max(N - 1, 1);
   const glowColorRaw = useTransform(
     scrollYProgress,
     breakpoints,
@@ -75,7 +75,7 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
   // Update activeIndex based on scroll — skipped entirely when reduced
   // motion is preferred (see US3): with the container height also capped
   // to one screen in that case (below), activeIndex becomes purely
-  // click-driven via ProductThumbRow/the dot-nav, so a reduced-motion
+  // click-driven via the color-dot row / prev-next arrows, so a
   // visitor is never forced through N×100vh of scroll just to reach the
   // rest of the page.
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
@@ -107,6 +107,7 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
   };
 
   const handleSelectSection = (index: number) => {
+    if (index < 0 || index > N - 1) return;
     if (prefersReducedMotion) {
       setActiveIndex(index);
     } else if (containerRef.current) {
@@ -117,6 +118,13 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
     }
   };
 
+  // Micro-label typography: uppercase + wide tracking reads right for
+  // Latin script only — letter-spacing visually breaks connected Arabic
+  // glyphs, so the Arabic (default) locale gets plain compact labels.
+  const microLabelClass =
+    locale === "en"
+      ? "text-[10px] font-semibold uppercase tracking-[0.3em]"
+      : "text-xs font-semibold";
   // Purely decorative brand-presence glyphs (Image 1 reference: "small
   // social icons bottom-start"). No real social URLs exist yet, so these
   // are visual-only — aria-hidden, not focusable, not a navigation claim.
@@ -192,8 +200,8 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
                 <motion.div
                   key={activeItem.id}
                   className="relative z-10"
-                  initial={prefersReducedMotion ? false : { y: -260, opacity: 0 }}
-                  animate={prefersReducedMotion ? undefined : { y: 0, opacity: 1 }}
+                  initial={prefersReducedMotion ? false : { y: 48, opacity: 0, scale: 0.94 }}
+                  animate={prefersReducedMotion ? undefined : { y: 0, opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <Image
@@ -220,106 +228,126 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
       style={{ height: prefersReducedMotion ? "100vh" : `${N * 100}vh` }}
       className="relative w-full"
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden rounded-b-[2.5rem] bg-surface sm:rounded-b-[3.5rem]">
-        {/* Full-bleed color wash — the "smooth per-section color gradient"
-            (Image 1 reference), reusing the same glowColorRaw MotionValue
-            that drives the radial glow so both stay in perfect sync. Its
-            opacity comes from `--hero-wash-opacity` (globals.css,
-            theme-tuned — a soft tint on the light default, unchanged
-            strength on dark) rather than a single hardcoded value. */}
-        <motion.div
-          aria-hidden="true"
-          className="lookbook-wash pointer-events-none absolute inset-0"
-          style={{
-            backgroundColor: prefersReducedMotion ? accent : glowColorRaw,
-          }}
-        />
-        <div aria-hidden="true" className="pointer-events-none absolute -top-10 end-10 h-64 w-64 opacity-[0.06] sm:h-80 sm:w-80" style={halftoneStyle} />
-        <div aria-hidden="true" className="pointer-events-none absolute bottom-0 start-0 h-48 w-48 opacity-[0.05] sm:h-64 sm:w-64" style={halftoneStyle} />
+      {/* Framed showcase card (McLaren-headphones reference) — the sticky
+          viewport keeps a strip of page background visible around a
+          rounded stage, and top padding clears the flat fixed navbar so
+          the card starts just below it. */}
+      <div className="sticky top-0 h-screen w-full px-2.5 pb-2.5 pt-[4.25rem] sm:px-4 sm:pb-4 sm:pt-[4.75rem]">
+        <div className="relative h-full w-full overflow-hidden rounded-[1.75rem] bg-surface sm:rounded-[2.5rem]">
+          {/* Full-bleed color wash — smooth per-section color gradient,
+              reusing the same glowColorRaw MotionValue that drives the
+              radial glow so both stay in perfect sync. Its opacity comes
+              from `--hero-wash-opacity` (globals.css, theme-tuned). */}
+          <motion.div
+            aria-hidden="true"
+            className="lookbook-wash pointer-events-none absolute inset-0"
+            style={{
+              backgroundColor: prefersReducedMotion ? accent : glowColorRaw,
+            }}
+          />
+          <div aria-hidden="true" className="pointer-events-none absolute -top-10 end-10 h-64 w-64 opacity-[0.06] sm:h-80 sm:w-80" style={halftoneStyle} />
+          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 start-0 h-48 w-48 opacity-[0.05] sm:h-64 sm:w-64" style={halftoneStyle} />
 
-        <div className="relative z-10 flex h-full items-center">
-          <div className="container mx-auto w-full px-6">
-            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
-              <div className="relative z-10 text-start h-[500px] flex flex-col justify-center">
-                {sections.map((section, i) => {
-                  const prev = breakpoints[i - 1] ?? breakpoints[i];
-                  const curr = breakpoints[i];
-                  const next = breakpoints[i + 1] ?? breakpoints[i];
+          <LookbookGlow color={prefersReducedMotion ? accent : glowColorRaw} />
 
-                  return (
-                    <HeroContentLayer
-                      key={section.product.id}
-                      section={section}
-                      scrollYProgress={scrollYProgress}
-                      prev={prev}
-                      curr={curr}
-                      next={next}
-                      i={i}
-                      N={N}
-                      activeIndex={activeIndex}
-                      prefersReducedMotion={!!prefersReducedMotion}
-                      justAdded={justAdded}
-                      onAddToCart={handleAddToCart}
-                    />
-                  );
-                })}
-
-                <div className="absolute -bottom-16 inset-x-0 z-20">
-                  <ProductThumbRow products={featuredProducts} activeIndex={activeIndex} onSelect={handleSelectSection} />
-                </div>
-              </div>
-
-              <div className="relative flex items-center justify-center min-h-[320px] lg:min-h-[480px]">
-                <LookbookGlow color={prefersReducedMotion ? accent : glowColorRaw} />
-
-                {sections.map((section, i) => {
-                  const prev = breakpoints[i - 1] ?? breakpoints[i];
-                  const curr = breakpoints[i];
-                  const next = breakpoints[i + 1] ?? breakpoints[i];
-
-                  return (
-                    <HeroImageLayer
-                      key={section.product.id}
-                      section={section}
-                      scrollYProgress={scrollYProgress}
-                      prev={prev}
-                      curr={curr}
-                      next={next}
-                      i={i}
-                      N={N}
-                      activeIndex={activeIndex}
-                      prefersReducedMotion={!!prefersReducedMotion}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {socialGlyphs}
-
-        {/* Section dot-indicators, bottom-end (Image 1 reference) — a
-            compact scroll-position readout that doubles as a second,
-            minimal way to jump sections alongside `ProductThumbRow`'s
-            larger thumbnail row (FR-005 retains that as the primary
-            control; this is additive, not a replacement). The active dot
-            is tinted with that section's own `theme_color` (the per-product
-            accent), inactive dots use the theme-reactive muted-ink tokens. */}
-        <div className="absolute bottom-6 end-6 z-20 flex items-center gap-2">
+          {/* Horizontal product filmstrip — active product centered,
+              neighbours dimmed and small at the start/end edges, all
+              driven by the same scrollYProgress (see HeroImageLayer). */}
           {sections.map((section, i) => (
-            <button
+            <HeroImageLayer
               key={section.product.id}
-              type="button"
-              onClick={() => handleSelectSection(i)}
-              aria-label={`${t("store.hero.viewDetails")} ${i + 1}`}
-              aria-current={i === activeIndex}
-              style={i === activeIndex ? { backgroundColor: section.product.theme_color } : undefined}
-              className={`h-2 rounded-full transition-all ${
-                i === activeIndex ? "w-6" : "w-2 bg-text-primary/20 hover:bg-text-primary/35"
-              }`}
+              section={section}
+              scrollYProgress={scrollYProgress}
+              step={step}
+              curr={breakpoints[i]}
+              i={i}
+              activeIndex={activeIndex}
+              prefersReducedMotion={!!prefersReducedMotion}
+              dir={dir}
             />
           ))}
+
+          {/* Bottom-start: compact info block for the active product. */}
+          <div className="absolute bottom-6 start-6 z-20 h-72 w-72 max-w-[62vw] sm:bottom-10 sm:start-10 sm:max-w-none lg:start-14">
+            {sections.map((section, i) => {
+              const prev = breakpoints[i - 1] ?? breakpoints[i];
+              const curr = breakpoints[i];
+              const next = breakpoints[i + 1] ?? breakpoints[i];
+
+              return (
+                <HeroContentLayer
+                  key={section.product.id}
+                  section={section}
+                  scrollYProgress={scrollYProgress}
+                  prev={prev}
+                  curr={curr}
+                  next={next}
+                  i={i}
+                  N={N}
+                  activeIndex={activeIndex}
+                  prefersReducedMotion={!!prefersReducedMotion}
+                  justAdded={justAdded}
+                  onAddToCart={handleAddToCart}
+                />
+              );
+            })}
+          </div>
+
+          {/* Bottom-center: "select product" color-dot row (the
+              reference's SELECT COLOR strip) — one dot per featured
+              product, tinted with its own theme_color; the active dot
+              gets an outline ring in the same color. Hidden on small
+              screens where the info block needs the room; the arrows
+              still cover navigation there. */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-10 z-20 hidden flex-col items-center gap-3 md:flex">
+            <span className={`${microLabelClass} text-text-muted`}>{t("store.hero.selectLabel")}</span>
+            <div className="pointer-events-auto flex items-center gap-3">
+              {sections.map((section, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <button
+                    key={section.product.id}
+                    type="button"
+                    onClick={() => handleSelectSection(i)}
+                    aria-label={section.product.name}
+                    aria-current={isActive}
+                    className="flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all"
+                    style={{ borderColor: isActive ? section.product.theme_color : "transparent" }}
+                  >
+                    <span
+                      className={`h-3.5 w-3.5 rounded-full transition-opacity ${isActive ? "" : "opacity-50 hover:opacity-100"}`}
+                      style={{ backgroundColor: section.product.theme_color }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Bottom-end: circular outline prev/next arrows (reference
+              image). Chevrons point along the reading direction and
+              mirror under RTL, matching the filmstrip's flipped travel
+              axis. */}
+          <div className="absolute bottom-6 end-6 z-20 flex items-center gap-2.5 sm:bottom-10 sm:end-10 lg:end-14">
+            <button
+              type="button"
+              onClick={() => handleSelectSection(activeIndex - 1)}
+              disabled={activeIndex === 0}
+              aria-label={t("store.hero.prevProduct")}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-text-primary/20 text-text-primary transition-colors hover:border-text-primary/50 disabled:opacity-30 disabled:hover:border-text-primary/20"
+            >
+              <ChevronLeft className="h-5 w-5 rtl:rotate-180" />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectSection(activeIndex + 1)}
+              disabled={activeIndex === N - 1}
+              aria-label={t("store.hero.nextProduct")}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-text-primary/20 text-text-primary transition-colors hover:border-text-primary/50 disabled:opacity-30 disabled:hover:border-text-primary/20"
+            >
+              <ChevronRight className="h-5 w-5 rtl:rotate-180" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -2,113 +2,130 @@
 
 import Image from "next/image";
 import { motion, useTransform, type MotionValue } from "motion/react";
+import { useMemo } from "react";
 import type { LookbookSection } from "@/features/store/store.hooks";
 
 interface HeroImageLayerProps {
   section: LookbookSection;
   scrollYProgress: MotionValue<number>;
-  prev: number;
+  /** Breakpoint spacing between adjacent sections: 1 / (N - 1). */
+  step: number;
+  /** This section's own scroll breakpoint. */
   curr: number;
-  next: number;
   i: number;
-  N: number;
   activeIndex: number;
   prefersReducedMotion: boolean;
+  /** Document direction — flips the filmstrip travel axis under RTL. */
+  dir: "ltr" | "rtl";
 }
 
+/** Tolerance for float drift when testing whether an offset is in [0, 1]. */
+const EPS = 1e-6;
+
 /**
- * One featured product's showcase image + watermark-number layer inside
- * the multi-section Lookbook hero (see `LookbookHero.tsx`).
+ * One featured product's showcase image inside the multi-section Lookbook
+ * hero (see `LookbookHero.tsx`), redesigned as a horizontal filmstrip
+ * (McLaren-headphones reference): the active product sits large in the
+ * center of the stage while its neighbours wait at the start/end edges —
+ * smaller, dimmed, partially visible — and everything travels sideways
+ * continuously with scroll (no mid-scroll pops: position, scale and
+ * opacity all derive from the same `scrollYProgress`).
  *
- * Same extraction rationale as `HeroContentLayer`: this component owns
- * its own `useTransform` calls at its top level so `LookbookHero` never
- * calls a hook inside a `.map()` callback.
+ * The keyframes span up to two steps either side of this section's own
+ * breakpoint so a section two-or-more steps away is fully transparent —
+ * only the active product and its immediate neighbours are ever visible.
+ * Offsets that would fall outside [0, 1] are dropped (not clamped or
+ * extrapolated): Motion hardware-accelerates these scroll-linked
+ * transforms through WAAPI (`Element.animate`), which throws on keyframe
+ * offsets outside [0, 1] or out of order, so every input array must stay
+ * in-range and strictly increasing.
+ *
+ * Extracted component (not inlined in the parent's `.map()`) so the
+ * `useTransform` hooks stay at a component's top level — Rules of Hooks.
  */
 export default function HeroImageLayer({
   section,
   scrollYProgress,
-  prev,
+  step,
   curr,
-  next,
   i,
-  N,
   activeIndex,
   prefersReducedMotion,
+  dir,
 }: HeroImageLayerProps) {
-  const opacityRaw = useTransform(
-    scrollYProgress,
-    [prev, curr, next],
-    [i === 0 ? 1 : 0, 1, i === N - 1 ? 1 : 0]
-  );
-  // "Reel dropping from the top" — the incoming image descends from well
-  // above the stage (behind the fixed navbar, z-50 vs. this layer's z-10)
-  // down to rest, then keeps falling further down/out as the *next*
-  // section's image drops in from the top over it. Edge sections collapse
-  // their outward end to 0 (no previous/next image to hand off to): i===0's
-  // "enter" side is pinned at rest (its own top-of-page drop plays once via
-  // the `initial`/`animate` mount entrance below, not this scroll transform,
-  // so the two never double-apply), and the last section's "exit" side
-  // stays at rest since there's nothing further to fall into.
-  const yRaw = useTransform(
-    scrollYProgress,
-    [prev, curr, next],
-    [i === 0 ? 0 : -260, 0, i === N - 1 ? 0 : 260]
-  );
+  // Under RTL the "next" section slides in from the start (visual left
+  // becomes the outgoing side), so the travel axis flips sign.
+  const sign = dir === "rtl" ? -1 : 1;
+
+  const { inputs, xFrames, scaleFrames, opacityFrames } = useMemo(() => {
+    const inputs: number[] = [];
+    const xFrames: string[] = [];
+    const scaleFrames: number[] = [];
+    const opacityFrames: number[] = [];
+    // k = how many steps of scroll this keyframe sits *before* (negative)
+    // or *after* (positive) this section's own breakpoint.
+    const keyframes: Array<[k: number, x: number, scale: number, opacity: number]> = [
+      [-2, sign * 84, 0.4, 0],
+      [-1, sign * 42, 0.5, 0.35],
+      [0, 0, 1, 1],
+      [1, sign * -42, 0.5, 0.35],
+      [2, sign * -84, 0.4, 0],
+    ];
+    for (const [k, x, scale, opacity] of keyframes) {
+      const offset = curr + k * step;
+      if (offset < -EPS || offset > 1 + EPS) continue;
+      inputs.push(Math.min(1, Math.max(0, offset)));
+      xFrames.push(`${x}vw`);
+      scaleFrames.push(scale);
+      opacityFrames.push(opacity);
+    }
+    return { inputs, xFrames, scaleFrames, opacityFrames };
+  }, [curr, step, sign]);
+
+  const xRaw = useTransform(scrollYProgress, inputs, xFrames);
+  const scaleRaw = useTransform(scrollYProgress, inputs, scaleFrames);
+  const opacityRaw = useTransform(scrollYProgress, inputs, opacityFrames);
 
   const opacity = prefersReducedMotion ? (i === activeIndex ? 1 : 0) : opacityRaw;
-  const y = prefersReducedMotion ? 0 : yRaw;
-  const isActive = prefersReducedMotion ? i === activeIndex : true;
+  const x = prefersReducedMotion ? 0 : xRaw;
+  const scale = prefersReducedMotion ? 1 : scaleRaw;
+
+  if (!section.product.main_image) return null;
 
   return (
     <motion.div
-      style={{ opacity }}
-      className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ${!isActive && prefersReducedMotion ? "pointer-events-none" : ""}`}
+      style={{ opacity, x, scale }}
+      className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-150"
       initial={false}
     >
-      {/* Giant low-opacity watermark number (Image 1 reference) — sits
-          behind the product image, crossfades with it. Theme-aware faint
-          tint (light default: a hint of ink on the lavender surface;
-          dark: a hint of the light text color) rather than a hardcoded
-          white tint. */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute select-none font-heading text-[10rem] font-black leading-none text-text-primary/[0.06] sm:text-[15rem]"
-      >
-        {String(i + 1).padStart(2, "0")}
-      </span>
-      {section.product.main_image && (
-        <motion.div style={{ y }} className="relative z-10">
-          {/* First-load-only "drop from behind the navbar" entrance for the
-              initial/active product — plays once on mount, independent of
-              the scroll-linked `y` above (that MotionValue is pinned at 0
-              for i===0 until scroll begins, see the comment on `yRaw`), so
-              the two transforms never stack. Skipped under reduced motion. */}
-          {i === 0 && !prefersReducedMotion ? (
-            <motion.div
-              initial={{ y: -260, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Image
-                src={section.product.main_image}
-                alt={section.product.name}
-                width={420}
-                height={420}
-                priority
-                className="w-full max-w-[320px] lg:max-w-[420px] h-auto object-contain drop-shadow-2xl"
-              />
-            </motion.div>
-          ) : (
-            <Image
-              src={section.product.main_image}
-              alt={section.product.name}
-              width={420}
-              height={420}
-              priority={i === 0}
-              className="w-full max-w-[320px] lg:max-w-[420px] h-auto object-contain drop-shadow-2xl"
-            />
-          )}
+      {/* First-load entrance for the initial product — a soft rise+fade
+          played once on mount, independent of the scroll-linked transforms
+          above (all pinned at rest for i===0 until scroll begins), so the
+          two never stack. Skipped under reduced motion. */}
+      {i === 0 && !prefersReducedMotion ? (
+        <motion.div
+          initial={{ y: 48, opacity: 0, scale: 0.94 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Image
+            src={section.product.main_image}
+            alt={section.product.name}
+            width={460}
+            height={460}
+            priority
+            className="h-auto w-full max-w-[300px] object-contain drop-shadow-2xl sm:max-w-[380px] lg:max-w-[460px]"
+          />
         </motion.div>
+      ) : (
+        <Image
+          src={section.product.main_image}
+          alt={section.product.name}
+          width={460}
+          height={460}
+          priority={i === 0}
+          className="h-auto w-full max-w-[300px] object-contain drop-shadow-2xl sm:max-w-[380px] lg:max-w-[460px]"
+        />
       )}
     </motion.div>
   );
