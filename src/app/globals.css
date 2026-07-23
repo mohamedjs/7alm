@@ -311,6 +311,15 @@
   --hero-glow-opacity: 0.25;
 }
 
+:root {
+  --hero-gap: 55vw;
+}
+@media (min-width: 768px) {
+  :root {
+    --hero-gap: 42vw;
+  }
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -327,7 +336,6 @@
     scroll-behavior: smooth;
     /* Firefox scrollbar */
     scrollbar-width: thin;
-    scrollbar-color: var(--color-text-muted) transparent;
   }
 
   /* 
@@ -337,10 +345,15 @@
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  ::-webkit-scrollbar-button {
+    display: none;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -594,7 +607,7 @@
    */
   .lookbook-glow {
     position: absolute;
-    inset-inline-start: 50%;
+    left: 50%;
     top: 50%;
     width: 640px;
     height: 640px;

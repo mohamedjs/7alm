@@ -86,17 +86,17 @@ export default function HeroImageLayer({
     // k = how many steps of scroll this keyframe sits *before* (negative)
     // or *after* (positive) this section's own breakpoint.
     const keyframes: Array<[k: number, x: number, scale: number, opacity: number]> = [
-      [-2, sign * 84, 0.4, 0],
-      [-1, sign * 42, 0.5, 0.35],
+      [-2, sign * 2, 0.4, 0],
+      [-1, sign * 1, 0.5, 0.35],
       [0, 0, 1, 1],
-      [1, sign * -42, 0.5, 0.35],
-      [2, sign * -84, 0.4, 0],
+      [1, sign * -1, 0.5, 0.35],
+      [2, sign * -2, 0.4, 0],
     ];
     for (const [k, x, scale, opacity] of keyframes) {
       const offset = curr + k * step;
       if (offset < -EPS || offset > 1 + EPS) continue;
       inputs.push(Math.min(1, Math.max(0, offset)));
-      xFrames.push(`${x}vw`);
+      xFrames.push(`calc(var(--hero-gap, 55vw) * ${x})`);
       scaleFrames.push(scale);
       opacityFrames.push(opacity);
     }
@@ -136,7 +136,7 @@ export default function HeroImageLayer({
             width={320}
             height={320}
             priority
-            className="h-auto w-full max-w-[320px] object-contain drop-shadow-2xl sm:max-w-[380px] lg:max-w-[420px]"
+            className="h-auto w-full max-w-[220px] object-contain drop-shadow-2xl sm:max-w-[320px] lg:max-w-[420px] mb-24 sm:mb-0"
           />
         </motion.div>
       ) : (
@@ -146,7 +146,7 @@ export default function HeroImageLayer({
           width={320}
           height={320}
           priority={i === 0}
-          className="h-auto w-full max-w-[320px] object-contain drop-shadow-2xl sm:max-w-[380px] lg:max-w-[420px]"
+          className="h-auto w-full max-w-[220px] object-contain drop-shadow-2xl sm:max-w-[320px] lg:max-w-[420px] mb-24 sm:mb-0"
         />
       )}
     </motion.div>
