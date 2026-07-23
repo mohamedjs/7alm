@@ -1,7 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { chartInk, niceCeil } from "./chartTheme";
+import { useReducedMotion } from "motion/react";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { chartInk } from "./chartTheme";
+import { useChartLocale } from "./useChartLocale";
+import { RtlTooltip } from "./RtlTooltip";
 
 export interface BarRow {
   key: string;
@@ -35,10 +48,11 @@ export default function HorizontalBarChart({
   variant = "list",
 }: HorizontalBarChartProps) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const max = niceCeil(Math.max(1, ...rows.map((r) => r.value)));
-  const total = rows.reduce((sum, r) => sum + r.value, 0);
+  const { isRtl, yAxisProps } = useChartLocale();
+  const prefersReducedMotion = useReducedMotion();
 
   if (variant === "segmented") {
+    const total = rows.reduce((sum, r) => sum + r.value, 0);
     return (
       <div className="space-y-3">
         <div className="flex h-3 w-full overflow-hidden rounded-full neu-pressed-sm bg-surface">
@@ -95,55 +109,57 @@ export default function HorizontalBarChart({
   }
 
   return (
-    <div className="space-y-2.5">
-      {rows.map((row) => {
-        const barColor = row.color ?? color;
-        const isHovered = hovered === row.key;
-        return (
-          <div
-            key={row.key}
-            className="group relative grid grid-cols-[92px_1fr] items-center gap-3 py-0.5"
-            tabIndex={0}
-            onPointerEnter={() => setHovered(row.key)}
-            onPointerLeave={() => setHovered(null)}
-            onFocus={() => setHovered(row.key)}
-            onBlur={() => setHovered(null)}
-          >
-            <span className="flex items-center gap-1.5 text-xs text-text-muted truncate">
-              {row.color && (
-                <span
-                  className="inline-block h-2.5 w-2.5 shrink-0 rounded-[3px]"
-                  style={{ backgroundColor: row.color }}
-                />
-              )}
-              <span className="truncate">{row.label}</span>
-            </span>
-            <div className="flex items-center gap-2 min-w-0">
-              <div
-                className="h-4 rounded-e-[4px] transition-opacity"
-                style={{
-                  width: `${(row.value / max) * 100}%`,
-                  minWidth: row.value > 0 ? 3 : 0,
-                  backgroundColor: barColor,
-                  opacity: hovered === null || isHovered ? 1 : 0.45,
-                }}
-              />
-              <span
-                className="text-xs font-semibold text-text-primary tabular-nums shrink-0"
-                style={{ color: chartInk.primary }}
-              >
-                {formatValue(row.value)}
-              </span>
-            </div>
-
-            {isHovered && row.detail && (
-              <div className="pointer-events-none absolute start-[92px] -top-7 z-10 rounded-xl bg-surface px-2.5 py-1 text-xs neu-raised-sm whitespace-nowrap">
-                <span className="font-semibold text-text-primary">{row.detail}</span>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+    <ResponsiveContainer width="100%" height={Math.max(180, rows.length * 44)}>
+      <BarChart
+        layout="vertical"
+        data={rows}
+        margin={{ top: 4, right: 16, bottom: 4, left: 4 }}
+        barCategoryGap={12}
+      >
+        <YAxis
+          dataKey="label"
+          type="category"
+          width={90}
+          tick={{ fill: chartInk.muted, fontSize: 11 }}
+          axisLine={false}
+          tickLine={false}
+          {...yAxisProps}
+        />
+        <XAxis
+          type="number"
+          tick={{ fill: chartInk.muted, fontSize: 11 }}
+          tickFormatter={formatValue}
+          hide
+        />
+        <Tooltip
+          content={<RtlTooltip formatValue={formatValue} />}
+          cursor={{ fill: chartInk.grid, opacity: 0.35 }}
+        />
+        <Bar
+          dataKey="value"
+          radius={isRtl ? [4, 0, 0, 4] : [0, 4, 4, 0]}
+          animationDuration={600}
+          isAnimationActive={!prefersReducedMotion}
+        >
+          {rows.map((row) => (
+            <Cell
+              key={row.key}
+              fill={row.color ?? color}
+              fillOpacity={hovered === null || hovered === row.key ? 1 : 0.45}
+              onMouseEnter={() => setHovered(row.key)}
+              onMouseLeave={() => setHovered(null)}
+            />
+          ))}
+          <LabelList
+            dataKey="value"
+            position={isRtl ? "left" : "right"}
+            formatter={(v: unknown) => formatValue(Number(v))}
+            fill={chartInk.primary}
+            fontSize={12}
+            fontWeight={600}
+          />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
