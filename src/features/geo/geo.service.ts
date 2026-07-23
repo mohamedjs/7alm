@@ -8,6 +8,7 @@ export class GeoService {
       arabic_name: z.arabic_name,
       english_name: z.english_name,
       city_name: z.city?.name || "",
+      shipping_price: z.shipping_price,
     }));
   }
 

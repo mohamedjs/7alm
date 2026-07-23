@@ -3,7 +3,7 @@
 import type { Product } from "@/features/shared/types";
 import { useProductFilters } from "@/features/store/store.hooks";
 import CategoryFilterBar from "./CategoryFilterBar";
-import ProductGrid from "./ProductGrid";
+import ProductGrid from "../product/ProductGrid";
 
 interface CategoryProductsViewProps {
   products: Product[];

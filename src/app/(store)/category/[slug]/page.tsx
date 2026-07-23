@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { categoryService } from "@/features/categories/categories.service";
 import { productService } from "@/features/products/products.service";
-import StoreNavbar from "@/components/store/StoreNavbar";
-import StoreFooter from "@/components/store/StoreFooter";
-import CategoryLabel from "@/components/store/CategoryLabel";
-import CategoryProductsView from "@/components/store/CategoryProductsView";
+import StoreNavbar from "@/components/store/master/StoreNavbar";
+import StoreFooter from "@/components/store/master/StoreFooter";
+import CategoryLabel from "@/components/store/category/CategoryLabel";
+import CategoryProductsView from "@/components/store/category/CategoryProductsView";
 
 export const dynamic = "force-dynamic";
 

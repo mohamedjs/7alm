@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { productService } from "@/features/products/products.service";
 import { categoryService } from "@/features/categories/categories.service";
-import StoreNavbar from "@/components/store/StoreNavbar";
-import ProductGrid from "@/components/store/ProductGrid";
-import StoreFooter from "@/components/store/StoreFooter";
-import ProductsPageIntro from "@/components/store/ProductsPageIntro";
-import CategoryLabel from "@/components/store/CategoryLabel";
+import StoreNavbar from "@/components/store/master/StoreNavbar";
+import ProductGrid from "@/components/store/product/ProductGrid";
+import StoreFooter from "@/components/store/master/StoreFooter";
+import ProductsPageIntro from "@/components/store/product/ProductsPageIntro";
+import CategoryLabel from "@/components/store/category/CategoryLabel";
 import type { Category, Product } from "@/features/shared/types";
 
 export const dynamic = "force-dynamic";

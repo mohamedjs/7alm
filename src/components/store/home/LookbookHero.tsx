@@ -210,7 +210,7 @@ export default function LookbookHero({ featuredProducts }: LookbookHeroProps) {
                     width={320}
                     height={320}
                     priority
-                    className="w-full max-w-[240px] lg:max-w-[300px] h-auto object-contain drop-shadow-2xl"
+                    className="w-full max-w-[220px] lg:max-w-[300px] h-auto object-contain drop-shadow-2xl sm:max-w-[320px] mb-24 sm:mb-0"
                   />
                 </motion.div>
               )}

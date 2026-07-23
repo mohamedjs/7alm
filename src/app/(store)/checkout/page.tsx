@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { categoryService } from "@/features/categories/categories.service";
-import StoreNavbar from "@/components/store/StoreNavbar";
-import StoreFooter from "@/components/store/StoreFooter";
-import StoreCheckoutForm from "@/components/store/StoreCheckoutForm";
+import StoreNavbar from "@/components/store/master/StoreNavbar";
+import StoreFooter from "@/components/store/master/StoreFooter";
+import StoreCheckoutForm from "@/components/store/cart/StoreCheckoutForm";
 
 export const dynamic = "force-dynamic";
 

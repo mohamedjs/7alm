@@ -117,6 +117,7 @@ export class OrderRepository {
     ip_address?: string;
     ip_country?: string;
     ip_city?: string;
+    shipping_cost?: number;
   }): Promise<Order | null> {
     const { data: order, error } = await supabase
       .from("orders")
@@ -130,6 +131,7 @@ export class OrderRepository {
         ip_address: data.ip_address || null,
         ip_country: data.ip_country || null,
         ip_city: data.ip_city || null,
+        shipping_cost: data.shipping_cost || 0,
         status: "pending",
       })
       .select()

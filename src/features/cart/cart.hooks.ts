@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   addItem as addItemAction,
@@ -84,6 +84,14 @@ export function useCartCheckoutForm() {
 
   const loading = createOrderState.isLoading;
 
+  const shippingCost = useMemo(() => {
+    if (!zoneId) return 0;
+    const zone = zones.find((z) => z.id === zoneId);
+    return zone?.shipping_price ?? 0;
+  }, [zoneId, zones]);
+
+  const total = subtotal + shippingCost;
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -122,6 +130,8 @@ export function useCartCheckoutForm() {
   return {
     items,
     subtotal,
+    shippingCost,
+    total,
     zones,
     zonesLoading,
     fields: { fullName, phone, email, zoneId, streetDetails },

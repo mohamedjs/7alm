@@ -10,6 +10,7 @@ import { productsApi } from "@/features/products/products.api";
 import { categoriesApi } from "@/features/categories/categories.api";
 import { mediaApi } from "@/features/media/media.api";
 import { storeApi } from "@/features/store/store.api";
+import { testimonialsApi } from "@/features/testimonials/testimonials.api";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     [categoriesApi.reducerPath]: categoriesApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
     [storeApi.reducerPath]: storeApi.reducer,
+    [testimonialsApi.reducerPath]: testimonialsApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault()
@@ -31,7 +33,8 @@ export const store = configureStore({
       .concat(productsApi.middleware)
       .concat(categoriesApi.middleware)
       .concat(mediaApi.middleware)
-      .concat(storeApi.middleware),
+      .concat(storeApi.middleware)
+      .concat(testimonialsApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
