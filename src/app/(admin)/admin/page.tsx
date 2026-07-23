@@ -28,6 +28,7 @@ import {
 import StatTile from "@/components/admin/charts/StatTile";
 import OrdersTrendChart from "@/components/admin/charts/OrdersTrendChart";
 import HorizontalBarChart from "@/components/admin/charts/HorizontalBarChart";
+import DonutChart from "@/components/admin/charts/DonutChart";
 import {
   badgeColorFor,
   channelMeta,
@@ -372,6 +373,10 @@ export default function AdminOverviewPage() {
             delta={view.revenueDelta}
             size="lg"
             className="sm:col-span-2 lg:col-span-2 lg:row-span-2 animate-in delay-75"
+            rawValue={view.kpis.revenue}
+            valueFormat={formatEgp}
+            sparklineData={view.trend.slice(-7).map((pt) => pt.retail + pt.social)}
+            sparklineColor={seriesColors.retail}
           >
             <div className="flex flex-wrap items-center gap-2">
               <Link
@@ -404,18 +409,26 @@ export default function AdminOverviewPage() {
             accentClassName="text-gold-500 dark:text-gold-400"
             delta={view.aovDelta}
             className="animate-in delay-150"
+            rawValue={view.aov}
+            valueFormat={formatEgp}
           />
           <StatTile
             label={t("dashboard.stat.pendingOrders")}
             value={formatCompact(view.kpis.pending)}
             accentClassName="text-warning"
             className="animate-in delay-150"
+            rawValue={view.kpis.pending}
+            valueFormat={formatCompact}
           />
           <StatTile
             label={t("dashboard.stat.totalOrders")}
             value={formatCompact(view.kpis.total)}
             delta={view.ordersDelta}
             className="animate-in delay-200"
+            rawValue={view.kpis.total}
+            valueFormat={formatCompact}
+            sparklineData={view.trend.slice(-7).map((pt) => pt.retail + pt.social)}
+            sparklineColor={seriesColors.retail}
           />
           <StatTile
             label={t("dashboard.stat.fromSocial")}
@@ -495,13 +508,15 @@ export default function AdminOverviewPage() {
             {/* Grid C: orders by status / top delivery zones */}
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
               <ChartCard title={t("dashboard.ordersByStatus")} className="lg:col-span-3 animate-in delay-300">
-                <HorizontalBarChart
-                  color={seriesColors.retail}
-                  rows={view.statuses.map((s) => ({
+                <DonutChart
+                  segments={view.statuses.map((s) => ({
                     key: s.status,
                     label: t(`orders.status.${s.status}` as DictKey),
                     value: s.count,
+                    color: badgeColorFor(s.status),
                   }))}
+                  centerValue={formatCompact(view.kpis.total)}
+                  centerLabel={t("dashboard.donutCenterLabel")}
                 />
               </ChartCard>
 
