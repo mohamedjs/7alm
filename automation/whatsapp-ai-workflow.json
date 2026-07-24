@@ -1,0 +1,1067 @@
+{
+  "name": "7alm — WhatsApp AI Agent + CRM Send (Evolution Plugin)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "evolution-whatsapp-webhook",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "wa-trigger-001",
+      "name": "Evolution API Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -800,
+        0
+      ],
+      "webhookId": "wa-trigger-webhook",
+      "typeVersion": 1.1,
+      "notes": "Receives incoming WhatsApp events from Evolution API. Configure Evolution API to send messages.upsert events to this webhook URL."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "skip-from-me",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ String($json.body?.data?.key?.fromMe ?? $json.data?.key?.fromMe ?? false) }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-skip-own-001",
+      "name": "Skip Own Messages",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -560,
+        0
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "is-message",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.body?.event || $json.event || 'messages.upsert' }}",
+                    "rightValue": "messages.upsert"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "is-status",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.body?.event || $json.event || '' }}",
+                    "rightValue": "MESSAGES_UPDATE"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Status"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "wa-event-router-001",
+      "name": "Event Type Router",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -320,
+        0
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status-log",
+              "name": "info",
+              "type": "string",
+              "value": "={{ 'Status update: ' + ($json.body?.data?.status || $json.data?.status || 'unknown') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-status-log-001",
+      "name": "Status Logger",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -80,
+        200
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "wa-sender-id",
+              "name": "senderId",
+              "type": "string",
+              "value": "={{ ($json.body?.data?.key?.remoteJid || $json.data?.key?.remoteJid || '').replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "id": "wa-message-text",
+              "name": "messageText",
+              "type": "string",
+              "value": "={{ $json.body?.data?.message?.conversation || $json.data?.message?.conversation || $json.body?.data?.message?.extendedTextMessage?.text || $json.data?.message?.extendedTextMessage?.text || $json.body?.data?.message?.buttonsResponseMessage?.selectedButtonId || '' }}"
+            },
+            {
+              "id": "wa-instance-name",
+              "name": "instanceName",
+              "type": "string",
+              "value": "={{ $json.body?.instance || $json.instance || '' }}"
+            },
+            {
+              "id": "wa-platform",
+              "name": "platform",
+              "type": "string",
+              "value": "whatsapp"
+            },
+            {
+              "id": "wa-message-type",
+              "name": "messageType",
+              "type": "string",
+              "value": "message"
+            },
+            {
+              "id": "wa-push-name",
+              "name": "pushName",
+              "type": "string",
+              "value": "={{ $json.body?.data?.pushName || $json.data?.pushName || '' }}"
+            },
+            {
+              "id": "wa-phone",
+              "name": "phone",
+              "type": "string",
+              "value": "={{ (($json.body?.data?.key?.remoteJid || $json.data?.key?.remoteJid || '').replace('@s.whatsapp.net', '').replace(/[^0-9]/g, '')).replace(/^20(?=1)/, '0') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-normalize-001",
+      "name": "Normalize WhatsApp",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -80,
+        0
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/webhooks/whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ body: $('Evolution API Webhook').first().json.body, headers: $('Evolution API Webhook').first().json.headers }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "wa-crm-log-001",
+      "name": "CRM Logger",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        160,
+        0
+      ],
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "detect-intent",
+              "name": "intent",
+              "type": "string",
+              "value": "={{ (() => { const t = ($json.messageText || $('Normalize WhatsApp').first().json.messageText || '').toLowerCase().trim(); const cancel = /(إلغاء|الغاء|ألغي|الغي|كنسل|رفض|مش عايز|مش هاخد|cancel)/.test(t) || /(^|[ .,!؟?])(لا|لأ|no)([ .,!؟?]|$)/.test(t); const confirm = /(تأكيد|تاكيد|أكيد|اكيد|موافق|تمام|ماشي|اوكي|أوكي|okay|confirm|approve|ايوه|أيوه|ايوة|نعم|yes)/.test(t) || /(^|[ .,!؟?])(اه|آه|ok|اوك|أوك)([ .,!؟?]|$)/.test(t); return cancel ? 'cancel' : (confirm ? 'confirm' : 'none'); })() }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "wa-detect-intent-001",
+      "name": "Detect Intent",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        400,
+        0
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "has-intent",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "none"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-is-action-001",
+      "name": "Is Order Action?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        640,
+        0
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://7alm-pro.up.railway.app/api/n8n/orders/awaiting-confirmation?phone={{ $('Normalize WhatsApp').first().json.phone }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-access-token",
+              "value": "=123456"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "wa-find-order-001",
+      "name": "Find Awaiting Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        880,
+        -160
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "order-found",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.success === true && $json.data?.orderId ? 'yes' : 'no' }}",
+              "rightValue": "yes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-order-found-001",
+      "name": "Order Found?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1120,
+        -160
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://7alm-pro.up.railway.app/api/webhooks/n8n/order-action?secret={{ $env.N8N_WEBHOOK_SECRET }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"orderId\": \"{{ $('Find Awaiting Order').first().json.data.orderId }}\",\n  \"action\": \"{{ $('Detect Intent').first().json.intent }}\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "wa-call-api-001",
+      "name": "Call 7alm API",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1360,
+        -320
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "check-success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ String($json.success ?? false) }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-api-success-001",
+      "name": "API Success?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1600,
+        -320
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {},
+      "id": "wa-done-001",
+      "name": "Done (Order Handled)",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1840,
+        -400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $('Normalize WhatsApp').first().json.senderId }}",
+        "messageText": "عذراً، حصل خطأ أثناء معالجة ردك 😔\n\nبرجاء التواصل معانا وهنساعدك فوراً.\nمتجر حلم في خدمتك 🙏"
+      },
+      "id": "wa-error-reply-001",
+      "name": "WA: Error Reply",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        1840,
+        -240
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "filter-empty",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $('Normalize WhatsApp').first().json.messageText }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-skip-empty-001",
+      "name": "Skip Empty Messages",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        880,
+        200
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "url": "https://7alm-pro.up.railway.app/api/n8n/products/active",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "=123456"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-load-products-001",
+      "name": "Load Active Product Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1120,
+        200
+      ],
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://7alm-pro.up.railway.app/api/n8n/zones",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "=123456"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-load-zones-001",
+      "name": "Load Zones Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1360,
+        200
+      ],
+      "typeVersion": 4.2,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Normalize WhatsApp').first().json.messageText }}",
+        "options": {
+          "systemMessage": "=أنت «حلم»، موظف مبيعات وخدمة عملاء في متجر حلم المصري على واتساب. اتكلم بالعربي المصري الطبيعي، بود واحترام.\n\n## القاعدة الأهم — ممنوع إنشاء طلب ببيانات ناقصة\nأداة create_order ليها شرطان لازم يتحققوا الاتنين مع بعض قبل أي استدعاء:\n1) كل بنود «قائمة التحقق الإجبارية» أدناه مكتملة من كلام العميل نفسه.\n2) العميل شاف رسالة الملخص النهائي ورد عليها بموافقة صريحة.\n\n## سياق المنتجات\nالقائمة التالية جاية مباشرة من المتجر وهي المصدر الوحيد لأي معلومة عن المنتجات:\n{{ JSON.stringify($('Load Active Product Context').first().json.data ?? []) }}\n\nافهم حقل availability في كل منتج:\n- availability.can_order: لو false يبقى المنتج مش متاح خالص — ما تعرضهوش للبيع، ما تشاركش رابطه، وممنوع تستخدم create_order له نهائيًا. اعتذر للعميل بلطف وقوله إنه مش متوفر حاليًا.\n- availability.status: حالة المخزون (in_stock / low_stock / out_of_stock).\n- availability.available_quantity: الكمية المتاحة فعليًا؛ لو العميل طلب كمية أكبر منها، وضّح له إن الكمية المتاحة أقل واسأله يعدّل الكمية قبل ما تكمل معاه.\n\n## سياق المناطق\n{{ JSON.stringify($json.data ?? []) }}\n\n## خطوات البيع\n1. اعرض المنتجات وجاوب أسئلة العميل، وشارك رابط المنتج: https://7alm-pro.up.railway.app/{slug}?utm_source=whatsapp\n2. لا تطلب بيانات التوصيل إلا لو العميل طلب صراحة يعمل الطلب من الشات.\n3. اجمع: الاسم الكامل، رقم الموبايل، المنطقة، العنوان التفصيلي.\n4. ابعت ملخص واسأل عن التأكيد.\n5. بعد الموافقة الصريحة استدعِ create_order.\n\n## قائمة التحقق الإجبارية\n- product_id: من قائمة المنتجات، بشرط availability.can_order = true؛ لو false امتنع تمامًا عن العرض والبيع وإنشاء الطلب.\n- quantity: رقم صحيح موجب، ولازم يكون أقل من أو يساوي availability.available_quantity؛ لو أكبر وضّح للعميل الحد الأقصى المتاح.\n- full_name: اسمين على الأقل.\n- phone: 11 رقم يبدأ بـ 01.\n- zone_id: UUID من قائمة المناطق.\n- street_details: عنوان تفصيلي.\n- الموافقة الصريحة بعد الملخص.\n\n## أسلوب المحادثة\n- رد في 1 إلى 3 جمل قصيرة.\n- الدفع عند الاستلام.\n- التوصيل داخل مصر.\n- لا تقول إنك ذكاء اصطناعي."
+        }
+      },
+      "id": "wa-ai-agent-001",
+      "name": "7alm AI Agent (WhatsApp)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1600,
+        200
+      ],
+      "typeVersion": 1.6,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const CREDIT_RE = /(^|[^0-9])402([^0-9]|$)|credit|quota|insufficient|payment|billing|exceeded/;\nconst MSG = {\n  credit: 'معلش يا فندم، الخدمة عندنا واقفة مؤقتًا 🙏 هنرجع نرد عليك في أقرب وقت.',\n  transient: 'حصل خلل بسيط عندنا دلوقتي، ممكن تبعت رسالتك تاني بعد شوية؟ 🙏'\n};\nlet items = [];\ntry { items = $input.all(); } catch (e) { items = []; }\nif (!items.length) items = [{ json: {} }];\nreturn items.map((item) => {\n  let failureClass = 'transient';\n  let haystack = '';\n  try { haystack += JSON.stringify(item.json ?? {}); } catch (e) {}\n  try { haystack += ' ' + JSON.stringify(item.error ?? {}); } catch (e) {}\n  try { if (CREDIT_RE.test(haystack.toLowerCase())) failureClass = 'credit'; } catch (e) {}\n  return { json: { output: MSG[failureClass], aiFailed: true, failureClass } };\n});\n"
+      },
+      "id": "wa-classify-failure-001",
+      "name": "Classify AI Failure",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1840,
+        400
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $('Normalize WhatsApp').first().json.senderId }}",
+        "messageText": "={{ $json.output }}"
+      },
+      "id": "wa-reply-001",
+      "name": "Reply via WhatsApp",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        2080,
+        200
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        480
+      ],
+      "id": "wa-llm-001",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "EbbUdiq5aCjllGWD",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "n8n_chat_histories",
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ 'whatsapp_' + ($('Normalize WhatsApp').first().json.instanceName || 'main') + '_' + $('Normalize WhatsApp').first().json.senderId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        480
+      ],
+      "id": "wa-memory-001",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Creates a customer order. Call ONLY when ALL checklist items are confirmed.",
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/n8n/orders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-access-token",
+              "value": "=123456"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"full_name\": {{ JSON.stringify($fromAI('full_name', 'Customer full name', 'string')) }},\n  \"phone\": {{ JSON.stringify($fromAI('phone', '11-digit Egyptian mobile starting with 01', 'string')) }},\n  \"zone_id\": {{ JSON.stringify($fromAI('zone_id', 'Exact zone UUID from zones list', 'string')) }},\n  \"street_details\": {{ JSON.stringify($fromAI('street_details', 'Full street address', 'string')) }},\n  \"product_id\": {{ JSON.stringify($fromAI('product_id', 'Product id from products context', 'string')) }},\n  \"quantity\": {{ $fromAI('quantity', 'Positive integer quantity', 'number') }},\n  \"platform_source\": \"whatsapp\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1840,
+        480
+      ],
+      "id": "wa-create-order-001",
+      "name": "Create Order"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-crm-send",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "wa-crm-send-trigger-001",
+      "name": "CRM Send Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -800,
+        600
+      ],
+      "webhookId": "wa-crm-send-webhook",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "validate-secret",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.headers['x-n8n-send-secret'] }}",
+              "rightValue": "={{ $env.N8N_SEND_WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-crm-validate-001",
+      "name": "Validate Send Secret",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -560,
+        600
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $json.body.phone }}",
+        "messageText": "={{ $json.body.body }}"
+      },
+      "id": "wa-crm-send-001",
+      "name": "CRM: Send via WhatsApp",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        -320,
+        500
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ messageId: $json.data?.key?.id || $json.key?.id || 'sent', status: 'sent' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "wa-crm-respond-ok-001",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        -80,
+        500
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ error: 'Unauthorized' }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "wa-crm-respond-unauth-001",
+      "name": "Respond Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        -320,
+        720
+      ],
+      "typeVersion": 1.1
+    }
+  ],
+  "connections": {
+    "Skip Own Messages": {
+      "main": [
+        [
+          {
+            "node": "Event Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event Type Router": {
+      "main": [
+        [
+          {
+            "node": "Normalize WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Status Logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "CRM Logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Logger": {
+      "main": [
+        [
+          {
+            "node": "Detect Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Intent": {
+      "main": [
+        [
+          {
+            "node": "Is Order Action?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Order Action?": {
+      "main": [
+        [
+          {
+            "node": "Find Awaiting Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Empty Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Awaiting Order": {
+      "main": [
+        [
+          {
+            "node": "Order Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order Found?": {
+      "main": [
+        [
+          {
+            "node": "Call 7alm API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Empty Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 7alm API": {
+      "main": [
+        [
+          {
+            "node": "API Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Success?": {
+      "main": [
+        [
+          {
+            "node": "Done (Order Handled)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WA: Error Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Empty Messages": {
+      "main": [
+        [
+          {
+            "node": "Load Active Product Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Active Product Context": {
+      "main": [
+        [
+          {
+            "node": "Load Zones Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Zones Context": {
+      "main": [
+        [
+          {
+            "node": "7alm AI Agent (WhatsApp)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7alm AI Agent (WhatsApp)": {
+      "main": [
+        [
+          {
+            "node": "Reply via WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classify AI Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify AI Failure": {
+      "main": [
+        [
+          {
+            "node": "Reply via WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "7alm AI Agent (WhatsApp)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "7alm AI Agent (WhatsApp)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Order": {
+      "ai_tool": [
+        [
+          {
+            "node": "7alm AI Agent (WhatsApp)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM Send Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Send Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Send Secret": {
+      "main": [
+        [
+          {
+            "node": "CRM: Send via WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Send via WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evolution API Webhook": {
+      "main": [
+        [
+          {
+            "node": "Skip Own Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "7alm-whatsapp-ai"
+  }
+}

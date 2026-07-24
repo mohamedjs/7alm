@@ -1,5 +1,5 @@
 {
-  "name": "7alm — WhatsApp Order Confirmation Handler (Evolution API)",
+  "name": "7alm — WhatsApp Order Confirmation Handler (DEPRECATED — merged into whatsapp-ai-workflow)",
   "nodes": [
     {
       "parameters": {
@@ -12,7 +12,10 @@
       "id": "wa-confirm-trigger",
       "name": "Evolution API Webhook",
       "type": "n8n-nodes-base.webhook",
-      "position": [-800, 200],
+      "position": [
+        -800,
+        200
+      ],
       "webhookId": "wa-confirm-trigger-webhook",
       "typeVersion": 1.1,
       "notes": "Listens for incoming WhatsApp messages from Evolution API (MESSAGES_UPSERT). This workflow only acts when the sender has an order awaiting confirmation AND the message clearly expresses acceptance or rejection in natural language — everything else is ignored so the main AI workflow can handle it."
@@ -20,12 +23,19 @@
     {
       "parameters": {
         "conditions": {
-          "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
           "conditions": [
             {
               "id": "skip-from-me",
-              "operator": { "type": "string", "operation": "notEquals" },
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
               "leftValue": "={{ String($json.body?.data?.key?.fromMe ?? $json.data?.key?.fromMe ?? false) }}",
               "rightValue": "true"
             }
@@ -36,7 +46,10 @@
       "id": "skip-own-messages",
       "name": "Skip Own Messages",
       "type": "n8n-nodes-base.if",
-      "position": [-600, 200],
+      "position": [
+        -600,
+        200
+      ],
       "typeVersion": 2.2,
       "notes": "Filters out messages sent by the bot itself to prevent infinite loops."
     },
@@ -70,7 +83,10 @@
       "id": "extract-data-001",
       "name": "Extract Message Data",
       "type": "n8n-nodes-base.set",
-      "position": [-400, 200],
+      "position": [
+        -400,
+        200
+      ],
       "typeVersion": 3.4,
       "notes": "Extracts the message text and sender, and normalizes the WhatsApp number (2010... -> 010...) to the 11-digit local format stored in the customers table."
     },
@@ -92,19 +108,29 @@
       "id": "detect-intent-001",
       "name": "Detect Intent",
       "type": "n8n-nodes-base.set",
-      "position": [-200, 200],
+      "position": [
+        -200,
+        200
+      ],
       "typeVersion": 3.4,
       "notes": "Classifies the reply as confirm / cancel / none from natural language (Arabic and English acceptance or rejection words). Cancellation wins if both appear. Short ambiguous words (لا, اه, ok) only match as standalone words."
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
           "conditions": [
             {
               "id": "has-intent",
-              "operator": { "type": "string", "operation": "notEquals" },
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              },
               "leftValue": "={{ $json.intent }}",
               "rightValue": "none"
             }
@@ -115,7 +141,10 @@
       "id": "is-action-001",
       "name": "Is Order Action?",
       "type": "n8n-nodes-base.if",
-      "position": [0, 200],
+      "position": [
+        0,
+        200
+      ],
       "typeVersion": 2.2,
       "notes": "Only messages that clearly accept or reject continue. Everything else stops here (the main AI workflow answers those)."
     },
@@ -144,19 +173,29 @@
       "id": "find-order-001",
       "name": "Find Awaiting Order",
       "type": "n8n-nodes-base.httpRequest",
-      "position": [200, 200],
+      "position": [
+        200,
+        200
+      ],
       "typeVersion": 4.2,
       "notes": "Looks up the sender's latest order with status 'approved' (awaiting customer confirmation) by phone number. 404 means no order is waiting — the message is ignored."
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
           "conditions": [
             {
               "id": "order-found",
-              "operator": { "type": "string", "operation": "equals" },
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
               "leftValue": "={{ $json.success === true && $json.data?.orderId ? 'yes' : 'no' }}",
               "rightValue": "yes"
             }
@@ -167,7 +206,10 @@
       "id": "order-found-001",
       "name": "Order Found?",
       "type": "n8n-nodes-base.if",
-      "position": [400, 200],
+      "position": [
+        400,
+        200
+      ],
       "typeVersion": 2.2
     },
     {
@@ -198,19 +240,29 @@
       "id": "call-api-001",
       "name": "Call 7alm API",
       "type": "n8n-nodes-base.httpRequest",
-      "position": [600, 200],
+      "position": [
+        600,
+        200
+      ],
       "typeVersion": 4.2,
       "notes": "Calls the 7alm backend to confirm or cancel the order. The backend handles shipping creation (for confirm) or stock restoration (for cancel)."
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
           "conditions": [
             {
               "id": "check-success",
-              "operator": { "type": "string", "operation": "equals" },
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
               "leftValue": "={{ String($json.success ?? false) }}",
               "rightValue": "true"
             }
@@ -221,7 +273,10 @@
       "id": "check-success-001",
       "name": "API Success?",
       "type": "n8n-nodes-base.if",
-      "position": [800, 200],
+      "position": [
+        800,
+        200
+      ],
       "typeVersion": 2.2
     },
     {
@@ -229,7 +284,10 @@
       "id": "noop-done-001",
       "name": "Done",
       "type": "n8n-nodes-base.noOp",
-      "position": [1000, 100],
+      "position": [
+        1000,
+        100
+      ],
       "typeVersion": 1,
       "notes": "Customer messaging for confirmed/cancelled is handled by the Order Status Notifications workflow (triggered by the backend), avoiding duplicate WhatsApp messages."
     },
@@ -258,7 +316,10 @@
       "id": "wa-error-reply",
       "name": "WA: Error Reply",
       "type": "n8n-nodes-base.httpRequest",
-      "position": [1000, 300],
+      "position": [
+        1000,
+        300
+      ],
       "typeVersion": 4.2,
       "notes": "Sends an error message via Evolution API sendText endpoint when the order action fails."
     }
@@ -267,66 +328,106 @@
     "Evolution API Webhook": {
       "main": [
         [
-          { "node": "Skip Own Messages", "type": "main", "index": 0 }
+          {
+            "node": "Skip Own Messages",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Skip Own Messages": {
       "main": [
         [
-          { "node": "Extract Message Data", "type": "main", "index": 0 }
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Extract Message Data": {
       "main": [
         [
-          { "node": "Detect Intent", "type": "main", "index": 0 }
+          {
+            "node": "Detect Intent",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Detect Intent": {
       "main": [
         [
-          { "node": "Is Order Action?", "type": "main", "index": 0 }
+          {
+            "node": "Is Order Action?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Is Order Action?": {
       "main": [
         [
-          { "node": "Find Awaiting Order", "type": "main", "index": 0 }
+          {
+            "node": "Find Awaiting Order",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Find Awaiting Order": {
       "main": [
         [
-          { "node": "Order Found?", "type": "main", "index": 0 }
+          {
+            "node": "Order Found?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Order Found?": {
       "main": [
         [
-          { "node": "Call 7alm API", "type": "main", "index": 0 }
+          {
+            "node": "Call 7alm API",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Call 7alm API": {
       "main": [
         [
-          { "node": "API Success?", "type": "main", "index": 0 }
+          {
+            "node": "API Success?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "API Success?": {
       "main": [
         [
-          { "node": "Done", "type": "main", "index": 0 }
+          {
+            "node": "Done",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "WA: Error Reply", "type": "main", "index": 0 }
+          {
+            "node": "WA: Error Reply",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }
@@ -335,5 +436,6 @@
   "meta": {
     "templateCredsSetupCompleted": false,
     "instanceId": "7alm-order-confirmation"
-  }
+  },
+  "active": false
 }

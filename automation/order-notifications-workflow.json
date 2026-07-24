@@ -1,5 +1,5 @@
 {
-  "name": "7alm — Order Status Notifications (Evolution API)",
+  "name": "7alm — Order Status Notifications (Evolution Plugin)",
   "nodes": [
     {
       "parameters": {
@@ -13,21 +13,30 @@
       "id": "order-webhook-001",
       "name": "Order Status Changed",
       "type": "n8n-nodes-base.webhook",
-      "position": [-800, 200],
+      "position": [
+        -800,
+        200
+      ],
       "webhookId": "order-status-webhook",
-      "typeVersion": 1.1,
-      "notes": "Triggered by 7alm backend when an admin changes an order status. Receives: orderId, newStatus, customerPhone, customerName, productName, trackingId, totalPrice, quantity"
+      "typeVersion": 1.1
     },
-
     {
       "parameters": {
         "conditions": {
-          "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
           "conditions": [
             {
               "id": "validate-phone",
-              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true },
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
               "leftValue": "={{ $json.body.customerPhone }}",
               "rightValue": ""
             }
@@ -38,10 +47,12 @@
       "id": "validate-001",
       "name": "Has Phone Number?",
       "type": "n8n-nodes-base.if",
-      "position": [-540, 200],
+      "position": [
+        -540,
+        200
+      ],
       "typeVersion": 2.2
     },
-
     {
       "parameters": {
         "assignments": {
@@ -107,23 +118,31 @@
       "id": "format-data-001",
       "name": "Format Notification Data",
       "type": "n8n-nodes-base.set",
-      "position": [-280, 200],
-      "typeVersion": 3.4,
-      "notes": "Formats the Egyptian phone number to international format (prefix with '2' for Egypt country code) and passes through all order data."
+      "position": [
+        -280,
+        200
+      ],
+      "typeVersion": 3.4
     },
-
     {
       "parameters": {
         "rules": {
           "values": [
             {
               "conditions": {
-                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
                 "combinator": "and",
                 "conditions": [
                   {
                     "id": "status-approved",
-                    "operator": { "type": "string", "operation": "equals" },
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
                     "leftValue": "={{ $json.newStatus }}",
                     "rightValue": "approved"
                   }
@@ -134,12 +153,19 @@
             },
             {
               "conditions": {
-                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
                 "combinator": "and",
                 "conditions": [
                   {
                     "id": "status-confirmed",
-                    "operator": { "type": "string", "operation": "equals" },
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
                     "leftValue": "={{ $json.newStatus }}",
                     "rightValue": "confirmed"
                   }
@@ -150,12 +176,19 @@
             },
             {
               "conditions": {
-                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
                 "combinator": "and",
                 "conditions": [
                   {
                     "id": "status-shipped",
-                    "operator": { "type": "string", "operation": "equals" },
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
                     "leftValue": "={{ $json.newStatus }}",
                     "rightValue": "shipped"
                   }
@@ -166,12 +199,19 @@
             },
             {
               "conditions": {
-                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
                 "combinator": "and",
                 "conditions": [
                   {
                     "id": "status-delivered",
-                    "operator": { "type": "string", "operation": "equals" },
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
                     "leftValue": "={{ $json.newStatus }}",
                     "rightValue": "delivered"
                   }
@@ -182,12 +222,19 @@
             },
             {
               "conditions": {
-                "options": { "version": 2, "caseSensitive": true, "typeValidation": "strict" },
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
                 "combinator": "and",
                 "conditions": [
                   {
                     "id": "status-cancelled",
-                    "operator": { "type": "string", "operation": "equals" },
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
                     "leftValue": "={{ $json.newStatus }}",
                     "rightValue": "cancelled"
                   }
@@ -205,160 +252,127 @@
       "id": "switch-status-001",
       "name": "Route by Status",
       "type": "n8n-nodes-base.switch",
-      "position": [0, 200],
+      "position": [
+        0,
+        200
+      ],
       "typeVersion": 3.2
     },
-
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 👋\\n\\nتم قبول طلبك من متجر حلم! 🎉\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nللتأكيد وبدء تجهيز الشحنة رد على الرسالة دي بكلمة «تأكيد» ✅\\nولو حابب تلغي الطلب رد بكلمة «إلغاء» ❌\\n\\nمتجر حلم — شكراً لثقتك فينا 🙏\"\n}",
-        "options": {}
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $json.formattedPhone }}",
+        "messageText": "=مرحباً {{ $json.customerName }} 👋\n\nتم قبول طلبك من متجر حلم! 🎉\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n💰 المبلغ: {{ $json.totalPrice }} جنيه\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nللتأكيد وبدء تجهيز الشحنة رد على الرسالة دي بكلمة «تأكيد» ✅\nولو حابب تلغي الطلب رد بكلمة «إلغاء» ❌\n\nمتجر حلم — شكراً لثقتك فينا 🙏"
       },
       "id": "wa-approved-001",
-      "name": "WA: Order Approved (Text)",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [340, -80],
-      "typeVersion": 4.2,
-      "notes": "Sends a plain-text approval request via Evolution API sendText. The customer replies in natural language (e.g. تأكيد / إلغاء) and the confirmation workflow detects the intent and matches the order by the sender's phone number."
+      "name": "WA: Order Approved",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        340,
+        -80
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
     },
-
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nشكراً لتأكيد طلبك!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n💰 المبلغ: {{ $json.totalPrice }} جنيه\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\\nشكراً لثقتك في متجر حلم! 🙏\"\n}",
-        "options": {}
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $json.formattedPhone }}",
+        "messageText": "=مرحباً {{ $json.customerName }} 🎉\n\nشكراً لتأكيد طلبك!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n💰 المبلغ: {{ $json.totalPrice }} جنيه\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\nشكراً لثقتك في متجر حلم! 🙏"
       },
       "id": "wa-confirmed-001",
       "name": "WA: Order Confirmed",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [340, 60],
-      "typeVersion": 4.2,
-      "notes": "Sent after the customer confirms the order via WhatsApp button. Uses Evolution API sendText endpoint."
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        340,
+        60
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
     },
-
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🚚\\n\\nطلبك في الطريق إليك!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\\n\\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\\nشكراً لصبرك! 😊\"\n}",
-        "options": {}
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $json.formattedPhone }}",
+        "messageText": "=مرحباً {{ $json.customerName }} 🚚\n\nطلبك في الطريق إليك!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\n\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\nشكراً لصبرك! 😊"
       },
       "id": "wa-shipped-001",
       "name": "WA: Order Shipped",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [340, 200],
-      "typeVersion": 4.2,
-      "notes": "Sends a shipping notification via Evolution API sendText endpoint."
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        340,
+        200
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
     },
-
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }} 🎉\\n\\nتم توصيل طلبك بنجاح!\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\\nشكراً لتسوقك من متجر حلم! ⭐\"\n}",
-        "options": {}
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $json.formattedPhone }}",
+        "messageText": "=مرحباً {{ $json.customerName }} 🎉\n\nتم توصيل طلبك بنجاح!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\nشكراً لتسوقك من متجر حلم! ⭐"
       },
       "id": "wa-delivered-001",
       "name": "WA: Order Delivered",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [340, 360],
-      "typeVersion": 4.2,
-      "notes": "Sends a delivery confirmation via Evolution API sendText endpoint."
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        340,
+        360
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
     },
-
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"number\": \"{{ $json.formattedPhone }}\",\n  \"text\": \"مرحباً {{ $json.customerName }}\\n\\nتم إلغاء طلبك.\\n\\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\\\n') }}\\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\\n\\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\\nمتجر حلم دايمًا في خدمتك 🙏\"\n}",
-        "options": {}
+        "resource": "messages-api",
+        "operation": "send-text",
+        "instanceName": "mypersonal",
+        "remoteJid": "={{ $json.formattedPhone }}",
+        "messageText": "=مرحباً {{ $json.customerName }}\n\nتم إلغاء طلبك.\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\nمتجر حلم دايمًا في خدمتك 🙏"
       },
       "id": "wa-cancelled-001",
       "name": "WA: Order Cancelled",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [340, 540],
-      "typeVersion": 4.2,
-      "notes": "Sends a cancellation notification via Evolution API sendText endpoint."
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "position": [
+        340,
+        540
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "evolutionApi": {
+          "id": "1",
+          "name": "7alm Evolution API"
+        }
+      }
     },
-
     {
       "parameters": {
         "assignments": {
@@ -376,11 +390,12 @@
       "id": "no-notification-001",
       "name": "No Notification Needed",
       "type": "n8n-nodes-base.set",
-      "position": [340, 720],
-      "typeVersion": 3.4,
-      "notes": "For status transitions like 'returned' that don't trigger an automatic WhatsApp notification."
+      "position": [
+        340,
+        720
+      ],
+      "typeVersion": 3.4
     },
-
     {
       "parameters": {
         "assignments": {
@@ -398,7 +413,10 @@
       "id": "no-phone-001",
       "name": "No Phone — Skip",
       "type": "n8n-nodes-base.set",
-      "position": [-280, 400],
+      "position": [
+        -280,
+        400
+      ],
       "typeVersion": 3.4
     }
   ],
@@ -406,46 +424,86 @@
     "Order Status Changed": {
       "main": [
         [
-          { "node": "Has Phone Number?", "type": "main", "index": 0 }
+          {
+            "node": "Has Phone Number?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Has Phone Number?": {
       "main": [
         [
-          { "node": "Format Notification Data", "type": "main", "index": 0 }
+          {
+            "node": "Format Notification Data",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "No Phone — Skip", "type": "main", "index": 0 }
+          {
+            "node": "No Phone — Skip",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Format Notification Data": {
       "main": [
         [
-          { "node": "Route by Status", "type": "main", "index": 0 }
+          {
+            "node": "Route by Status",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Route by Status": {
       "main": [
         [
-          { "node": "WA: Order Approved (Text)", "type": "main", "index": 0 }
+          {
+            "node": "WA: Order Approved",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "WA: Order Confirmed", "type": "main", "index": 0 }
+          {
+            "node": "WA: Order Confirmed",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "WA: Order Shipped", "type": "main", "index": 0 }
+          {
+            "node": "WA: Order Shipped",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "WA: Order Delivered", "type": "main", "index": 0 }
+          {
+            "node": "WA: Order Delivered",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "WA: Order Cancelled", "type": "main", "index": 0 }
+          {
+            "node": "WA: Order Cancelled",
+            "type": "main",
+            "index": 0
+          }
         ],
         [
-          { "node": "No Notification Needed", "type": "main", "index": 0 }
+          {
+            "node": "No Notification Needed",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     }

@@ -280,3 +280,104 @@ export interface Testimonial {
   is_active: boolean;
   created_at: string;
 }
+
+
+// --- WhatsApp Messaging ---
+export type WhatsAppMessageDirection = "inbound" | "outbound";
+
+export type WhatsAppMessageStatus =
+  | "pending"
+  | "sent"
+  | "delivered"
+  | "read"
+  | "failed";
+
+export interface WhatsAppMessage {
+  id: string;
+  customer_id: string;
+  admin_id: string | null;
+  direction: WhatsAppMessageDirection;
+  body: string;
+  media_url: string | null;
+  media_type: string | null;
+  status: WhatsAppMessageStatus;
+  evolution_message_id: string | null;
+  phone: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WhatsAppMessageInput {
+  customer_id: string;
+  admin_id?: string | null;
+  direction: WhatsAppMessageDirection;
+  body: string;
+  media_url?: string | null;
+  media_type?: string | null;
+  status: WhatsAppMessageStatus;
+  evolution_message_id?: string | null;
+  phone: string;
+}
+
+// --- CRM ---
+export interface CustomerStats {
+  total_orders: number;
+  total_spent: number;
+  avg_order_value: number;
+  first_order_date: string | null;
+  last_order_date: string | null;
+}
+
+export interface CustomerWithStats extends Customer {
+  notes: string | null;
+  total_orders: number;
+  total_spent: number;
+  avg_order_value: number;
+  first_order_date: string | null;
+  last_order_date: string | null;
+}
+
+export interface CustomerDetail {
+  customer: Customer & { notes: string | null };
+  stats: CustomerStats;
+  orders: OrderWithDetails[];
+  address: (Address & { zone: Zone & { city: City } }) | null;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+  page: number;
+  limit: number;
+}
+
+export interface InboundWebhookPayload {
+  phone: string;
+  body: string;
+  evolutionMessageId: string;
+  mediaUrl?: string;
+  mediaType?: string;
+}
+
+export interface StatusWebhookPayload {
+  evolutionMessageId: string;
+  status: WhatsAppMessageStatus;
+}
+
+export interface CustomerAnalytics {
+  totalCustomers: number;
+  newCustomers: number;
+  repeatRate: number;
+  topCustomers: { full_name: string; total_spent: number }[];
+}
+
+// --- n8n WhatsApp Send ---
+export interface N8nSendRequest {
+  phone: string;
+  body: string;
+}
+
+export interface N8nSendResponse {
+  messageId: string;
+  status: string;
+}
