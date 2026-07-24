@@ -27,6 +27,7 @@ export default function StoreCheckoutForm() {
     error,
     loading,
     handleSubmit,
+    coupon,
   } = useCartCheckoutForm();
   const { t, locale } = useLocale();
 
@@ -206,14 +207,72 @@ export default function StoreCheckoutForm() {
             </div>
           ))}
         </div>
+
+        {/* Coupon code */}
+        <div className="mb-4">
+          <label htmlFor="couponCode" className="block text-xs font-bold text-text-muted mb-2">
+            {t("store.checkout.coupon.label")}
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="couponCode"
+              type="text"
+              dir="ltr"
+              value={coupon.code}
+              onChange={(e) => coupon.setCode(e.target.value)}
+              placeholder={t("store.checkout.coupon.placeholder")}
+              disabled={!!coupon.appliedCode}
+              className="flex-1 neu-input rounded-xl px-3 py-2 text-sm transition-all disabled:opacity-60"
+            />
+            {coupon.appliedCode ? (
+              <button
+                type="button"
+                onClick={coupon.remove}
+                className="rounded-xl bg-surface px-3 py-2 text-xs font-bold text-danger transition-all neu-raised-sm"
+              >
+                {t("store.checkout.coupon.remove")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={coupon.apply}
+                disabled={coupon.isLoading || !coupon.code.trim()}
+                className="rounded-xl bg-brand-500 px-4 py-2 text-xs font-bold text-white transition-all disabled:opacity-50 neu-btn"
+              >
+                {coupon.isLoading ? t("store.checkout.coupon.applying") : t("store.checkout.coupon.apply")}
+              </button>
+            )}
+          </div>
+          {coupon.appliedCode && (
+            <p className="mt-2 text-xs font-medium text-success">{t("store.checkout.coupon.applied")}</p>
+          )}
+          {coupon.error && <p className="mt-2 text-xs font-medium text-danger">{coupon.error}</p>}
+        </div>
+
         <div className="flex items-center justify-between text-text-muted text-sm py-2">
           <span>{t("store.cart.subtotal")}</span>
           <span>{subtotal} {t("store.product.currency")}</span>
         </div>
+        {coupon.discountAmount > 0 && (
+          <div className="flex items-center justify-between text-success text-sm py-2">
+            <span>
+              {t("store.checkout.coupon.discountLine")}
+              {coupon.appliedCode ? ` (${coupon.appliedCode})` : ""}
+            </span>
+            <span>-{coupon.discountAmount} {t("store.product.currency")}</span>
+          </div>
+        )}
         {fields.zoneId && (
           <div className="flex items-center justify-between text-text-muted text-sm py-2">
             <span>{t("store.checkout.shipping")}</span>
-            <span>{shippingCost} {t("store.product.currency")}</span>
+            <span>
+              {coupon.finalShippingCost < shippingCost && (
+                <span className="me-2 text-text-muted line-through">
+                  {shippingCost} {t("store.product.currency")}
+                </span>
+              )}
+              {coupon.finalShippingCost} {t("store.product.currency")}
+            </span>
           </div>
         )}
         <div className="flex items-center justify-between text-text-primary font-bold border-t border-border pt-4">

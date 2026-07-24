@@ -273,6 +273,29 @@ export default function OrderDetailsDrawer({
                     value={`${(order.total_price / (order.quantity || 1)).toFixed(2).replace(/\.00$/, "")} EGP`}
                   />
                   {(() => {
+                    // Reconcile the two discount sources: when an explicit
+                    // coupon was applied (order.coupon_code present), that
+                    // is the single source of truth for the discount shown
+                    // here — order.discount_amount already reflects it, and
+                    // showing the derived baseTotal-vs-total_price figure
+                    // alongside it would double-count / conflict (that
+                    // figure also folds in any tiered-pricing discount).
+                    // Only fall back to the derived tier-discount line when
+                    // no coupon was applied.
+                    if (order.coupon_code) {
+                      const discountAmt = order.discount_amount ?? 0;
+                      return (
+                        <DetailRow
+                          label={t("orders.drawer.couponDiscount")}
+                          value={
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              -{discountAmt.toFixed(2).replace(/\.00$/, "")} EGP · {order.coupon_code}
+                            </span>
+                          }
+                        />
+                      );
+                    }
+
                     const baseTotal = order.product.price * order.quantity;
                     const discountAmt = baseTotal - order.total_price;
                     if (discountAmt > 0) {

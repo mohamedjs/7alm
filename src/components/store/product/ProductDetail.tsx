@@ -6,6 +6,8 @@ import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product, QuantityPriceTier } from "@/features/shared/types";
 import { useCart } from "@/features/cart/cart.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
+import ProductRatingSummary from "./ProductRatingSummary";
+import ProductReviewsSection from "./ProductReviewsSection";
 
 interface ProductDetailProps {
   product: Product;
@@ -83,6 +85,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   };
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
       {/* Gallery */}
       <div>
@@ -123,6 +126,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         <h1 className="font-heading text-3xl lg:text-4xl font-extrabold text-text-primary mb-4">
           {product.name}
         </h1>
+
+        <ProductRatingSummary slug={product.slug} />
 
         {hasTiers ? (
           <div className="mb-6 space-y-3">
@@ -277,5 +282,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         </button>
       </div>
     </div>
+    <ProductReviewsSection slug={product.slug} />
+    </>
   );
 }

@@ -118,6 +118,12 @@ export class OrderRepository {
     ip_country?: string;
     ip_city?: string;
     shipping_cost?: number;
+    /** Items subtotal before discount. Defaults to total_price when omitted (non-coupon orders). */
+    subtotal?: number;
+    /** Amount deducted by an applied coupon. Defaults to 0. */
+    discount_amount?: number;
+    /** Applied coupon code, or omitted/null when no coupon was used. */
+    coupon_code?: string | null;
   }): Promise<Order | null> {
     const { data: order, error } = await supabase
       .from("orders")
@@ -132,6 +138,9 @@ export class OrderRepository {
         ip_country: data.ip_country || null,
         ip_city: data.ip_city || null,
         shipping_cost: data.shipping_cost || 0,
+        subtotal: data.subtotal ?? 0,
+        discount_amount: data.discount_amount || 0,
+        coupon_code: data.coupon_code || null,
         status: "pending",
       })
       .select()

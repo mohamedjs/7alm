@@ -271,7 +271,7 @@
               "id": "detect-intent",
               "name": "intent",
               "type": "string",
-              "value": "={{ (() => { const t = ($json.messageText || $('Normalize WhatsApp').first().json.messageText || '').toLowerCase().trim(); const cancel = /(إلغاء|الغاء|ألغي|الغي|كنسل|رفض|مش عايز|مش هاخد|cancel)/.test(t) || /(^|[ .,!؟?])(لا|لأ|no)([ .,!؟?]|$)/.test(t); const confirm = /(تأكيد|تاكيد|أكيد|اكيد|موافق|تمام|ماشي|اوكي|أوكي|okay|confirm|approve|ايوه|أيوه|ايوة|نعم|yes)/.test(t) || /(^|[ .,!؟?])(اه|آه|ok|اوك|أوك)([ .,!؟?]|$)/.test(t); return cancel ? 'cancel' : (confirm ? 'confirm' : 'none'); })() }}"
+              "value": "={{ (() => { const t = ($json.messageText || $('Normalize WhatsApp').first().json.messageText || '').toLowerCase().trim(); const cancel = /(إلغاء|الغاء|ألغي|الغي|كنسل|رفض|مش عايز|مش هاخد|cancel)/.test(t) || /(^|[ .,!؟?])(لا|لأ|no)([ .,!؟?]|$)/.test(t); const confirm = /(تأكيد|تاكيد|أكيد|اكيد|موافق|تمام|ماشي|اوكي|أوكي|okay|confirm|approve|ايوه|أيوه|ايوة|نعم|yes)/.test(t) || /(^|[ .,!؟?])(اه|آه|ok|اوك|أوك)([ .,!؟?]|$)/.test(t); const num2 = /^\\s*2\\s*$/.test(t); const num1 = /^\\s*1\\s*$/.test(t); return (cancel || num2) ? 'cancel' : ((confirm || num1) ? 'confirm' : 'none'); })() }}"
             }
           ]
         },

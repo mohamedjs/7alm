@@ -3,6 +3,8 @@ import { productService } from "@/features/products/products.service";
 import { geoService } from "@/features/geo/geo.service";
 import { shippingFactory } from "@/features/shipping/shipping.factory";
 import { orderRepository } from "./orders.repository";
+import { reviewsService } from "@/features/reviews/reviews.service";
+import { couponsService } from "@/features/coupons/coupons.service";
 import type {
   CreateOrderInput,
   N8nOrderNotification,
@@ -42,8 +44,8 @@ export class OrderService {
         return { success: false, error: "Failed to create address" };
       }
 
-      // 3. Determine total price from product (tiered-pricing aware)
-      let totalPrice = 0;
+      // 3. Determine items subtotal from product (tiered-pricing aware)
+      let subtotal = 0;
       let productId: string | undefined;
       if (input.product_id) {
         const product = await productService.getProductById(input.product_id);
@@ -55,7 +57,7 @@ export class OrderService {
           return { success: false, error: "Product is out of stock or insufficient quantity available" };
         }
         productId = product.id;
-        totalPrice = this.calculateLineTotal(product, quantity);
+        subtotal = this.calculateLineTotal(product, quantity);
       }
 
       // 3b. Add shipping cost from zone
@@ -64,7 +66,30 @@ export class OrderService {
       if (zone) {
         shippingCost = zone.shipping_price || 0;
       }
-      totalPrice += shippingCost;
+
+      // 3c. Apply coupon (optional). Coupon applies on top of the resolved
+      // subtotal. Fail loud on an invalid/expired/limit-reached coupon —
+      // never silently charge full price.
+      let discountAmount = 0;
+      let finalShipping = shippingCost;
+      let couponId: string | undefined;
+      const couponCode = input.coupon_code?.trim();
+      if (couponCode) {
+        const couponResult = await couponsService.validateAndApply({
+          code: couponCode,
+          subtotal,
+          shippingCost,
+          customerId: customer.id,
+        });
+        if (!couponResult.valid) {
+          return { success: false, error: couponResult.error || "Invalid coupon code" };
+        }
+        discountAmount = couponResult.discountAmount;
+        finalShipping = couponResult.finalShipping;
+        couponId = couponResult.couponId;
+      }
+
+      const totalPrice = subtotal - discountAmount + finalShipping;
 
       // 4. Create order
       const order = await orderRepository.createOrder({
@@ -73,7 +98,10 @@ export class OrderService {
         product_id: productId,
         quantity: input.quantity || 1,
         total_price: totalPrice,
-        shipping_cost: shippingCost,
+        shipping_cost: finalShipping,
+        subtotal,
+        discount_amount: discountAmount,
+        coupon_code: couponCode ? couponCode.toUpperCase() : null,
         platform_source: input.platform_source,
         ip_address: input.ip_address,
         ip_country: input.ip_country,
@@ -82,6 +110,12 @@ export class OrderService {
 
       if (!order) {
         return { success: false, error: "Failed to create order" };
+      }
+
+      // 5. Best-effort coupon redemption — after order creation, never
+      // blocks the response even if it fails.
+      if (couponId) {
+        await couponsService.redeem(couponId, customer.id, order.id);
       }
 
       return { success: true, orderId: order.id };
@@ -186,7 +220,7 @@ export class OrderService {
         });
       }
 
-      let totalPrice = resolvedItems.reduce((sum, i) => sum + i.total_price, 0);
+      const subtotal = resolvedItems.reduce((sum, i) => sum + i.total_price, 0);
       const firstItem = resolvedItems[0];
 
       // 3b. Add shipping cost from zone
@@ -195,7 +229,30 @@ export class OrderService {
       if (zone) {
         shippingCost = zone.shipping_price || 0;
       }
-      totalPrice += shippingCost;
+
+      // 3c. Apply coupon (optional). Coupon applies on top of the resolved
+      // subtotal. Fail loud on an invalid/expired/limit-reached coupon —
+      // never silently charge full price.
+      let discountAmount = 0;
+      let finalShipping = shippingCost;
+      let couponId: string | undefined;
+      const couponCode = input.coupon_code?.trim();
+      if (couponCode) {
+        const couponResult = await couponsService.validateAndApply({
+          code: couponCode,
+          subtotal,
+          shippingCost,
+          customerId: customer.id,
+        });
+        if (!couponResult.valid) {
+          return { success: false, error: couponResult.error || "Invalid coupon code" };
+        }
+        discountAmount = couponResult.discountAmount;
+        finalShipping = couponResult.finalShipping;
+        couponId = couponResult.couponId;
+      }
+
+      const totalPrice = subtotal - discountAmount + finalShipping;
 
       // 4. Create the orders row (product_id/quantity from the first item
       // — see doc comment above)
@@ -205,7 +262,10 @@ export class OrderService {
         product_id: firstItem.product_id,
         quantity: firstItem.quantity,
         total_price: totalPrice,
-        shipping_cost: shippingCost,
+        shipping_cost: finalShipping,
+        subtotal,
+        discount_amount: discountAmount,
+        coupon_code: couponCode ? couponCode.toUpperCase() : null,
         platform_source: input.platform_source,
         ip_address: input.ip_address,
         ip_country: input.ip_country,
@@ -218,6 +278,12 @@ export class OrderService {
 
       // 5. Persist the full line-item breakdown
       await orderRepository.createOrderItems(order.id, resolvedItems);
+
+      // 6. Best-effort coupon redemption — after order creation, never
+      // blocks the response even if it fails.
+      if (couponId) {
+        await couponsService.redeem(couponId, customer.id, order.id);
+      }
 
       return { success: true, orderId: order.id };
     } catch (err) {
@@ -510,6 +576,22 @@ export class OrderService {
             },
           ],
     };
+
+    // Best-effort verified-buyer review link — a token failure must never
+    // block the notification. Only covers the first/legacy product_id
+    // (see the processCartOrder doc comment for the v1 multi-item scope note).
+    if (newStatus === "delivered" && order.product_id) {
+      try {
+        const reviewToken = reviewsService.issueReviewToken(
+          order.customer_id,
+          order.product_id,
+          order.id
+        );
+        payload.reviewUrl = reviewsService.buildReviewUrl(reviewToken);
+      } catch (err) {
+        console.error("Failed to issue review token (continuing without reviewUrl):", err);
+      }
+    }
 
     // Fire-and-forget — don't await
     fetch(n8nWebhookUrl, {

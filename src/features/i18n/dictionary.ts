@@ -26,6 +26,8 @@ const en = {
   "nav.categories": "Categories",
   "nav.testimonials": "Testimonials",
   "nav.connections": "Connections",
+  "nav.reviews": "Reviews",
+  "nav.coupons": "Coupons",
 
   // ---------------------------------------------------------------
   // action.* — verbs reused across the admin
@@ -175,6 +177,7 @@ const en = {
   "orders.drawer.subtotalBase": "Subtotal (Base)",
   "orders.drawer.effectiveUnitPrice": "Effective Unit price",
   "orders.drawer.tierDiscount": "Tier Discount",
+  "orders.drawer.couponDiscount": "Coupon Discount",
   "orders.drawer.totalPaid": "Total Paid",
   "orders.drawer.noProduct": "No product linked",
   "orders.drawer.orderInfo": "Order Info",
@@ -307,6 +310,61 @@ const en = {
   "categories.form.addTitle": "Add Category",
   "categories.form.uploadFailed": "Failed to upload image",
 
+  // ---------------------------------------------------------------
+  // reviews.* — product review moderation (admin)
+  // ---------------------------------------------------------------
+  "reviews.title": "Product Reviews",
+  "reviews.subtitle": "Review and approve or reject customer feedback.",
+  "reviews.list.loading": "Loading reviews...",
+  "reviews.list.empty": "No reviews found.",
+  "reviews.list.customer": "Customer",
+  "reviews.list.product": "Product",
+  "reviews.list.rating": "Rating",
+  "reviews.list.review": "Review",
+  "reviews.list.date": "Date",
+  "reviews.list.actions": "Actions",
+  "reviews.list.approve": "Approve",
+  "reviews.list.reject": "Reject",
+
+  // ---------------------------------------------------------------
+  // coupons.* — discount codes (admin)
+  // ---------------------------------------------------------------
+  "coupons.title": "Coupons",
+  "coupons.subtitle": "Create and manage discount codes.",
+  "coupons.add": "Add Coupon",
+  "coupons.saveFailed": "Failed to save coupon.",
+  "coupons.list.loading": "Loading coupons...",
+  "coupons.list.empty": "No coupons found.",
+  "coupons.list.code": "Code",
+  "coupons.list.type": "Type",
+  "coupons.list.value": "Value",
+  "coupons.list.usage": "Usage",
+  "coupons.list.status": "Status",
+  "coupons.list.actions": "Actions",
+  "coupons.list.active": "Active",
+  "coupons.list.inactive": "Inactive",
+  "coupons.list.edit": "Edit",
+  "coupons.list.delete": "Delete",
+  "coupons.list.deleteConfirm": "Are you sure you want to delete this coupon?",
+  "coupons.form.editTitle": "Edit Coupon",
+  "coupons.form.addTitle": "Add Coupon",
+  "coupons.form.code": "Code",
+  "coupons.form.type": "Type",
+  "coupons.form.valuePercent": "Discount Percentage (%)",
+  "coupons.form.valueFixed": "Discount Amount (EGP)",
+  "coupons.form.maxDiscount": "Max Discount",
+  "coupons.form.minOrderTotal": "Minimum Order Total",
+  "coupons.form.perCustomerLimit": "Per-Customer Limit",
+  "coupons.form.usageLimit": "Total Usage Limit",
+  "coupons.form.unlimited": "Unlimited",
+  "coupons.form.startsAt": "Starts At",
+  "coupons.form.expiresAt": "Expires At",
+  "coupons.form.firstOrderOnly": "First Order Only",
+  "coupons.form.active": "Active",
+  "coupons.type.percentage": "Percentage",
+  "coupons.type.fixed": "Fixed Amount",
+  "coupons.type.freeShipping": "Free Shipping",
+
   // testimonials.*
   "testimonials.title": "Testimonials",
   "testimonials.subtitle": "Manage customer testimonials displayed on the store.",
@@ -351,6 +409,13 @@ const en = {
   "store.nav.allProducts": "All Products",
   "store.nav.cart": "Cart",
   "store.nav.cartLabel": "Shopping cart",
+
+  // store.nav.* (search)
+  "store.nav.searchLabel": "Search products",
+  "store.nav.searchPlaceholder": "Search for a product...",
+  "store.nav.searchTooShort": "Type at least 2 characters to search",
+  "store.nav.searchLoading": "Searching...",
+  "store.nav.searchEmpty": "No results found.",
 
   // store.hero.*
   "store.hero.eyebrow": "Curated Collection",
@@ -441,6 +506,15 @@ const en = {
   "store.checkout.streetPlaceholder": "Building number, street name, landmark...",
   "store.checkout.shipping": "Shipping",
 
+  // store.checkout.coupon.*
+  "store.checkout.coupon.label": "Discount Code",
+  "store.checkout.coupon.placeholder": "Enter code",
+  "store.checkout.coupon.apply": "Apply",
+  "store.checkout.coupon.applying": "Checking...",
+  "store.checkout.coupon.remove": "Remove",
+  "store.checkout.coupon.applied": "Coupon applied successfully.",
+  "store.checkout.coupon.discountLine": "Coupon discount",
+
   // store.footer.*
   "store.footer.brand": "7alm",
   "store.footer.tagline": "Best quality at the best price — delivery across Egypt",
@@ -455,6 +529,30 @@ const en = {
   "store.detail.bestValue": "Best Value",
   "store.detail.specialOffer": "Special Offer",
   "store.detail.perUnit": "Price per piece",
+
+  // store.reviews.* (product page)
+  "store.reviews.title": "Customer Reviews",
+  "store.reviews.ratingLabel": "Rating",
+  "store.reviews.countSuffix": "reviews",
+  "store.reviews.loading": "Loading reviews...",
+  "store.reviews.loadError": "Couldn't load reviews.",
+  "store.reviews.empty": "No reviews yet. Be the first to review this product.",
+
+  // store.review.* (verified-buyer review submission page)
+  "store.review.formTitle": "Rate Your Experience",
+  "store.review.formSubtitle": "Your feedback helps other shoppers buy with confidence.",
+  "store.review.ratingLabel": "Your Rating",
+  "store.review.ratingRequired": "Please select a rating.",
+  "store.review.titleLabel": "Review Title",
+  "store.review.titlePlaceholder": "Summarize your experience",
+  "store.review.bodyLabel": "Review Details",
+  "store.review.bodyPlaceholder": "Tell us what you thought about the product...",
+  "store.review.optional": "(optional)",
+  "store.review.submitting": "Submitting...",
+  "store.review.submitLabel": "Submit Review",
+  "store.review.submitFailed": "Couldn't submit the review. Please try again.",
+  "store.review.thanksTitle": "Thanks for your review!",
+  "store.review.thanksBody": "Your feedback helps us keep improving.",
 
   // store.products.* (page-level)
   "store.products.title": "All Products",
@@ -549,6 +647,8 @@ const ar: Record<DictKey, string> = {
   "nav.categories": "الأقسام",
   "nav.testimonials": "التقييمات",
   "nav.connections": "الربط",
+  "nav.reviews": "المراجعات",
+  "nav.coupons": "الكوبونات",
 
   "action.logout": "تسجيل الخروج",
   "action.themeToLight": "التبديل إلى الوضع الفاتح",
@@ -683,6 +783,7 @@ const ar: Record<DictKey, string> = {
   "orders.drawer.subtotalBase": "المجموع الفرعي (الأساسي)",
   "orders.drawer.effectiveUnitPrice": "سعر الوحدة الفعلي",
   "orders.drawer.tierDiscount": "خصم الشريحة",
+  "orders.drawer.couponDiscount": "خصم الكوبون",
   "orders.drawer.totalPaid": "الإجمالي المدفوع",
   "orders.drawer.noProduct": "لا يوجد منتج مرتبط",
   "orders.drawer.orderInfo": "معلومات الطلب",
@@ -808,6 +909,61 @@ const ar: Record<DictKey, string> = {
   "categories.form.addTitle": "إضافة قسم",
   "categories.form.uploadFailed": "فشل رفع الصورة",
 
+  // ---------------------------------------------------------------
+  // reviews.* — مراجعات المنتجات (لوحة التحكم)
+  // ---------------------------------------------------------------
+  "reviews.title": "مراجعات المنتجات",
+  "reviews.subtitle": "مراجعة وقبول أو رفض تقييمات العملاء.",
+  "reviews.list.loading": "جارٍ تحميل المراجعات...",
+  "reviews.list.empty": "لا توجد مراجعات.",
+  "reviews.list.customer": "العميل",
+  "reviews.list.product": "المنتج",
+  "reviews.list.rating": "التقييم",
+  "reviews.list.review": "المراجعة",
+  "reviews.list.date": "التاريخ",
+  "reviews.list.actions": "الإجراءات",
+  "reviews.list.approve": "قبول",
+  "reviews.list.reject": "رفض",
+
+  // ---------------------------------------------------------------
+  // coupons.* — أكواد الخصم (لوحة التحكم)
+  // ---------------------------------------------------------------
+  "coupons.title": "الكوبونات",
+  "coupons.subtitle": "إنشاء وإدارة أكواد الخصم.",
+  "coupons.add": "إضافة كوبون",
+  "coupons.saveFailed": "فشل حفظ الكوبون.",
+  "coupons.list.loading": "جارٍ تحميل الكوبونات...",
+  "coupons.list.empty": "لا توجد كوبونات.",
+  "coupons.list.code": "الكود",
+  "coupons.list.type": "النوع",
+  "coupons.list.value": "القيمة",
+  "coupons.list.usage": "الاستخدام",
+  "coupons.list.status": "الحالة",
+  "coupons.list.actions": "الإجراءات",
+  "coupons.list.active": "نشط",
+  "coupons.list.inactive": "غير نشط",
+  "coupons.list.edit": "تعديل",
+  "coupons.list.delete": "حذف",
+  "coupons.list.deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا الكوبون؟",
+  "coupons.form.editTitle": "تعديل الكوبون",
+  "coupons.form.addTitle": "إضافة كوبون",
+  "coupons.form.code": "الكود",
+  "coupons.form.type": "النوع",
+  "coupons.form.valuePercent": "نسبة الخصم (%)",
+  "coupons.form.valueFixed": "قيمة الخصم (ج.م)",
+  "coupons.form.maxDiscount": "الحد الأقصى للخصم",
+  "coupons.form.minOrderTotal": "الحد الأدنى لقيمة الطلب",
+  "coupons.form.perCustomerLimit": "الحد لكل عميل",
+  "coupons.form.usageLimit": "الحد الإجمالي للاستخدام",
+  "coupons.form.unlimited": "بلا حدود",
+  "coupons.form.startsAt": "تاريخ البدء",
+  "coupons.form.expiresAt": "تاريخ الانتهاء",
+  "coupons.form.firstOrderOnly": "أول طلب فقط",
+  "coupons.form.active": "نشط",
+  "coupons.type.percentage": "نسبة مئوية",
+  "coupons.type.fixed": "مبلغ ثابت",
+  "coupons.type.freeShipping": "شحن مجاني",
+
   // testimonials.*
   "testimonials.title": "التقييمات",
   "testimonials.subtitle": "إدارة تقييمات العملاء المعروضة في المتجر.",
@@ -852,6 +1008,13 @@ const ar: Record<DictKey, string> = {
   "store.nav.allProducts": "كل المنتجات",
   "store.nav.cart": "السلة",
   "store.nav.cartLabel": "سلة المشتريات",
+
+  // store.nav.* (بحث)
+  "store.nav.searchLabel": "بحث في المنتجات",
+  "store.nav.searchPlaceholder": "ابحث عن منتج...",
+  "store.nav.searchTooShort": "اكتب حرفين على الأقل للبحث",
+  "store.nav.searchLoading": "جارٍ البحث...",
+  "store.nav.searchEmpty": "لا توجد نتائج.",
 
   // store.hero.*
   "store.hero.eyebrow": "مجموعة مختارة",
@@ -942,6 +1105,15 @@ const ar: Record<DictKey, string> = {
   "store.checkout.streetPlaceholder": "رقم المبنى، اسم الشارع، علامة مميزة...",
   "store.checkout.shipping": "الشحن",
 
+  // store.checkout.coupon.*
+  "store.checkout.coupon.label": "كود الخصم",
+  "store.checkout.coupon.placeholder": "أدخل الكود",
+  "store.checkout.coupon.apply": "تطبيق",
+  "store.checkout.coupon.applying": "جارٍ التحقق...",
+  "store.checkout.coupon.remove": "إزالة",
+  "store.checkout.coupon.applied": "تم تطبيق الكوبون بنجاح.",
+  "store.checkout.coupon.discountLine": "خصم الكوبون",
+
   // store.footer.*
   "store.footer.brand": "حلم",
   "store.footer.tagline": "أفضل جودة بأفضل سعر — توصيل لجميع أنحاء مصر",
@@ -956,6 +1128,30 @@ const ar: Record<DictKey, string> = {
   "store.detail.bestValue": "أفضل قيمة",
   "store.detail.specialOffer": "عرض خاص",
   "store.detail.perUnit": "السعر للقطعة",
+
+  // store.reviews.* (صفحة المنتج)
+  "store.reviews.title": "آراء العملاء",
+  "store.reviews.ratingLabel": "التقييم",
+  "store.reviews.countSuffix": "تقييم",
+  "store.reviews.loading": "جارٍ تحميل المراجعات...",
+  "store.reviews.loadError": "تعذر تحميل المراجعات.",
+  "store.reviews.empty": "لا توجد مراجعات بعد. كن أول من يقيّم هذا المنتج.",
+
+  // store.review.* (صفحة إرسال المراجعة للمشتري الموثق)
+  "store.review.formTitle": "قيّم تجربتك",
+  "store.review.formSubtitle": "رأيك يساعد عملاء آخرين على الاختيار بثقة.",
+  "store.review.ratingLabel": "تقييمك",
+  "store.review.ratingRequired": "يرجى اختيار تقييم.",
+  "store.review.titleLabel": "عنوان المراجعة",
+  "store.review.titlePlaceholder": "لخّص تجربتك في كلمات قليلة",
+  "store.review.bodyLabel": "تفاصيل المراجعة",
+  "store.review.bodyPlaceholder": "شاركنا رأيك في المنتج...",
+  "store.review.optional": "(اختياري)",
+  "store.review.submitting": "جارٍ الإرسال...",
+  "store.review.submitLabel": "إرسال المراجعة",
+  "store.review.submitFailed": "تعذر إرسال المراجعة. حاول مرة أخرى.",
+  "store.review.thanksTitle": "شكراً لتقييمك!",
+  "store.review.thanksBody": "رأيك يساعدنا على التحسن المستمر.",
 
   // store.products.* (page-level)
   "store.products.title": "كل المنتجات",

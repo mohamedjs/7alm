@@ -53,6 +53,14 @@ export const storeApi = createApi({
         response.success && response.data ? response.data : [],
       providesTags: [{ type: "StoreCategory", id: "LIST" }],
     }),
+
+    // Debounced storefront search — `?q=` under 2 chars returns [] server-side.
+    searchProducts: builder.query<Product[], string>({
+      query: (q) => `/products/search?q=${encodeURIComponent(q)}`,
+      transformResponse: (response: ApiEnvelope<Product[]>) =>
+        response.success && response.data ? response.data : [],
+      providesTags: [{ type: "StoreProduct", id: "SEARCH" }],
+    }),
   }),
 });
 
@@ -60,4 +68,5 @@ export const {
   useGetStoreProductsQuery,
   useGetFeaturedProductsQuery,
   useGetStoreCategoriesQuery,
+  useSearchProductsQuery,
 } = storeApi;
