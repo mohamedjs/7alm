@@ -70,6 +70,15 @@ export class CustomerService {
     }
     return customer;
   }
+
+  /**
+   * Look up a customer by phone without creating one — used by
+   * customer-independent read paths (e.g. coupon preview) that must
+   * never create a customer row as a side effect.
+   */
+  async findByPhone(phone: string): Promise<Customer | null> {
+    return customerRepository.findByPhone(phone);
+  }
 }
 
 export const customerService = new CustomerService();

@@ -261,7 +261,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/button",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -276,8 +276,19 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  number: $json.formattedPhone,\n  title: 'طلب رقم ' + $json.orderId.substring(0, 8),\n  description: 'مرحباً ' + $json.customerName + ' 👋\\n\\nتم قبول طلبك من متجر حلم! 🎉\\n\\n' + $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') + '\\n💰 المبلغ: ' + $json.totalPrice + ' جنيه\\n\\nاختار من الأزرار تحت للتأكيد أو الإلغاء 👇',\n  footer: 'متجر حلم — شكراً لثقتك فينا 🙏',\n  buttons: [\n    { type: 'reply', id: 'confirm_order', displayText: 'تأكيد الطلب ✅' },\n    { type: 'reply', id: 'cancel_order', displayText: 'إلغاء الطلب ❌' }\n  ]\n}) }}",
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
+              "value": "=مرحباً {{ $json.customerName }} 👋\n\nتم قبول طلبك من متجر حلم! 🎉\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n💰 المبلغ: {{ $json.totalPrice }} جنيه\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nلتأكيد الطلب ✅ اكتب: تأكيد  (أو أرسل 1)\nلإلغاء الطلب ❌ اكتب: إلغاء  (أو أرسل 2)"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "wa-approved-001",
@@ -442,6 +453,48 @@
             },
             {
               "name": "text",
+              "value": "=مرحباً {{ $json.customerName }} 🌟\n\nنتمنى إنك استمتعت بـ {{ $json.productName }}!\n\nرأيك يهمنا جدًا ويساعد عملاء تانيين يقرروا صح 🙏{{ $json.reviewUrl ? '\\n\\nقيّم المنتج من هنا: ' + $json.reviewUrl : '' }}\n\nشكراً لثقتك في متجر حلم! 💙"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-review-request-001",
+      "name": "WA: Review Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        620,
+        360
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
               "value": "=مرحباً {{ $json.customerName }}\n\nتم إلغاء طلبك.\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\nمتجر حلم دايمًا في خدمتك 🙏"
             }
           ]
@@ -571,6 +624,11 @@
         [
           {
             "node": "WA: Order Delivered",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WA: Review Request",
             "type": "main",
             "index": 0
           }

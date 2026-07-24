@@ -186,6 +186,26 @@ export class ProductRepository {
     }
     return true;
   }
+
+  /**
+   * Case-insensitive name search over active products — the storefront
+   * search bar's backend. Ordered by newest first, capped at `limit`.
+   */
+  async searchActiveProducts(query: string, limit = 20): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .ilike("name", `%${query}%`)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("Error searching products:", error);
+      return [];
+    }
+    return data || [];
+  }
 }
 
 export const productRepository = new ProductRepository();

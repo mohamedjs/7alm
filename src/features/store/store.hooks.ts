@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { skipToken } from "@reduxjs/toolkit/query/react";
+import { useSearchProductsQuery } from "./store.api";
 import type { Product } from "@/features/shared/types";
 
 export interface LookbookSection {
@@ -126,4 +128,32 @@ export function useProductFilters(products: Product[]): UseProductFiltersResult 
   }, [products, sort, inStockOnly]);
 
   return { sort, setSort, inStockOnly, setInStockOnly, filteredProducts };
+}
+
+/**
+ * Debounced storefront product search (nav search bar). Skips the request
+ * entirely (RTK `skipToken`) until the debounced query is >= 2 chars —
+ * matches the backend's own "under 2 chars -> []" rule so the UI never
+ * fires a request just to get an empty array back.
+ */
+export function useProductSearch(debounceMs = 300) {
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDebounced(query.trim()), debounceMs);
+    return () => clearTimeout(handle);
+  }, [query, debounceMs]);
+
+  const shouldSearch = debounced.length >= 2;
+  const { data: results, isFetching } = useSearchProductsQuery(shouldSearch ? debounced : skipToken);
+
+  return {
+    query,
+    setQuery,
+    results: results ?? [],
+    isSearching: isFetching,
+    hasQuery: debounced.length > 0,
+    isTooShort: debounced.length > 0 && debounced.length < 2,
+  };
 }

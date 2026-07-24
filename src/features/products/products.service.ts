@@ -154,6 +154,16 @@ export class ProductService {
   async incrementStock(productId: string, quantity: number): Promise<boolean> {
     return productRepository.updateStock(productId, quantity);
   }
+
+  /**
+   * Storefront product search. Trims the query; queries under 2 chars
+   * return an empty array without hitting the DB.
+   */
+  async search(query: string): Promise<Product[]> {
+    const trimmed = (query || "").trim();
+    if (trimmed.length < 2) return [];
+    return productRepository.searchActiveProducts(trimmed);
+  }
 }
 
 export const productService = new ProductService();

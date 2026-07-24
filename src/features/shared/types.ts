@@ -164,6 +164,12 @@ export interface Order {
   shipping_tracking_id: string | null;
   created_at: string;
   updated_at: string;
+  /** Items subtotal before discount. Defaults to the items total when no coupon is applied. */
+  subtotal?: number;
+  /** Amount deducted by an applied coupon. 0 when no coupon is applied. */
+  discount_amount?: number;
+  /** Applied coupon code (uppercased), or null when no coupon is applied. */
+  coupon_code?: string | null;
 }
 
 export type OrderStatus =
@@ -210,6 +216,8 @@ export interface CreateOrderInput {
   ip_address?: string;
   ip_country?: string;
   ip_city?: string;
+  /** Coupon code to apply at order creation (case-insensitive, resolved server-side). */
+  coupon_code?: string;
 }
 
 // --- Shipping ---
@@ -256,6 +264,8 @@ export interface N8nOrderNotification {
   quantity: number;
   /** Always populated — one element for a legacy single-product funnel order, N elements for a cart order. */
   items: Array<{ productName: string; quantity: number; unitPrice: number; totalPrice: number }>;
+  /** Best-effort verified-buyer review link, set only when newStatus === 'delivered' and a product_id exists. */
+  reviewUrl?: string;
 }
 
 /**
@@ -445,4 +455,118 @@ export interface SocialConnectionPublic {
   scopes: string[];
   connected_at: string | null;
   is_configured: boolean;
+}
+
+// --- Product Reviews (verified buyers, admin-moderated) ---
+
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+/**
+ * Full `product_reviews` row (server only). May carry a joined `customer`
+ * (full_name/phone) and `product` (name/slug) for admin moderation views.
+ * Never send this shape to the client — use ProductReviewPublic instead.
+ */
+export interface ProductReview {
+  id: string;
+  product_id: string;
+  customer_id: string;
+  order_id: string | null;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  status: ReviewStatus;
+  created_at: string;
+  updated_at: string;
+  customer?: { full_name: string; phone?: string } | null;
+  product?: { name: string; slug: string } | null;
+}
+
+export interface ReviewAggregate {
+  average: number;
+  count: number;
+}
+
+/** Body of `POST /api/reviews` — token-gated, never trusts a raw customerId from the client. */
+export interface SubmitReviewInput {
+  token: string;
+  rating: number;
+  title?: string;
+  body?: string;
+}
+
+/**
+ * Safe shape returned to the client for approved reviews — NO
+ * customer_id/phone/email. `author_name` is the customer's first name,
+ * or "زبون" if unavailable.
+ */
+export interface ProductReviewPublic {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  author_name: string;
+  created_at: string;
+}
+
+// --- Coupons / Discount Codes ---
+
+export type CouponType = "percentage" | "fixed" | "free_shipping";
+
+/** Full `coupons` row (server only). */
+export interface Coupon {
+  id: string;
+  code: string;
+  type: CouponType;
+  value: number;
+  min_order_total: number;
+  max_discount: number | null;
+  first_order_only: boolean;
+  per_customer_limit: number | null;
+  usage_limit: number | null;
+  used_count: number;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Body for admin create/update of a coupon. */
+export interface CouponInput {
+  code: string;
+  type: CouponType;
+  value: number;
+  min_order_total?: number;
+  max_discount?: number | null;
+  first_order_only?: boolean;
+  per_customer_limit?: number | null;
+  usage_limit?: number | null;
+  starts_at?: string | null;
+  expires_at?: string | null;
+  is_active?: boolean;
+}
+
+/**
+ * Result of `couponsService.validateAndApply` — also the response shape
+ * of `POST /api/coupons/validate`. `discountAmount` is guaranteed to
+ * never exceed the `subtotal` passed in.
+ */
+export interface CouponValidationResult {
+  valid: boolean;
+  discountAmount: number;
+  shippingDiscount: number;
+  finalShipping: number;
+  couponId?: string;
+  error?: string;
+}
+
+// --- Storefront Search ---
+
+/** Lean DTO for search results — avoids shipping the full Product row. */
+export interface ProductSearchResult {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  main_image: string | null;
 }

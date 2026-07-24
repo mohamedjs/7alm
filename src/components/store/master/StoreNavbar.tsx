@@ -11,6 +11,7 @@ import { useTheme } from "@/features/theme/theme.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
 import CartDrawer from "../cart/CartDrawer";
 import BrandLogo from "./BrandLogo";
+import StoreSearchBar from "./StoreSearchBar";
 
 interface StoreNavbarProps {
   categories: Category[];
@@ -138,6 +139,8 @@ export default function StoreNavbar({ categories }: StoreNavbarProps) {
             >
               <ThemeIcon className="h-4 w-4" />
             </button>
+
+            <StoreSearchBar />
 
             <div className="hidden items-center sm:flex">
               {localeButton("en", "EN", "English")}

@@ -14,6 +14,7 @@ import { useCreateOrderMutation } from "@/features/orders/orders.api";
 import { useZones } from "@/features/geo/geo.hooks";
 import { useIpInfo, usePlatformSource } from "@/features/checkout/checkout.hooks";
 import type { CreateOrderInput } from "@/features/shared/types";
+import { useCouponApply } from "@/features/coupons/coupons.hooks";
 
 /**
  * Cart selectors + action dispatchers. Hydrates from localStorage on first
@@ -73,12 +74,21 @@ export function useCartCheckoutForm() {
   const ipInfo = useIpInfo();
   const platformSource = usePlatformSource();
   const [createOrder, createOrderState] = useCreateOrderMutation();
+  const {
+    apply: applyCouponInternal,
+    clear: clearCoupon,
+    isLoading: couponLoading,
+    result: couponResult,
+    appliedCode,
+    error: couponError,
+  } = useCouponApply();
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [zoneId, setZoneId] = useState("");
   const [streetDetails, setStreetDetails] = useState("");
+  const [couponCode, setCouponCode] = useState("");
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
@@ -90,7 +100,24 @@ export function useCartCheckoutForm() {
     return zone?.shipping_price ?? 0;
   }, [zoneId, zones]);
 
-  const total = subtotal + shippingCost;
+  const discountAmount = couponResult?.discountAmount ?? 0;
+  const finalShippingCost = couponResult?.finalShipping ?? shippingCost;
+  const total = Math.max(0, subtotal - discountAmount) + finalShippingCost;
+
+  const applyCoupon = useCallback(async () => {
+    if (!couponCode.trim()) return;
+    await applyCouponInternal({
+      code: couponCode.trim(),
+      subtotal,
+      shippingCost,
+      phone: phone || undefined,
+    });
+  }, [applyCouponInternal, couponCode, subtotal, shippingCost, phone]);
+
+  const removeCoupon = useCallback(() => {
+    setCouponCode("");
+    clearCoupon();
+  }, [clearCoupon]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -114,6 +141,7 @@ export function useCartCheckoutForm() {
           ip_address: ipInfo?.ip,
           ip_country: ipInfo?.country,
           ip_city: ipInfo?.city,
+          coupon_code: appliedCode || undefined,
         };
         await createOrder(payload).unwrap();
         setSuccess(true);
@@ -124,7 +152,7 @@ export function useCartCheckoutForm() {
         setError(message);
       }
     },
-    [items, fullName, phone, email, zoneId, streetDetails, platformSource, ipInfo, createOrder, clearCart]
+    [items, fullName, phone, email, zoneId, streetDetails, platformSource, ipInfo, createOrder, clearCart, appliedCode]
   );
 
   return {
@@ -144,5 +172,16 @@ export function useCartCheckoutForm() {
     error,
     loading,
     handleSubmit,
+    coupon: {
+      code: couponCode,
+      setCode: setCouponCode,
+      apply: applyCoupon,
+      remove: removeCoupon,
+      isLoading: couponLoading,
+      appliedCode,
+      discountAmount,
+      finalShippingCost,
+      error: couponError,
+    },
   };
 }
