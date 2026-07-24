@@ -336,6 +336,33 @@ These are set in the n8n instance (not `.env.local`):
 | `N8N_ACCESS_TOKEN` | Auth token for 7alm API calls from n8n workflows |
 | `N8N_WEBHOOK_SECRET` | Auth token for order-action webhook calls |
 
+
+#### Social Connections Environment Variables
+
+Admin "connect accounts" OAuth foundation (Facebook, Instagram, TikTok,
+WhatsApp Cloud API — link + status only, see `docs/specs/social-connections.md`).
+Add to `.env.local`:
+
+```env
+SOCIAL_MOCK_MODE=1                      # 1 = force the mock connector for all platforms (no real creds needed)
+SOCIAL_OAUTH_REDIRECT_BASE=http://localhost:3000   # base URL used to build the OAuth callback + redirect targets
+SOCIAL_TOKEN_ENCRYPTION_KEY=<32-byte hex/base64, or any placeholder string for the demo>
+                                         # AES-256-GCM key for encrypting stored tokens (src/lib/crypto.ts)
+                                         # also used to HMAC-sign the OAuth state cookie (social.service.ts)
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
+TIKTOK_CLIENT_ID=                       # sent to TikTok as the `client_key` OAuth param
+TIKTOK_CLIENT_SECRET=
+WHATSAPP_APP_ID=                        # WhatsApp Cloud API (Meta) — separate from the Evolution/n8n WhatsApp integration
+WHATSAPP_APP_SECRET=
+```
+
+A platform's real provider is only selected over the mock connector when
+its `_APP_ID`/`_APP_SECRET` (or `TIKTOK_CLIENT_ID`/`_SECRET`) pair is set
+AND `SOCIAL_MOCK_MODE` is not `1`.
+
 ---
 
 ## ✅ Conventions Checklist

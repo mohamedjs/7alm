@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <linearGradient id="body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A5A40" />
+      <stop offset="40%" stop-color="#273F2B" />
+      <stop offset="100%" stop-color="#152719" />
+    </linearGradient>
+    <linearGradient id="bevel-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+    <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A6F52" />
+      <stop offset="100%" stop-color="#0D1A10" />
+    </linearGradient>
+    <radialGradient id="lens-glass" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1c2d42" />
+      <stop offset="70%" stop-color="#0b131c" />
+      <stop offset="100%" stop-color="#020406" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  
+      <rect x="34" y="200" width="8" height="50" rx="3" fill="#364254" />
+      <rect x="34" y="265" width="8" height="50" rx="3" fill="#364254" />
+      <rect x="358" y="230" width="8" height="75" rx="4" fill="#364254" />
+
+  <rect x="40" y="40" width="320" height="720" rx="60" fill="url(#body-grad)" filter="url(#shadow)" stroke="url(#bevel-grad)" stroke-width="2" />
+  <rect x="42" y="42" width="316" height="716" rx="58" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5" />
+
+  
+      <g transform="translate(65, 65)">
+        <g transform="translate(25, 25)"><circle cx="0" cy="0" r="22" fill="#1A222D" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2" /><circle cx="0" cy="0" r="17" fill="url(#lens-glass)" /><circle cx="-3" cy="-3" r="6" fill="#000" /><circle cx="-4" cy="-4" r="2" fill="#fff" opacity="0.5" /></g>
+        <g transform="translate(25, 80)"><circle cx="0" cy="0" r="22" fill="#1A222D" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2" /><circle cx="0" cy="0" r="17" fill="url(#lens-glass)" /><circle cx="-3" cy="-3" r="6" fill="#000" /><circle cx="-4" cy="-4" r="2" fill="#fff" opacity="0.5" /></g>
+        <g transform="translate(25, 135)"><circle cx="0" cy="0" r="22" fill="#1A222D" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2" /><rect x="-14" y="-14" width="28" height="28" rx="4" fill="url(#lens-glass)" stroke="#000" stroke-width="2" /></g>
+        <g transform="translate(85, 25)"><circle cx="0" cy="0" r="14" fill="#1A222D" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5" /><circle cx="0" cy="0" r="9" fill="#EAECEE" /><circle cx="0" cy="0" r="6" fill="#F4D03F" opacity="0.9" /></g>
+        <g transform="translate(85, 80)"><circle cx="0" cy="0" r="15" fill="#1A222D" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1.5" /><circle cx="0" cy="0" r="10" fill="url(#lens-glass)" /></g>
+      </g>
+  <text x="200" y="380" font-family="Arial, sans-serif" font-weight="bold" font-size="16" letter-spacing="4" fill="#ffffff" opacity="0.2" text-anchor="middle">SAMSUNG</text>
+</svg>
