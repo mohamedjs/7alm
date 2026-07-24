@@ -1,5 +1,4 @@
 {
-  "name": "7alm — WhatsApp AI Agent + CRM Send (Evolution Plugin)",
   "nodes": [
     {
       "parameters": {
@@ -9,12 +8,12 @@
           "rawBody": false
         }
       },
-      "id": "wa-trigger-001",
+      "id": "8a985114-86a6-4c6c-bb74-dfa711bad58e",
       "name": "Evolution API Webhook",
       "type": "n8n-nodes-base.webhook",
       "position": [
-        -800,
-        0
+        -5136,
+        -128
       ],
       "webhookId": "wa-trigger-webhook",
       "typeVersion": 1.1,
@@ -24,9 +23,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "combinator": "and",
           "conditions": [
@@ -36,19 +36,19 @@
                 "type": "string",
                 "operation": "notEquals"
               },
-              "leftValue": "={{ String($json.body?.data?.key?.fromMe ?? $json.data?.key?.fromMe ?? false) }}",
+              "leftValue": "={{ String($json.body?.data?.Info?.IsFromMe ?? $json.data?.Info?.IsFromMe ?? false) }}",
               "rightValue": "true"
             }
           ]
         },
         "options": {}
       },
-      "id": "wa-skip-own-001",
+      "id": "7ecb4ff8-9d11-4c86-93bd-1bab328ede2e",
       "name": "Skip Own Messages",
       "type": "n8n-nodes-base.if",
       "position": [
-        -560,
-        0
+        -4896,
+        -128
       ],
       "typeVersion": 2.2
     },
@@ -59,9 +59,10 @@
             {
               "conditions": {
                 "options": {
-                  "version": 2,
                   "caseSensitive": true,
-                  "typeValidation": "strict"
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
                 },
                 "combinator": "and",
                 "conditions": [
@@ -71,8 +72,8 @@
                       "type": "string",
                       "operation": "equals"
                     },
-                    "leftValue": "={{ $json.body?.event || $json.event || 'messages.upsert' }}",
-                    "rightValue": "messages.upsert"
+                    "leftValue": "={{ $json.body?.event || $json.event || 'Message' }}",
+                    "rightValue": "Message"
                   }
                 ]
               },
@@ -82,9 +83,10 @@
             {
               "conditions": {
                 "options": {
-                  "version": 2,
                   "caseSensitive": true,
-                  "typeValidation": "strict"
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
                 },
                 "combinator": "and",
                 "conditions": [
@@ -95,12 +97,36 @@
                       "operation": "equals"
                     },
                     "leftValue": "={{ $json.body?.event || $json.event || '' }}",
-                    "rightValue": "MESSAGES_UPDATE"
+                    "rightValue": "Receipt"
                   }
                 ]
               },
               "renameOutput": true,
               "outputKey": "Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "is-buttonclick",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.body?.event || $json.event || '' }}",
+                    "rightValue": "ButtonClick"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "ButtonClick"
             }
           ]
         },
@@ -108,12 +134,12 @@
           "fallbackOutput": "extra"
         }
       },
-      "id": "wa-event-router-001",
+      "id": "cdcf152c-0fe1-421f-83f2-33c98d8be9e6",
       "name": "Event Type Router",
       "type": "n8n-nodes-base.switch",
       "position": [
-        -320,
-        0
+        -4656,
+        -128
       ],
       "typeVersion": 3.2
     },
@@ -125,18 +151,18 @@
               "id": "status-log",
               "name": "info",
               "type": "string",
-              "value": "={{ 'Status update: ' + ($json.body?.data?.status || $json.data?.status || 'unknown') }}"
+              "value": "={{ 'Event: ' + ($json.body?.event || $json.event || 'unknown') }}"
             }
           ]
         },
         "options": {}
       },
-      "id": "wa-status-log-001",
+      "id": "dc5c0342-52bb-48d5-9810-73e289d82052",
       "name": "Status Logger",
       "type": "n8n-nodes-base.set",
       "position": [
-        -80,
-        200
+        -4416,
+        64
       ],
       "typeVersion": 3.4
     },
@@ -148,19 +174,19 @@
               "id": "wa-sender-id",
               "name": "senderId",
               "type": "string",
-              "value": "={{ ($json.body?.data?.key?.remoteJid || $json.data?.key?.remoteJid || '').replace('@s.whatsapp.net', '') }}"
+              "value": "={{ ($json.body?.data?.Info?.Chat || $json.data?.Info?.Chat || '').replace('@s.whatsapp.net', '') }}"
             },
             {
               "id": "wa-message-text",
               "name": "messageText",
               "type": "string",
-              "value": "={{ $json.body?.data?.message?.conversation || $json.data?.message?.conversation || $json.body?.data?.message?.extendedTextMessage?.text || $json.data?.message?.extendedTextMessage?.text || $json.body?.data?.message?.buttonsResponseMessage?.selectedButtonId || '' }}"
+              "value": "={{ $json.body?.data?.Message?.conversation || $json.data?.Message?.conversation || $json.body?.data?.Message?.extendedTextMessage?.text || $json.data?.Message?.extendedTextMessage?.text || '' }}"
             },
             {
               "id": "wa-instance-name",
               "name": "instanceName",
               "type": "string",
-              "value": "={{ $json.body?.instance || $json.instance || '' }}"
+              "value": "={{ $json.body?.instanceName || $json.instanceName || '' }}"
             },
             {
               "id": "wa-platform",
@@ -178,24 +204,24 @@
               "id": "wa-push-name",
               "name": "pushName",
               "type": "string",
-              "value": "={{ $json.body?.data?.pushName || $json.data?.pushName || '' }}"
+              "value": "={{ $json.body?.data?.Info?.PushName || $json.data?.Info?.PushName || '' }}"
             },
             {
               "id": "wa-phone",
               "name": "phone",
               "type": "string",
-              "value": "={{ (($json.body?.data?.key?.remoteJid || $json.data?.key?.remoteJid || '').replace('@s.whatsapp.net', '').replace(/[^0-9]/g, '')).replace(/^20(?=1)/, '0') }}"
+              "value": "={{ (($json.body?.data?.Info?.Chat || $json.data?.Info?.Chat || '').replace('@s.whatsapp.net', '').replace(/[^0-9]/g, '')).replace(/^20(?=1)/, '0') }}"
             }
           ]
         },
         "options": {}
       },
-      "id": "wa-normalize-001",
+      "id": "ef30844f-29b3-448c-8d53-9dd73ff489cd",
       "name": "Normalize WhatsApp",
       "type": "n8n-nodes-base.set",
       "position": [
-        -80,
-        0
+        -4416,
+        -128
       ],
       "typeVersion": 3.4
     },
@@ -209,12 +235,16 @@
             {
               "name": "Content-Type",
               "value": "application/json"
+            },
+            {
+              "name": "x-webhook-secret",
+              "value": "123456"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ body: $('Evolution API Webhook').first().json.body, headers: $('Evolution API Webhook').first().json.headers }) }}",
+        "jsonBody": "={{ JSON.stringify({ type: 'message', phone: $('Normalize WhatsApp').first().json.senderId, body: $('Normalize WhatsApp').first().json.messageText, evolutionMessageId: $('Evolution API Webhook').first().json.body?.data?.Info?.ID || '', mediaUrl: null, mediaType: $('Evolution API Webhook').first().json.body?.data?.Info?.MediaType || null }) }}",
         "options": {
           "response": {
             "response": {
@@ -223,12 +253,12 @@
           }
         }
       },
-      "id": "wa-crm-log-001",
+      "id": "0864b734-ccc4-4ff5-bb43-f97f1a328207",
       "name": "CRM Logger",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        160,
-        0
+        -4176,
+        -128
       ],
       "typeVersion": 4.2,
       "onError": "continueRegularOutput"
@@ -248,12 +278,12 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "wa-detect-intent-001",
+      "id": "dad88d74-eff2-457c-b917-63cca38bfdc2",
       "name": "Detect Intent",
       "type": "n8n-nodes-base.set",
       "position": [
-        400,
-        0
+        -3936,
+        -128
       ],
       "typeVersion": 3.4
     },
@@ -261,9 +291,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "combinator": "and",
           "conditions": [
@@ -280,18 +311,17 @@
         },
         "options": {}
       },
-      "id": "wa-is-action-001",
+      "id": "fcdaee26-a0c0-4f50-b07f-d4cc1ec8e463",
       "name": "Is Order Action?",
       "type": "n8n-nodes-base.if",
       "position": [
-        640,
-        0
+        -3696,
+        -128
       ],
       "typeVersion": 2.2
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "=https://7alm-pro.up.railway.app/api/n8n/orders/awaiting-confirmation?phone={{ $('Normalize WhatsApp').first().json.phone }}",
         "sendHeaders": true,
         "headerParameters": {
@@ -311,12 +341,12 @@
           }
         }
       },
-      "id": "wa-find-order-001",
+      "id": "87091e93-0491-42f0-abf4-d27fbb740181",
       "name": "Find Awaiting Order",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        880,
-        -160
+        -3456,
+        -288
       ],
       "typeVersion": 4.2
     },
@@ -324,9 +354,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "combinator": "and",
           "conditions": [
@@ -343,19 +374,19 @@
         },
         "options": {}
       },
-      "id": "wa-order-found-001",
+      "id": "b1dd4fd7-b0c3-439f-be5b-e732aa561752",
       "name": "Order Found?",
       "type": "n8n-nodes-base.if",
       "position": [
-        1120,
-        -160
+        -3216,
+        -288
       ],
       "typeVersion": 2.2
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://7alm-pro.up.railway.app/api/webhooks/n8n/order-action?secret={{ $env.N8N_WEBHOOK_SECRET }}",
+        "url": "https://7alm-pro.up.railway.app/api/webhooks/n8n/order-action?secret=123456",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -377,12 +408,12 @@
           }
         }
       },
-      "id": "wa-call-api-001",
+      "id": "75fb27ed-bfbc-494d-9aa3-473558bae22b",
       "name": "Call 7alm API",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1360,
-        -320
+        -3088,
+        -624
       ],
       "typeVersion": 4.2
     },
@@ -390,9 +421,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "combinator": "and",
           "conditions": [
@@ -409,56 +441,76 @@
         },
         "options": {}
       },
-      "id": "wa-api-success-001",
+      "id": "4fd1e499-9377-4212-b722-adee45966981",
       "name": "API Success?",
       "type": "n8n-nodes-base.if",
       "position": [
-        1600,
-        -320
+        -2896,
+        -448
       ],
       "typeVersion": 2.2
     },
     {
       "parameters": {},
-      "id": "wa-done-001",
+      "id": "9dfc1d9c-54d7-45b5-9256-65b2f8bffbbd",
       "name": "Done (Order Handled)",
       "type": "n8n-nodes-base.noOp",
       "position": [
-        1840,
-        -400
+        -2512,
+        -528
       ],
       "typeVersion": 1
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $('Normalize WhatsApp').first().json.senderId }}",
-        "messageText": "عذراً، حصل خطأ أثناء معالجة ردك 😔\n\nبرجاء التواصل معانا وهنساعدك فوراً.\nمتجر حلم في خدمتك 🙏"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalize WhatsApp').first().json.senderId }}"
+            },
+            {
+              "name": "text",
+              "value": "عذراً، حصل خطأ أثناء معالجة ردك 😔\n\nبرجاء التواصل معانا وهنساعدك فوراً.\nمتجر حلم في خدمتك 🙏"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "wa-error-reply-001",
+      "id": "2001106a-b5e6-4af4-941b-d9ef245eda44",
       "name": "WA: Error Reply",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1840,
-        -240
+        -2480,
+        -368
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "combinator": "and",
           "conditions": [
@@ -476,12 +528,12 @@
         },
         "options": {}
       },
-      "id": "wa-skip-empty-001",
+      "id": "138750a8-3d32-40fd-b31a-eab18046a10b",
       "name": "Skip Empty Messages",
       "type": "n8n-nodes-base.if",
       "position": [
-        880,
-        200
+        -3456,
+        64
       ],
       "typeVersion": 2.2
     },
@@ -503,12 +555,12 @@
         },
         "options": {}
       },
-      "id": "wa-load-products-001",
+      "id": "1b23366b-3836-4551-a20f-82a7e2dec474",
       "name": "Load Active Product Context",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1120,
-        200
+        -3216,
+        64
       ],
       "typeVersion": 4.2,
       "onError": "continueRegularOutput"
@@ -531,12 +583,12 @@
         },
         "options": {}
       },
-      "id": "wa-load-zones-001",
+      "id": "256c6943-96b9-4a64-b38c-aa1ccbcfdf38",
       "name": "Load Zones Context",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1360,
-        200
+        -2976,
+        64
       ],
       "typeVersion": 4.2,
       "onError": "continueRegularOutput"
@@ -549,12 +601,12 @@
           "systemMessage": "=أنت «حلم»، موظف مبيعات وخدمة عملاء في متجر حلم المصري على واتساب. اتكلم بالعربي المصري الطبيعي، بود واحترام.\n\n## القاعدة الأهم — ممنوع إنشاء طلب ببيانات ناقصة\nأداة create_order ليها شرطان لازم يتحققوا الاتنين مع بعض قبل أي استدعاء:\n1) كل بنود «قائمة التحقق الإجبارية» أدناه مكتملة من كلام العميل نفسه.\n2) العميل شاف رسالة الملخص النهائي ورد عليها بموافقة صريحة.\n\n## سياق المنتجات\nالقائمة التالية جاية مباشرة من المتجر وهي المصدر الوحيد لأي معلومة عن المنتجات:\n{{ JSON.stringify($('Load Active Product Context').first().json.data ?? []) }}\n\nافهم حقل availability في كل منتج:\n- availability.can_order: لو false يبقى المنتج مش متاح خالص — ما تعرضهوش للبيع، ما تشاركش رابطه، وممنوع تستخدم create_order له نهائيًا. اعتذر للعميل بلطف وقوله إنه مش متوفر حاليًا.\n- availability.status: حالة المخزون (in_stock / low_stock / out_of_stock).\n- availability.available_quantity: الكمية المتاحة فعليًا؛ لو العميل طلب كمية أكبر منها، وضّح له إن الكمية المتاحة أقل واسأله يعدّل الكمية قبل ما تكمل معاه.\n\n## سياق المناطق\n{{ JSON.stringify($json.data ?? []) }}\n\n## خطوات البيع\n1. اعرض المنتجات وجاوب أسئلة العميل، وشارك رابط المنتج: https://7alm-pro.up.railway.app/{slug}?utm_source=whatsapp\n2. لا تطلب بيانات التوصيل إلا لو العميل طلب صراحة يعمل الطلب من الشات.\n3. اجمع: الاسم الكامل، رقم الموبايل، المنطقة، العنوان التفصيلي.\n4. ابعت ملخص واسأل عن التأكيد.\n5. بعد الموافقة الصريحة استدعِ create_order.\n\n## قائمة التحقق الإجبارية\n- product_id: من قائمة المنتجات، بشرط availability.can_order = true؛ لو false امتنع تمامًا عن العرض والبيع وإنشاء الطلب.\n- quantity: رقم صحيح موجب، ولازم يكون أقل من أو يساوي availability.available_quantity؛ لو أكبر وضّح للعميل الحد الأقصى المتاح.\n- full_name: اسمين على الأقل.\n- phone: 11 رقم يبدأ بـ 01.\n- zone_id: UUID من قائمة المناطق.\n- street_details: عنوان تفصيلي.\n- الموافقة الصريحة بعد الملخص.\n\n## أسلوب المحادثة\n- رد في 1 إلى 3 جمل قصيرة.\n- الدفع عند الاستلام.\n- التوصيل داخل مصر.\n- لا تقول إنك ذكاء اصطناعي."
         }
       },
-      "id": "wa-ai-agent-001",
+      "id": "ffb2735d-19d9-49fd-b02d-9bce14b19e40",
       "name": "7alm AI Agent (WhatsApp)",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "position": [
-        1600,
-        200
+        -2736,
+        64
       ],
       "typeVersion": 1.6,
       "onError": "continueErrorOutput"
@@ -563,37 +615,56 @@
       "parameters": {
         "jsCode": "const CREDIT_RE = /(^|[^0-9])402([^0-9]|$)|credit|quota|insufficient|payment|billing|exceeded/;\nconst MSG = {\n  credit: 'معلش يا فندم، الخدمة عندنا واقفة مؤقتًا 🙏 هنرجع نرد عليك في أقرب وقت.',\n  transient: 'حصل خلل بسيط عندنا دلوقتي، ممكن تبعت رسالتك تاني بعد شوية؟ 🙏'\n};\nlet items = [];\ntry { items = $input.all(); } catch (e) { items = []; }\nif (!items.length) items = [{ json: {} }];\nreturn items.map((item) => {\n  let failureClass = 'transient';\n  let haystack = '';\n  try { haystack += JSON.stringify(item.json ?? {}); } catch (e) {}\n  try { haystack += ' ' + JSON.stringify(item.error ?? {}); } catch (e) {}\n  try { if (CREDIT_RE.test(haystack.toLowerCase())) failureClass = 'credit'; } catch (e) {}\n  return { json: { output: MSG[failureClass], aiFailed: true, failureClass } };\n});\n"
       },
-      "id": "wa-classify-failure-001",
+      "id": "2deca5af-a0b2-48be-a082-ca4353f80210",
       "name": "Classify AI Failure",
       "type": "n8n-nodes-base.code",
       "position": [
-        1840,
-        400
+        -2400,
+        224
       ],
       "typeVersion": 2
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $('Normalize WhatsApp').first().json.senderId }}",
-        "messageText": "={{ $json.output }}"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalize WhatsApp').first().json.senderId }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "wa-reply-001",
+      "id": "96839ea6-d6e6-4b39-bd55-2b3d1339983f",
       "name": "Reply via WhatsApp",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
-        2080,
-        200
+        -2096,
+        64
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
@@ -603,10 +674,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        1552,
-        480
+        -2784,
+        352
       ],
-      "id": "wa-llm-001",
+      "id": "ee4e55b4-bd66-4089-9041-8f63aa59da6d",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
@@ -617,22 +688,21 @@
     },
     {
       "parameters": {
-        "tableName": "n8n_chat_histories",
         "sessionIdType": "customKey",
         "sessionKey": "={{ 'whatsapp_' + ($('Normalize WhatsApp').first().json.instanceName || 'main') + '_' + $('Normalize WhatsApp').first().json.senderId }}"
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.1,
       "position": [
-        1696,
-        480
+        -2640,
+        352
       ],
-      "id": "wa-memory-001",
+      "id": "dd50ab8b-a375-4bd0-ae3a-5e805e34e0d1",
       "name": "Postgres Chat Memory",
       "credentials": {
         "postgres": {
-          "id": "",
-          "name": "Supabase Postgres"
+          "id": "WDgd4L5tJTJltBqH",
+          "name": "Postgres account"
         }
       }
     },
@@ -658,10 +728,10 @@
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
       "position": [
-        1840,
-        480
+        -2512,
+        368
       ],
-      "id": "wa-create-order-001",
+      "id": "f7220510-f958-4f66-b914-79bb4bfb3556",
       "name": "Create Order"
     },
     {
@@ -673,12 +743,12 @@
           "rawBody": false
         }
       },
-      "id": "wa-crm-send-trigger-001",
+      "id": "130a47c3-d002-4437-84f8-c9d844c1990d",
       "name": "CRM Send Webhook",
       "type": "n8n-nodes-base.webhook",
       "position": [
-        -800,
-        600
+        -5136,
+        464
       ],
       "webhookId": "wa-crm-send-webhook",
       "typeVersion": 1.1
@@ -687,9 +757,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "combinator": "and",
           "conditions": [
@@ -700,43 +771,62 @@
                 "operation": "equals"
               },
               "leftValue": "={{ $json.headers['x-n8n-send-secret'] }}",
-              "rightValue": "={{ $env.N8N_SEND_WEBHOOK_SECRET }}"
+              "rightValue": "123456"
             }
           ]
         },
         "options": {}
       },
-      "id": "wa-crm-validate-001",
+      "id": "e0c829fb-3afe-4c5d-9750-f1b9acfcee19",
       "name": "Validate Send Secret",
       "type": "n8n-nodes-base.if",
       "position": [
-        -560,
-        600
+        -4896,
+        464
       ],
       "typeVersion": 2.2
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $json.body.phone }}",
-        "messageText": "={{ $json.body.body }}"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.body.phone }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.body.body }}"
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "wa-crm-send-001",
+      "id": "ed171b9e-c039-4293-a66c-3c0aeb2a8afe",
       "name": "CRM: Send via WhatsApp",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
-        -320,
-        500
+        -4656,
+        368
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
@@ -746,12 +836,12 @@
           "responseCode": 200
         }
       },
-      "id": "wa-crm-respond-ok-001",
+      "id": "fac9a778-bd85-4059-a0c3-76ce8da06ce1",
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "position": [
-        -80,
-        500
+        -4416,
+        368
       ],
       "typeVersion": 1.1
     },
@@ -763,17 +853,241 @@
           "responseCode": 401
         }
       },
-      "id": "wa-crm-respond-unauth-001",
+      "id": "eba0cd1b-9cef-48e1-aec6-c2ad698c8242",
       "name": "Respond Unauthorized",
       "type": "n8n-nodes-base.respondToWebhook",
       "position": [
-        -320,
-        720
+        -4656,
+        592
       ],
       "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc-phone",
+              "name": "phone",
+              "type": "string",
+              "value": "={{ (($json.body?.data?.chat || $json.data?.chat || $json.body?.data?.phone || $json.data?.phone || '').replace('@s.whatsapp.net', '').replace(/[^0-9]/g, '')).replace(/^20(?=1)/, '0') }}"
+            },
+            {
+              "id": "bc-sender-id",
+              "name": "senderId",
+              "type": "string",
+              "value": "={{ ($json.body?.data?.chat || $json.data?.chat || $json.body?.data?.phone || $json.data?.phone || '').replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "id": "bc-button-id",
+              "name": "buttonId",
+              "type": "string",
+              "value": "={{ $json.body?.data?.buttonId || $json.data?.buttonId || '' }}"
+            },
+            {
+              "id": "bc-intent",
+              "name": "intent",
+              "type": "string",
+              "value": "={{ (($json.body?.data?.buttonId || $json.data?.buttonId) === 'cancel_order') ? 'cancel' : ((($json.body?.data?.buttonId || $json.data?.buttonId) === 'confirm_order') ? 'confirm' : 'none') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d911ab19-f2fa-4f7a-95ba-f1a791b1818b",
+      "name": "Normalize Button Click",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3696,
+        300
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "url": "=https://7alm-pro.up.railway.app/api/n8n/orders/awaiting-confirmation?phone={{ $('Normalize Button Click').first().json.phone }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-access-token",
+              "value": "=123456"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ef28cdb8-ccf8-468f-82f3-0431a4f2086e",
+      "name": "Find Awaiting Order (Button)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -3456,
+        300
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "order-found-btn",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.success === true && $json.data?.orderId ? 'yes' : 'no' }}",
+              "rightValue": "yes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5af0155f-7453-4003-96b2-f964b26b427c",
+      "name": "Order Found? (Button)",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -3216,
+        300
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/webhooks/n8n/order-action?secret=123456",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"orderId\": \"{{ $('Find Awaiting Order (Button)').first().json.data.orderId }}\",\n  \"action\": \"{{ $('Normalize Button Click').first().json.intent }}\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "8f3f12ab-d7b1-4c49-9b0f-500cb401132d",
+      "name": "Call 7alm API (Button)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -3088,
+        300
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "check-success-btn",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ String($json.success ?? false) }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "20e2d557-f1db-4579-83d5-df826c5d3818",
+      "name": "API Success? (Button)",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -2896,
+        300
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Normalize Button Click').first().json.senderId }}"
+            },
+            {
+              "name": "text",
+              "value": "عذراً، حصل خطأ أثناء معالجة ردك 😔\n\nبرجاء التواصل معانا وهنساعدك فوراً.\nمتجر حلم في خدمتك 🙏"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e345535a-b21f-46b3-b038-ca4e16b0ee26",
+      "name": "WA: Error Reply (Button)",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -2480,
+        400
+      ],
+      "typeVersion": 4.2
     }
   ],
   "connections": {
+    "Evolution API Webhook": {
+      "main": [
+        [
+          {
+            "node": "Skip Own Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Skip Own Messages": {
       "main": [
         [
@@ -797,6 +1111,13 @@
         [
           {
             "node": "Status Logger",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalize Button Click",
             "type": "main",
             "index": 0
           }
@@ -1047,11 +1368,69 @@
         ]
       ]
     },
-    "Evolution API Webhook": {
+    "Normalize Button Click": {
       "main": [
         [
           {
-            "node": "Skip Own Messages",
+            "node": "Find Awaiting Order (Button)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Awaiting Order (Button)": {
+      "main": [
+        [
+          {
+            "node": "Order Found? (Button)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order Found? (Button)": {
+      "main": [
+        [
+          {
+            "node": "Call 7alm API (Button)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WA: Error Reply (Button)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 7alm API (Button)": {
+      "main": [
+        [
+          {
+            "node": "API Success? (Button)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Success? (Button)": {
+      "main": [
+        [
+          {
+            "node": "Done (Order Handled)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WA: Error Reply (Button)",
             "type": "main",
             "index": 0
           }
@@ -1061,7 +1440,7 @@
   },
   "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": false,
-    "instanceId": "7alm-whatsapp-ai"
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c31f5ec5b1eee1ec799e27877c1321810ce9d2d5d1a612b4595d3912ef083f88"
   }
 }

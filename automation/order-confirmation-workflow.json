@@ -215,7 +215,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://7alm-pro.up.railway.app/api/webhooks/n8n/order-action?secret={{ $env.N8N_WEBHOOK_SECRET }}",
+        "url": "https://7alm-pro.up.railway.app/api/webhooks/n8n/order-action?secret=123456",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -294,13 +294,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-api-production-2b59.up.railway.app/message/sendText/mypersonal",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "8e7ccc10b8dc3c94a79fdaa90851096f7080b2f15ec928be9cc238aac08d8537"
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
             },
             {
               "name": "Content-Type",

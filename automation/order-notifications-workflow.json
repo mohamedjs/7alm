@@ -260,118 +260,202 @@
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $json.formattedPhone }}",
-        "messageText": "=مرحباً {{ $json.customerName }} 👋\n\nتم قبول طلبك من متجر حلم! 🎉\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n💰 المبلغ: {{ $json.totalPrice }} جنيه\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nللتأكيد وبدء تجهيز الشحنة رد على الرسالة دي بكلمة «تأكيد» ✅\nولو حابب تلغي الطلب رد بكلمة «إلغاء» ❌\n\nمتجر حلم — شكراً لثقتك فينا 🙏"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/button",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  number: $json.formattedPhone,\n  title: 'طلب رقم ' + $json.orderId.substring(0, 8),\n  description: 'مرحباً ' + $json.customerName + ' 👋\\n\\nتم قبول طلبك من متجر حلم! 🎉\\n\\n' + $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') + '\\n💰 المبلغ: ' + $json.totalPrice + ' جنيه\\n\\nاختار من الأزرار تحت للتأكيد أو الإلغاء 👇',\n  footer: 'متجر حلم — شكراً لثقتك فينا 🙏',\n  buttons: [\n    { type: 'reply', id: 'confirm_order', displayText: 'تأكيد الطلب ✅' },\n    { type: 'reply', id: 'cancel_order', displayText: 'إلغاء الطلب ❌' }\n  ]\n}) }}",
+        "options": {}
       },
       "id": "wa-approved-001",
       "name": "WA: Order Approved",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         340,
         -80
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $json.formattedPhone }}",
-        "messageText": "=مرحباً {{ $json.customerName }} 🎉\n\nشكراً لتأكيد طلبك!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n💰 المبلغ: {{ $json.totalPrice }} جنيه\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\nشكراً لثقتك في متجر حلم! 🙏"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
+              "value": "=مرحباً {{ $json.customerName }} 🎉\n\nشكراً لتأكيد طلبك!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n💰 المبلغ: {{ $json.totalPrice }} جنيه\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nجاري تجهيز الشحنة وهنبعتلك رقم التتبع قريب إن شاء الله.\nشكراً لثقتك في متجر حلم! 🙏"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "wa-confirmed-001",
       "name": "WA: Order Confirmed",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         340,
         60
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $json.formattedPhone }}",
-        "messageText": "=مرحباً {{ $json.customerName }} 🚚\n\nطلبك في الطريق إليك!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\n\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\nشكراً لصبرك! 😊"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
+              "value": "=مرحباً {{ $json.customerName }} 🚚\n\nطلبك في الطريق إليك!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}{{ $json.trackingId ? '\\n📍 رقم التتبع: ' + $json.trackingId : '' }}\n\nيمكنك متابعة حالة التوصيل من خلال رقم التتبع.\nشكراً لصبرك! 😊"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "wa-shipped-001",
       "name": "WA: Order Shipped",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         340,
         200
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $json.formattedPhone }}",
-        "messageText": "=مرحباً {{ $json.customerName }} 🎉\n\nتم توصيل طلبك بنجاح!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\nشكراً لتسوقك من متجر حلم! ⭐"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
+              "value": "=مرحباً {{ $json.customerName }} 🎉\n\nتم توصيل طلبك بنجاح!\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nنتمنى إن المنتج يعجبك! لو عندك أي استفسار متترددش تتواصل معانا.\nشكراً لتسوقك من متجر حلم! ⭐"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "wa-delivered-001",
       "name": "WA: Order Delivered",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         340,
         360
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
-        "resource": "messages-api",
-        "operation": "send-text",
-        "instanceName": "mypersonal",
-        "remoteJid": "={{ $json.formattedPhone }}",
-        "messageText": "=مرحباً {{ $json.customerName }}\n\nتم إلغاء طلبك.\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\nمتجر حلم دايمًا في خدمتك 🙏"
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
+              "value": "=مرحباً {{ $json.customerName }}\n\nتم إلغاء طلبك.\n\n{{ $json.items.map(i => '📦 ' + i.productName + ' × ' + i.quantity).join('\\n') }}\n🔖 رقم الطلب: {{ $json.orderId.substring(0, 8) }}\n\nلو عندك أي استفسار عن سبب الإلغاء، تواصل معانا وهنساعدك فوراً.\nمتجر حلم دايمًا في خدمتك 🙏"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "wa-cancelled-001",
       "name": "WA: Order Cancelled",
-      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         340,
         540
       ],
-      "typeVersion": 1,
-      "credentials": {
-        "evolutionApi": {
-          "id": "1",
-          "name": "7alm Evolution API"
-        }
-      }
+      "typeVersion": 4.2
     },
     {
       "parameters": {
