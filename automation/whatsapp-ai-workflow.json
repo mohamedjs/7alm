@@ -18,7 +18,7 @@
       ],
       "webhookId": "wa-trigger-webhook",
       "typeVersion": 1.1,
-      "notes": "Receives incoming WhatsApp events from Evolution API. Configure Evolution API to send MESSAGES_UPSERT events to this webhook URL."
+      "notes": "Receives incoming WhatsApp events from Evolution API. Configure Evolution API to send messages.upsert events to this webhook URL."
     },
     {
       "parameters": {
@@ -71,8 +71,8 @@
                       "type": "string",
                       "operation": "equals"
                     },
-                    "leftValue": "={{ $json.body?.event || $json.event || 'MESSAGES_UPSERT' }}",
-                    "rightValue": "MESSAGES_UPSERT"
+                    "leftValue": "={{ $json.body?.event || $json.event || 'messages.upsert' }}",
+                    "rightValue": "messages.upsert"
                   }
                 ]
               },
@@ -298,7 +298,7 @@
           "parameters": [
             {
               "name": "x-n8n-access-token",
-              "value": "={{ $env.N8N_ACCESS_TOKEN }}"
+              "value": "=123456"
             }
           ]
         },
@@ -497,7 +497,7 @@
             },
             {
               "name": "x-n8n-access-token",
-              "value": "={{ $env.N8N_ACCESS_TOKEN }}"
+              "value": "=123456"
             }
           ]
         },
@@ -525,7 +525,7 @@
             },
             {
               "name": "x-n8n-access-token",
-              "value": "={{ $env.N8N_ACCESS_TOKEN }}"
+              "value": "=123456"
             }
           ]
         },
@@ -646,7 +646,7 @@
           "parameters": [
             {
               "name": "x-n8n-access-token",
-              "value": "={{ $env.N8N_ACCESS_TOKEN }}"
+              "value": "=123456"
             }
           ]
         },
