@@ -6,6 +6,7 @@ import { useOrders } from "@/features/orders/orders.hooks";
 import { useRealtime } from "@/features/realtime/realtime.hooks";
 import { useLocale } from "@/features/i18n/i18n.hooks";
 import type { OrderStatus } from "@/features/orders/orders.api";
+import type { ChangeStatusOptions } from "@/features/orders/orders.hooks";
 
 export default function OrdersPage() {
   const { token } = useAuth();
@@ -29,9 +30,13 @@ export default function OrdersPage() {
 
   if (!token) return null;
 
-  const handleChangeStatus = async (orderId: string, nextStatus: OrderStatus) => {
+  const handleChangeStatus = async (
+    orderId: string,
+    nextStatus: OrderStatus,
+    options?: ChangeStatusOptions,
+  ) => {
     try {
-      await changeStatus(orderId, nextStatus);
+      await changeStatus(orderId, nextStatus, options);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("orders.updateFailed");
       alert(message);

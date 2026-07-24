@@ -30,6 +30,7 @@ export const OrderStateMachine: Record<OrderStatus, OrderState> = {
     labelAr: 'تم القبول (في انتظار تأكيد العميل)',
     colorClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
     availableActions: [
+      { label: 'Confirm', action: 'confirm', nextStatus: 'confirmed', style: 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 neu-raised-sm' },
       { label: 'Cancel', action: 'cancel', nextStatus: 'cancelled', style: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 neu-raised-sm' }
     ]
   },
@@ -76,3 +77,29 @@ export const OrderStateMachine: Record<OrderStatus, OrderState> = {
     availableActions: []
   }
 };
+
+/**
+ * Canonical server-side transition map — the single source of truth for
+ * which status jumps are legal. Enforced by `orders.service.ts
+ * changeOrderStatus` (rejects disallowed transitions) and the shipping
+ * webhook (treats a disallowed transition as an idempotent no-op, since
+ * providers/the `test` simulator can send duplicate/out-of-order events).
+ *
+ * `confirmed -> cancelled` is intentionally NOT included: a `confirmed`
+ * order already has a live shipment + decremented stock, and
+ * `cancelOrder` only supports `pending`/`approved`.
+ */
+export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['approved', 'cancelled'],
+  approved: ['confirmed', 'cancelled'],
+  confirmed: ['shipped'],
+  shipped: ['delivered', 'returned'],
+  delivered: ['returned'],
+  cancelled: [],
+  returned: [],
+};
+
+/** Whether `from -> to` is a legal transition per `ORDER_TRANSITIONS`. */
+export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
+  return ORDER_TRANSITIONS[from]?.includes(to) ?? false;
+}

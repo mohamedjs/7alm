@@ -16,6 +16,13 @@ export interface CreateOrderResponse {
 
 export interface UpdateOrderStatusRequest {
   status: string;
+  /**
+   * Only read by the backend when `status === "approved"`. `true` = current
+   * double-opt-in (customer must reply on WhatsApp before shipping). `false`
+   * = "ship now" (goes straight to confirmed + shipment). Omit to let the
+   * backend default (`true`).
+   */
+  require_confirmation?: boolean;
   shipping_provider?: ShippingProviderName;
 }
 
