@@ -25,6 +25,7 @@ const en = {
   "nav.products": "Products",
   "nav.categories": "Categories",
   "nav.testimonials": "Testimonials",
+  "nav.connections": "Connections",
 
   // ---------------------------------------------------------------
   // action.* — verbs reused across the admin
@@ -515,6 +516,27 @@ const en = {
   "crm.template.preparing": "Your order is being prepared",
   "crm.template.confirmAddress": "Please confirm your address",
   "crm.egp": "EGP",
+
+  // ---------------------------------------------------------------
+  // connections.* — Social Platform Connections admin page
+  // ---------------------------------------------------------------
+  "connections.title": "Social Platform Connections",
+  "connections.subtitle":
+    "Connect your business accounts to link orders and messages across platforms.",
+  "connections.connect": "Connect",
+  "connections.connecting": "Connecting...",
+  "connections.disconnect": "Disconnect",
+  "connections.disconnectConfirm": "Disconnect this account? You can reconnect anytime.",
+  "connections.connectedAs": "Connected as {handle}",
+  "connections.notConnected": "Not connected",
+  "connections.connectedStatus": "Connected",
+  "connections.demoMode": "Demo mode",
+  "connections.platform.facebook": "Facebook",
+  "connections.platform.instagram": "Instagram",
+  "connections.platform.tiktok": "TikTok",
+  "connections.platform.whatsapp": "WhatsApp",
+  "connections.toast.connected": "Connected to {platform} successfully.",
+  "connections.toast.error": "Connection failed. Please try again.",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -526,6 +548,7 @@ const ar: Record<DictKey, string> = {
   "nav.products": "المنتجات",
   "nav.categories": "الأقسام",
   "nav.testimonials": "التقييمات",
+  "nav.connections": "الربط",
 
   "action.logout": "تسجيل الخروج",
   "action.themeToLight": "التبديل إلى الوضع الفاتح",
@@ -994,6 +1017,26 @@ const ar: Record<DictKey, string> = {
   "crm.template.preparing": "جاري تجهيز طلبك",
   "crm.template.confirmAddress": "يرجى تأكيد عنوانك",
   "crm.egp": "ج.م",
+
+  // ---------------------------------------------------------------
+  // connections.* — Social Platform Connections admin page
+  // ---------------------------------------------------------------
+  "connections.title": "ربط منصات التواصل الاجتماعي",
+  "connections.subtitle": "اربط حسابات نشاطك التجاري لتوحيد الطلبات والرسائل عبر المنصات.",
+  "connections.connect": "ربط الحساب",
+  "connections.connecting": "جارٍ الربط...",
+  "connections.disconnect": "إلغاء الربط",
+  "connections.disconnectConfirm": "هل تريد إلغاء ربط هذا الحساب؟ يمكنك إعادة ربطه في أي وقت.",
+  "connections.connectedAs": "متصل باسم {handle}",
+  "connections.notConnected": "غير متصل",
+  "connections.connectedStatus": "متصل",
+  "connections.demoMode": "وضع تجريبي",
+  "connections.platform.facebook": "فيسبوك",
+  "connections.platform.instagram": "إنستغرام",
+  "connections.platform.tiktok": "تيك توك",
+  "connections.platform.whatsapp": "واتساب",
+  "connections.toast.connected": "تم الربط بـ {platform} بنجاح.",
+  "connections.toast.error": "فشل الاتصال. حاول مرة أخرى.",
 };
 
 export type Locale = "en" | "ar";

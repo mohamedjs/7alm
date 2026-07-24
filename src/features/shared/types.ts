@@ -381,3 +381,68 @@ export interface N8nSendResponse {
   messageId: string;
   status: string;
 }
+
+// --- Social Platform Connections (OAuth "connect accounts" foundation) ---
+/**
+ * Supported social platforms for the admin "connect accounts" feature.
+ * WhatsApp here refers to the official WhatsApp Cloud API (Meta) OAuth —
+ * a separate connection from the existing Evolution/n8n WhatsApp integration.
+ */
+export type SocialPlatform = "facebook" | "instagram" | "tiktok" | "whatsapp";
+
+export type SocialConnectionStatus =
+  | "disconnected"
+  | "connected"
+  | "expired"
+  | "revoked"
+  | "error";
+
+/** Result of exchanging an OAuth code for tokens. */
+export interface SocialTokenResult {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  scopes?: string[];
+}
+
+/** Provider account info fetched right after a successful token exchange. */
+export interface SocialAccountInfo {
+  accountId: string;
+  accountName: string;
+  avatarUrl?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Full `social_connections` row (server only — includes encrypted tokens).
+ * Never send this shape to the client; use SocialConnectionPublic instead.
+ */
+export interface SocialConnection {
+  id: string;
+  platform: SocialPlatform;
+  account_id: string | null;
+  account_name: string | null;
+  avatar_url: string | null;
+  access_token: string | null;
+  refresh_token: string | null;
+  scopes: string[];
+  status: SocialConnectionStatus;
+  error_message: string | null;
+  metadata: Record<string, unknown>;
+  connected_by: string | null;
+  connected_at: string | null;
+  token_expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Safe shape returned to the client — NO tokens. */
+export interface SocialConnectionPublic {
+  platform: SocialPlatform;
+  status: SocialConnectionStatus;
+  account_name: string | null;
+  avatar_url: string | null;
+  scopes: string[];
+  connected_at: string | null;
+  is_configured: boolean;
+}

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" width="100%" height="100%">
+  <defs>
+    <linearGradient id="body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7E6B8F" />
+      <stop offset="40%" stop-color="#5C4D6C" />
+      <stop offset="100%" stop-color="#3E324A" />
+    </linearGradient>
+    <linearGradient id="bevel-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+    </linearGradient>
+    <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#917DA3" />
+      <stop offset="100%" stop-color="#292033" />
+    </linearGradient>
+    <radialGradient id="lens-glass" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1c2d42" />
+      <stop offset="70%" stop-color="#0b131c" />
+      <stop offset="100%" stop-color="#020406" />
+    </radialGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  
+      <rect x="34" y="170" width="8" height="24" rx="2" fill="#2E3747" />
+      <rect x="34" y="225" width="8" height="50" rx="3" fill="#364254" />
+      <rect x="34" y="295" width="8" height="50" rx="3" fill="#364254" />
+      <rect x="358" y="240" width="8" height="75" rx="4" fill="#364254" />
+
+  <rect x="40" y="40" width="320" height="720" rx="60" fill="url(#body-grad)" filter="url(#shadow)" stroke="url(#bevel-grad)" stroke-width="2" />
+  <rect x="42" y="42" width="316" height="716" rx="58" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5" />
+
+  
+      <g>
+        <rect x="62" y="62" width="100" height="130" rx="28" fill="url(#ring-grad)" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" />
+        <g transform="translate(112, 95)"><circle cx="0" cy="0" r="22" fill="#1E2530" stroke="#ffffff" stroke-opacity="0.15" stroke-width="1" /><circle cx="0" cy="0" r="18" fill="url(#lens-glass)" /><circle cx="-4" cy="-4" r="6" fill="#000000" /><circle cx="-5" cy="-5" r="2" fill="#ffffff" opacity="0.4" /></g>
+        <g transform="translate(112, 155)"><circle cx="0" cy="0" r="22" fill="#1E2530" stroke="#ffffff" stroke-opacity="0.15" stroke-width="1" /><circle cx="0" cy="0" r="18" fill="url(#lens-glass)" /><circle cx="-4" cy="-4" r="6" fill="#000000" /><circle cx="-5" cy="-5" r="2" fill="#ffffff" opacity="0.4" /></g>
+        <circle cx="145" cy="125" r="7" fill="#EAECEE" stroke="#7F8C8D" stroke-width="1" /><circle cx="145" cy="125" r="4.5" fill="#F4D03F" opacity="0.8" />
+      </g>
+  <path d="M200,380 C194,380 188.5,376 182,376 C175.5,376 170.5,380.5 164.5,380.5 C156.5,380.5 147,370.5 147,354 C147,337 157.5,328 168.5,328 C174.5,328 179.5,331.5 183,331.5 C186.5,331.5 190.5,328 197.5,328 C207.5,328 215.5,333.5 219.5,341 C208,346.5 208,361.5 219,366 C216.5,373 210,380.5 200,380 Z M192.5,324 C192.5,315 199.5,308 207.5,308 C208.5,317 199.5,325 192.5,324 Z" fill="#ffffff" fill-opacity="0.15" />
+</svg>
