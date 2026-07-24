@@ -80,6 +80,7 @@ src/
 │       ├── products/active/route.ts      # GET active product (public)
 │       ├── products/[slug]/route.ts      # GET product by slug (public)
 │       ├── webhooks/shipping/route.ts    # Shipping provider webhooks
+│       ├── webhooks/whatsapp/route.ts   # Inbound WhatsApp event logger (from n8n)
 │       └── zones/route.ts               # GET zones for checkout form
 │
 ├── components/
@@ -127,13 +128,16 @@ src/
 │   ├── media/
 │   │   ├── media.api.ts                  # Upload endpoint
 │   │   └── media.hooks.ts               # useMediaUpload hook
-│   └── shipping/
-│       ├── shipping.interface.ts          # IShippingProvider contract
-│       ├── shipping.factory.ts            # Factory Pattern (Bosta, ABS, Mylerz)
-│       └── providers/
-│           ├── bosta.provider.ts          # Bosta implementation
-│           ├── abs.provider.ts            # ABS placeholder
-│           └── mylerz.provider.ts         # Mylerz placeholder
+│   ├── shipping/
+│   │   ├── shipping.interface.ts          # IShippingProvider contract
+│   │   ├── shipping.factory.ts            # Factory Pattern (Bosta, ABS, Mylerz)
+│   │   └── providers/
+│   │       ├── bosta.provider.ts          # Bosta implementation
+│   │       ├── abs.provider.ts            # ABS placeholder
+│   │       └── mylerz.provider.ts         # Mylerz placeholder
+│   └── whatsapp/
+│       ├── whatsapp.service.ts            # WhatsApp messaging orchestration (SSR)
+│       └── n8n-whatsapp.service.ts        # Thin HTTP client → n8n webhook for CRM sends
 │
 └── lib/
     ├── supabase.ts                       # Supabase client singleton
@@ -144,6 +148,13 @@ src/
         ├── hooks.ts                      # useAppDispatch, useAppSelector
         ├── ReduxProvider.tsx             # Client provider wrapper
         └── api/baseQuery.ts              # RTK Query base query with auth
+```
+
+automation/
+├── ecommerce-workflow.json               # n8n: AI agent for FB + IG (WhatsApp removed)
+├── whatsapp-ai-workflow.json             # n8n: Consolidated WhatsApp AI agent + CRM send webhook
+├── order-notifications-workflow.json     # n8n: Order status → WhatsApp notifications (Evolution plugin)
+└── order-confirmation-workflow.json      # DEPRECATED — merged into whatsapp-ai-workflow
 ```
 
 ---
@@ -175,6 +186,24 @@ src/
 - Each domain has an RTK Query API slice (`productsApi`, `ordersApi`, `geoApi`, etc.).
 - Uses `providesTags` / `invalidatesTags` for automatic cache management.
 - All API slices use `baseQueryWithAuth` which injects the Bearer token from Redux state.
+
+### 5. WhatsApp CRM Messaging (via n8n)
+
+The backend **never calls Evolution API directly**. All WhatsApp sends go through n8n:
+
+```
+Backend (whatsapp.service.ts)
+  → POST n8n webhook (N8N_WHATSAPP_SEND_WEBHOOK_URL)
+    → n8n validates X-N8n-Send-Secret
+      → Evolution API plugin (sendText)
+        → { messageId, status } returned synchronously
+```
+
+- **Inbound**: Evolution API → n8n webhook → normalize → AI agent / order handler → reply via plugin
+- **Outbound (CRM)**: Admin UI → RTK Query → API route → `whatsapp.service.ts` → n8n webhook → plugin
+- **Notifications**: Order status change → n8n workflow → Evolution plugin (5 status templates)
+- All outbound nodes use `n8n-nodes-evolution-api` plugin (resource: `messages-api`, operation: `send-text`)
+- Inbound triggers use standard `n8n-nodes-base.webhook` (the plugin has no trigger node)
 
 ---
 
@@ -219,6 +248,7 @@ The admin's `ProductList` has a **"Copy Link"** button that copies `{origin}/{sl
 | `cities` | id, country_id, name | |
 | `countries` | id, name | |
 | `admins` | id | References Supabase Auth user IDs |
+| `whatsapp_messages` | id, customer_id, direction, body, wa_message_id, status | CRM message log (inbound/outbound WhatsApp messages) |
 
 ---
 
@@ -292,7 +322,19 @@ NEXT_PUBLIC_IPINFO_TOKEN=xxx          # Optional, for IP geolocation
 DEFAULT_SHIPPING_PROVIDER=bosta       # Default shipping provider
 BOSTA_API_KEY=xxx                     # Bosta API credentials
 BOSTA_BUSINESS_ID=xxx
+N8N_WHATSAPP_SEND_WEBHOOK_URL=https://n8n.example.com/webhook/whatsapp-crm-send  # n8n webhook for CRM WhatsApp sends
+N8N_SEND_WEBHOOK_SECRET=xxx           # Shared secret for n8n CRM send webhook auth
 ```
+
+#### n8n Environment Variables
+
+These are set in the n8n instance (not `.env.local`):
+
+| Variable | Purpose |
+|---|---|
+| `N8N_SEND_WEBHOOK_SECRET` | Validates CRM send requests (must match backend value) |
+| `N8N_ACCESS_TOKEN` | Auth token for 7alm API calls from n8n workflows |
+| `N8N_WEBHOOK_SECRET` | Auth token for order-action webhook calls |
 
 ---
 

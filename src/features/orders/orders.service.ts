@@ -47,11 +47,15 @@ export class OrderService {
       let productId: string | undefined;
       if (input.product_id) {
         const product = await productService.getProductById(input.product_id);
-        if (product) {
-          productId = product.id;
-          const quantity = input.quantity || 1;
-          totalPrice = this.calculateLineTotal(product, quantity);
+        if (!product) {
+          return { success: false, error: "Product not found" };
         }
+        const quantity = input.quantity || 1;
+        if (product.stock_status === "out_of_stock" || product.quantity < quantity) {
+          return { success: false, error: "Product is out of stock or insufficient quantity available" };
+        }
+        productId = product.id;
+        totalPrice = this.calculateLineTotal(product, quantity);
       }
 
       // 3b. Add shipping cost from zone
@@ -168,6 +172,12 @@ export class OrderService {
           return { success: false, error: `Product ${item.product_id} not found` };
         }
         const quantity = Math.max(1, item.quantity || 1);
+        if (product.stock_status === "out_of_stock" || product.quantity < quantity) {
+          return {
+            success: false,
+            error: `Product ${item.product_id} is out of stock or insufficient quantity available`,
+          };
+        }
         resolvedItems.push({
           product_id: product.id,
           quantity,

@@ -1,5 +1,5 @@
 import { customerRepository } from "./customers.repository";
-import type { Customer } from "@/features/shared/types";
+import type { Customer, CustomerWithStats, CustomerDetail, CustomerStats, PaginatedResponse } from "@/features/shared/types";
 
 export class CustomerService {
   /**
@@ -18,6 +18,57 @@ export class CustomerService {
 
     // Create new customer
     return customerRepository.create({ phone, full_name: fullName, email });
+  }
+
+  async getCustomerList(
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<PaginatedResponse<CustomerWithStats>> {
+    const result = await customerRepository.getAllWithStats(page, limit, search);
+    return {
+      data: result.data,
+      totalCount: result.totalCount,
+      page,
+      limit,
+    };
+  }
+
+  async getCustomerDetail(id: string): Promise<CustomerDetail> {
+    const customer = await customerRepository.getById(id);
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    const [stats, orders, address] = await Promise.all([
+      customerRepository.getCustomerStats(id),
+      customerRepository.getCustomerOrders(id),
+      customerRepository.getCustomerAddress(id),
+    ]);
+
+    return {
+      customer: customer as Customer & { notes: string | null },
+      stats: stats || {
+        total_orders: 0,
+        total_spent: 0,
+        avg_order_value: 0,
+        first_order_date: null,
+        last_order_date: null,
+      },
+      orders,
+      address,
+    };
+  }
+
+  async updateCustomer(
+    id: string,
+    data: Partial<Pick<Customer, "email"> & { notes: string }>
+  ): Promise<Customer> {
+    const customer = await customerRepository.update(id, data);
+    if (!customer) {
+      throw new Error("Failed to update customer");
+    }
+    return customer;
   }
 }
 
