@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { productService } from "@/features/products/products.service";
 import { categoryService } from "@/features/categories/categories.service";
+import { reviewsService } from "@/features/reviews/reviews.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import LookbookHero from "@/components/store/home/LookbookHero";
 import BestSellersSection from "@/components/store/home/BestSellersSection";
-import CategoryGrid from "@/components/store/home/CategoryGrid";
 import ProductCollections from "@/components/store/home/ProductCollections";
-import Testimonials from "@/components/store/home/Testimonials";
+import CustomerReviews from "@/components/store/home/CustomerReviews";
 import StoreFooter from "@/components/store/master/StoreFooter";
 
 // Server-rendered on demand rather than prerendered — avoids requiring
@@ -22,21 +22,19 @@ export const metadata: Metadata = {
 
 /**
  * Dynamic Lookbook homepage — `/`. Server Component: fetches featured
- * products, active categories, order-count-ranked best sellers, and the
- * full active catalog, then hands them to client islands
- * (StoreNavbar/LookbookHero/BestSellersSection/ProductCollections/
- * Testimonials own their own interactivity via hooks). Order: Navbar →
- * Hero → Best Sellers → Product Collections → Testimonials → Footer.
+ * products, active categories, order-count-ranked best sellers, the full
+ * active catalog, and the real-review showcase, then hands them to client
+ * islands (StoreNavbar/LookbookHero/BestSellersSection/ProductCollections/
+ * CustomerReviews own their own interactivity via hooks). Order: Navbar →
+ * Hero → Best Sellers → Product Collections → Customer Reviews → Footer.
  */
-import { testimonialsService } from "@/features/testimonials/testimonials.service";
-
 export default async function StoreHomePage() {
-  const [featuredProducts, categories, bestSellers, allProducts, testimonials] = await Promise.all([
+  const [featuredProducts, categories, bestSellers, allProducts, showcase] = await Promise.all([
     productService.getFeaturedProducts(),
     categoryService.getActiveCategories(),
     productService.getBestSellerProducts(8),
     productService.getAllActiveProducts(),
-    testimonialsService.getActiveTestimonials(),
+    reviewsService.getShowcaseReviews({ minRating: 4, limit: 12 }),
   ]);
 
   return (
@@ -45,7 +43,7 @@ export default async function StoreHomePage() {
       <LookbookHero featuredProducts={featuredProducts} />
       <BestSellersSection products={bestSellers} />
       <ProductCollections products={allProducts} categories={categories} />
-      <Testimonials testimonials={testimonials} />
+      <CustomerReviews reviews={showcase.reviews} aggregate={showcase.aggregate} />
       <StoreFooter />
     </main>
   );

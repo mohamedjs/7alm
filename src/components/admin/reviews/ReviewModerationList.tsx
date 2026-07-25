@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import StarRating from "@/components/ui/StarRating";
-import type { ProductReview } from "@/features/shared/types";
+import type { ProductReview, ReviewStatus } from "@/features/shared/types";
 import { useLocale } from "@/features/i18n/i18n.hooks";
+import type { DictKey } from "@/features/i18n/dictionary";
+
+const STATUS_KEY: Record<ReviewStatus, DictKey> = {
+  pending: "reviews.status.pending",
+  approved: "reviews.status.approved",
+  rejected: "reviews.status.rejected",
+};
+
+const STATUS_CLASS: Record<ReviewStatus, string> = {
+  pending: "bg-warning/10 text-warning",
+  approved: "bg-success/10 text-success",
+  rejected: "bg-danger/10 text-danger",
+};
 
 interface ReviewModerationListProps {
   reviews: ProductReview[];
@@ -50,6 +63,7 @@ export function ReviewModerationList({
             <th className="px-6 py-4 font-medium">{t("reviews.list.rating")}</th>
             <th className="px-6 py-4 font-medium">{t("reviews.list.review")}</th>
             <th className="px-6 py-4 font-medium">{t("reviews.list.date")}</th>
+            <th className="px-6 py-4 font-medium">{t("reviews.list.status")}</th>
             <th className="px-6 py-4 font-medium">{t("reviews.list.actions")}</th>
           </tr>
         </thead>
@@ -78,22 +92,31 @@ export function ReviewModerationList({
                 })}
               </td>
               <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handle(review.id, onApprove)}
-                    disabled={isMutating && activeId === review.id}
-                    className="rounded-xl bg-success/10 px-3 py-1.5 text-xs font-medium text-success transition-all neu-raised-sm disabled:opacity-50"
-                  >
-                    {t("reviews.list.approve")}
-                  </button>
-                  <button
-                    onClick={() => handle(review.id, onReject)}
-                    disabled={isMutating && activeId === review.id}
-                    className="rounded-xl bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger transition-all neu-raised-sm disabled:opacity-50"
-                  >
-                    {t("reviews.list.reject")}
-                  </button>
-                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASS[review.status]}`}
+                >
+                  {t(STATUS_KEY[review.status])}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                {review.status === "pending" && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handle(review.id, onApprove)}
+                      disabled={isMutating && activeId === review.id}
+                      className="rounded-xl bg-success/10 px-3 py-1.5 text-xs font-medium text-success transition-all neu-raised-sm disabled:opacity-50"
+                    >
+                      {t("reviews.list.approve")}
+                    </button>
+                    <button
+                      onClick={() => handle(review.id, onReject)}
+                      disabled={isMutating && activeId === review.id}
+                      className="rounded-xl bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger transition-all neu-raised-sm disabled:opacity-50"
+                    >
+                      {t("reviews.list.reject")}
+                    </button>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

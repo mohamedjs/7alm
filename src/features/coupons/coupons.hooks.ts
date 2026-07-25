@@ -25,7 +25,7 @@ const EMPTY_FORM: CouponInput = {
   is_active: true,
 };
 
-/** Admin coupon CRUD manager — mirrors `useCategoriesManager`/`useTestimonialsManager`. */
+/** Admin coupon CRUD manager — mirrors `useCategoriesManager`. */
 export function useCouponsManager() {
   const { data: coupons, isLoading, error, refetch } = useGetCouponsQuery();
 

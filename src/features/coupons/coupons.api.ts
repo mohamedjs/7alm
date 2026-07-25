@@ -19,7 +19,7 @@ export interface ValidateCouponRequest {
 
 /**
  * Coupons RTK Query slice — public checkout-preview validation + admin CRUD.
- * Modeled on `categoriesApi`/`testimonialsApi`.
+ * Modeled on `categoriesApi`.
  */
 export const couponsApi = createApi({
   reducerPath: "couponsApi",

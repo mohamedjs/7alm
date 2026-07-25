@@ -6,6 +6,7 @@ import type {
   ProductReviewPublic,
   ReviewAggregate,
   ReviewStatus,
+  ShowcaseReview,
   SubmitReviewInput,
 } from "@/features/shared/types";
 
@@ -201,6 +202,31 @@ export class ReviewService {
     ]);
 
     return { reviews: reviews.map(toPublicDto), aggregate };
+  }
+
+  /**
+   * Store home page showcase data: top-rated approved reviews across all
+   * products (default 4★+, 12 rows), plus a store-wide rating aggregate.
+   * Reuses `toPublicDto` for the same author-name/no-PII guarantees as
+   * `getProductReviews`, extended with the product name/slug to link to.
+   */
+  async getShowcaseReviews(opts?: {
+    minRating?: number;
+    limit?: number;
+  }): Promise<{ reviews: ShowcaseReview[]; aggregate: ReviewAggregate }> {
+    const [reviews, aggregate] = await Promise.all([
+      reviewRepository.getTopApproved(opts),
+      reviewRepository.getGlobalAggregate(),
+    ]);
+
+    return {
+      reviews: reviews.map((review) => ({
+        ...toPublicDto(review),
+        product_name: review.product?.name ?? null,
+        product_slug: review.product?.slug ?? null,
+      })),
+      aggregate,
+    };
   }
 }
 

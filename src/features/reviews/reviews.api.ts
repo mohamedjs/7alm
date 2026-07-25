@@ -23,7 +23,7 @@ export interface ProductReviewsResult {
 
 /**
  * Reviews RTK Query slice — public read/submit (verified-buyer, token-gated)
- * + admin moderation. Modeled on `categoriesApi`/`testimonialsApi`.
+ * + admin moderation. Modeled on `categoriesApi`.
  */
 export const reviewsApi = createApi({
   reducerPath: "reviewsApi",
@@ -90,6 +90,7 @@ export const reviewsApi = createApi({
       invalidatesTags: (result, error, { id }) => [
         { type: "ModerationReview", id },
         { type: "ModerationReview", id: "LIST" },
+        "ProductReviews",
       ],
     }),
   }),

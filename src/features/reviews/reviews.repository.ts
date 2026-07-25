@@ -83,6 +83,53 @@ export class ReviewRepository {
     return { average: Math.round((sum / count) * 10) / 10, count };
   }
 
+  /**
+   * Top approved reviews across all products, for the store home page
+   * showcase carousel. Approved + `rating >= minRating` only, newest first.
+   */
+  async getTopApproved(opts?: { minRating?: number; limit?: number }): Promise<ProductReview[]> {
+    const minRating = opts?.minRating ?? 4;
+    const limit = opts?.limit ?? 12;
+
+    const { data, error } = await supabase
+      .from("product_reviews")
+      .select("id, rating, title, body, created_at, customer:customers (full_name), product:products (name, slug)")
+      .eq("status", "approved")
+      .gte("rating", minRating)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("Error fetching top approved reviews:", error);
+      return [];
+    }
+    // Explicit column list + joins makes supabase-js infer the embedded
+    // relations as arrays and the unselected scalars as absent, so the row
+    // type no longer structurally matches ProductReview. The other joined
+    // selects here avoid this only because they lead with `*`.
+    return (data as unknown as ProductReview[]) || [];
+  }
+
+  /** Same computation as `getAggregate`, but across all products (approved rows only). */
+  async getGlobalAggregate(): Promise<ReviewAggregate> {
+    const { data, error } = await supabase
+      .from("product_reviews")
+      .select("rating")
+      .eq("status", "approved");
+
+    if (error) {
+      console.error("Error fetching global review aggregate:", error);
+      return { average: 0, count: 0 };
+    }
+    if (!data || data.length === 0) {
+      return { average: 0, count: 0 };
+    }
+
+    const count = data.length;
+    const sum = data.reduce((acc, row) => acc + (row.rating || 0), 0);
+    return { average: Math.round((sum / count) * 10) / 10, count };
+  }
+
   async getAllForModeration(status?: ReviewStatus): Promise<ProductReview[]> {
     let query = supabase
       .from("product_reviews")
