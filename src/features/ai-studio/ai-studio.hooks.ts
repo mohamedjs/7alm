@@ -1,38 +1,39 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useAddTrendMutation, useGetIdeasQuery, useGetTrendsQuery } from "./ai-studio.api";
-import type { DesignIdeaStatus, TrendInput } from "@/features/shared/types";
+import { useGetCampaignsQuery, useUpdateCampaignStatusMutation } from "./ai-studio.api";
+import type { AdCampaignStatus } from "@/features/shared/types";
+
+export type CampaignStatusFilter = AdCampaignStatus | "all";
 
 /**
- * Drives `/admin/ai-studio`: the trends feed, the manual "add trend" form
- * (the real pipeline entry point — no scraper credentials exist for any
- * source), and the design-ideas feed filtered by status.
+ * Drives `/admin/ai-studio`: campaign list filtered by status, plus
+ * publish/archive actions via the shared status-update mutation.
  */
 export function useAiStudioManager() {
-  const { data: trends, isLoading: isLoadingTrends } = useGetTrendsQuery();
-  const [addTrendMutation, { isLoading: isAddingTrend }] = useAddTrendMutation();
+  const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>("all");
 
-  const [ideaStatusFilter, setIdeaStatusFilter] = useState<DesignIdeaStatus | undefined>(
-    undefined,
+  const { data, isLoading } = useGetCampaignsQuery(
+    statusFilter === "all" ? undefined : statusFilter
   );
-  const { data: ideas, isLoading: isLoadingIdeas } = useGetIdeasQuery(ideaStatusFilter);
+  const [updateStatusMutation] = useUpdateCampaignStatusMutation();
 
-  const addTrend = useCallback(
-    async (input: TrendInput) => {
-      await addTrendMutation(input).unwrap();
-    },
-    [addTrendMutation],
+  const markPublished = useCallback(
+    (id: string) => updateStatusMutation({ id, status: "published" }).unwrap(),
+    [updateStatusMutation]
+  );
+
+  const archive = useCallback(
+    (id: string) => updateStatusMutation({ id, status: "archived" }).unwrap(),
+    [updateStatusMutation]
   );
 
   return {
-    trends: trends ?? [],
-    isLoadingTrends,
-    addTrend,
-    isAddingTrend,
-    ideas: ideas ?? [],
-    isLoadingIdeas,
-    ideaStatusFilter,
-    setIdeaStatusFilter,
+    campaigns: data ?? [],
+    isLoading,
+    statusFilter,
+    setStatusFilter,
+    markPublished,
+    archive,
   };
 }

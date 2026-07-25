@@ -2,7 +2,7 @@
 
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithAuth } from "@/lib/redux/api/baseQuery";
-import type { DesignIdea, DesignIdeaStatus, Trend, TrendInput } from "@/features/shared/types";
+import type { AdCampaign, AdCampaignStatus } from "@/features/shared/types";
 
 interface ApiEnvelope<T> {
   success: boolean;
@@ -10,49 +10,43 @@ interface ApiEnvelope<T> {
   error?: string;
 }
 
+export interface UpdateCampaignStatusParams {
+  id: string;
+  status: AdCampaignStatus;
+}
+
 export const aiStudioApi = createApi({
   reducerPath: "aiStudioApi",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["Trend", "DesignIdea"],
+  tagTypes: ["Campaign"],
   endpoints: (builder) => ({
-    getTrends: builder.query<Trend[], void>({
-      query: () => "/admin/ai-studio/trends",
-      transformResponse: (response: ApiEnvelope<Trend[]>) => {
-        if (!response.success || !response.data) {
-          throw new Error(response.error || "Failed to fetch trends");
-        }
-        return response.data;
-      },
-      providesTags: [{ type: "Trend", id: "LIST" }],
-    }),
-
-    addTrend: builder.mutation<Trend, TrendInput>({
-      query: (body) => ({
-        url: "/admin/ai-studio/trends",
-        method: "POST",
-        body,
-      }),
-      transformResponse: (response: ApiEnvelope<Trend>) => {
-        if (!response.success || !response.data) {
-          throw new Error(response.error || "Failed to add trend");
-        }
-        return response.data;
-      },
-      invalidatesTags: [{ type: "Trend", id: "LIST" }],
-    }),
-
-    getIdeas: builder.query<DesignIdea[], DesignIdeaStatus | undefined>({
+    getCampaigns: builder.query<AdCampaign[], AdCampaignStatus | undefined>({
       query: (status) =>
-        status ? `/admin/ai-studio/ideas?status=${status}` : "/admin/ai-studio/ideas",
-      transformResponse: (response: ApiEnvelope<DesignIdea[]>) => {
+        status ? `/admin/ai-studio/campaigns?status=${status}` : `/admin/ai-studio/campaigns`,
+      transformResponse: (response: ApiEnvelope<AdCampaign[]>) => {
         if (!response.success || !response.data) {
-          throw new Error(response.error || "Failed to fetch design ideas");
+          throw new Error(response.error || "Failed to fetch campaigns");
         }
         return response.data;
       },
-      providesTags: [{ type: "DesignIdea", id: "LIST" }],
+      providesTags: [{ type: "Campaign", id: "LIST" }],
+    }),
+
+    updateCampaignStatus: builder.mutation<AdCampaign, UpdateCampaignStatusParams>({
+      query: ({ id, status }) => ({
+        url: `/admin/ai-studio/campaigns/${id}`,
+        method: "PATCH",
+        body: { status },
+      }),
+      transformResponse: (response: ApiEnvelope<AdCampaign>) => {
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to update campaign");
+        }
+        return response.data;
+      },
+      invalidatesTags: [{ type: "Campaign", id: "LIST" }],
     }),
   }),
 });
 
-export const { useGetTrendsQuery, useAddTrendMutation, useGetIdeasQuery } = aiStudioApi;
+export const { useGetCampaignsQuery, useUpdateCampaignStatusMutation } = aiStudioApi;
