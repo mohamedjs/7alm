@@ -14,6 +14,7 @@ import { customersApi } from "@/features/customers/customers.api";
 import { socialApi } from "@/features/social/social.api";
 import { reviewsApi } from "@/features/reviews/reviews.api";
 import { couponsApi } from "@/features/coupons/coupons.api";
+import { aiStudioApi } from "@/features/ai-studio/ai-studio.api";
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     [socialApi.reducerPath]: socialApi.reducer,
     [reviewsApi.reducerPath]: reviewsApi.reducer,
     [couponsApi.reducerPath]: couponsApi.reducer,
+    [aiStudioApi.reducerPath]: aiStudioApi.reducer,
   },
   middleware: (getDefault) =>
     getDefault()
@@ -43,7 +45,8 @@ export const store = configureStore({
       .concat(customersApi.middleware)
       .concat(socialApi.middleware)
       .concat(reviewsApi.middleware)
-      .concat(couponsApi.middleware),
+      .concat(couponsApi.middleware)
+      .concat(aiStudioApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -3,7 +3,8 @@
     {
       "parameters": {
         "updates": [
-          "message"
+          "message",
+          "callback_query"
         ],
         "additionalFields": {}
       },
@@ -22,6 +23,183 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000001",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              },
+              "leftValue": "={{ $json.callback_query?.data || '' }}",
+              "rightValue": "ais:"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1c2d301-0000-4a00-8000-000000000002",
+      "name": "Message Kind?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -2496,
+        -2672
+      ],
+      "typeVersion": 2.2,
+      "notes": "Routes callback_query updates whose data starts with 'ais:' (design-idea approval button presses) into the new AI Studio branch; everything else (including plain 'message' updates) falls through unchanged to the existing 'Voice or Text?' FB-post flow. Added per specs/013-ai-studio/automation-plan.md §3 Workflow B / §7 Step 3 — the receiver must be a new branch on the existing trigger, not a second telegramTrigger."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000003",
+              "name": "action",
+              "type": "string",
+              "value": "={{ $json.callback_query.data.split(':')[1] }}"
+            },
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000004",
+              "name": "ideaId",
+              "type": "string",
+              "value": "={{ $json.callback_query.data.split(':')[2] }}"
+            },
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000005",
+              "name": "telegramUserId",
+              "type": "string",
+              "value": "={{ String($json.callback_query.from.id) }}"
+            },
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000006",
+              "name": "chatId",
+              "type": "string",
+              "value": "={{ $json.callback_query.message.chat.id }}"
+            },
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000007",
+              "name": "messageId",
+              "type": "string",
+              "value": "={{ $json.callback_query.message.message_id }}"
+            },
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000008",
+              "name": "callbackQueryId",
+              "type": "string",
+              "value": "={{ $json.callback_query.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1c2d301-0000-4a00-8000-000000000009",
+      "name": "Parse Callback",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -2496,
+        -2432
+      ],
+      "typeVersion": 3.4,
+      "notes": "Extracts action + ideaId from callback_query.data ('ais:<action>:<ideaId>'), telegram_user_id from callback_query.from.id, and chatId/messageId from callback_query.message.* so the card can be edited in place after the action resolves."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/webhooks/n8n/ai-studio/idea-action",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-webhook-secret",
+              "value": "123456"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ideaId\": \"{{ $json.ideaId }}\",\n  \"action\": \"{{ $json.action }}\",\n  \"telegramUserId\": \"{{ $json.telegramUserId }}\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "b1c2d301-0000-4a00-8000-000000000010",
+      "name": "Idea Action → 7alm",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -2256,
+        -2432
+      ],
+      "typeVersion": 4.2,
+      "notes": "POST /api/webhooks/n8n/ai-studio/idea-action. Header is x-webhook-secret (validated against N8N_WEBHOOK_SECRET) — NOT x-n8n-access-token; see automation-plan.md §3 B2's correction note. Secret hardcoded to 123456 to match every other workflow in this repo: the live 'order-action?secret=123456' calls work against the deployed app, so that is what production validates (.env.local shows a different, local-only value). neverError:true so this node never throws; downstream nodes branch on the JSON body's success field."
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "operation": "answerQuery",
+        "queryId": "={{ $('Parse Callback').item.json.callbackQueryId }}",
+        "additionalFields": {
+          "text": "={{ $json.success ? 'تمت العملية ✅' : ('تعذر التنفيذ: ' + ($json.error || 'خطأ غير معروف')) }}"
+        }
+      },
+      "id": "b1c2d301-0000-4a00-8000-000000000013",
+      "name": "Answer Callback",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -1776,
+        -2432
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      },
+      "notes": "Answers the Telegram callback query so the button stops spinning. Input is now 'Idea Action → 7alm' directly (the old 'Action OK?' if-node was removed — both its outputs went here, so it decided nothing), which means $json here IS the 7alm response body."
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "editMessageText",
+        "chatId": "={{ $('Parse Callback').item.json.chatId }}",
+        "messageId": "={{ $('Parse Callback').item.json.messageId }}",
+        "text": "={{ $('Idea Action → 7alm').item.json.success ? ('✅ الحالة الجديدة: ' + $('Idea Action → 7alm').item.json.status) : ('⚠️ فشل تنفيذ \"' + $('Parse Callback').item.json.action + '\": ' + ($('Idea Action → 7alm').item.json.error || 'خطأ غير معروف')) }}",
+        "additionalFields": {}
+      },
+      "id": "b1c2d301-0000-4a00-8000-000000000014",
+      "name": "Edit Card Status",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -1536,
+        -2432
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      },
+      "notes": "Updates the original approval card in place. Sources from $('Idea Action → 7alm').item.json, NOT $json: this node's input is 'Answer Callback', whose $json is the Telegram API response, so $json.success/$json.status are undefined there and the ternary always took the failure arm — showing 'فشل' even on success."
     },
     {
       "parameters": {
@@ -428,7 +606,58 @@
       "main": [
         [
           {
+            "node": "Message Kind?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Kind?": {
+      "main": [
+        [
+          {
+            "node": "Parse Callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Voice or Text?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Callback": {
+      "main": [
+        [
+          {
+            "node": "Idea Action → 7alm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Idea Action → 7alm": {
+      "main": [
+        [
+          {
+            "node": "Answer Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Callback": {
+      "main": [
+        [
+          {
+            "node": "Edit Card Status",
             "type": "main",
             "index": 0
           }

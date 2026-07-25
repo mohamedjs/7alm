@@ -1,0 +1,190 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000001",
+      "name": "Director Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [-2592, -1200],
+      "typeVersion": 1.2,
+      "notes": "Runs every 6 hours. Outbound-only — no telegramTrigger here, so it cannot steal the bot's single webhook from telegram-fb-post-workflow.json (automation-plan.md §2). Ideas it creates are picked up by the hourly dispatcher, so the two workflows stay decoupled."
+    },
+    {
+      "parameters": {
+        "url": "https://7alm-pro.up.railway.app/api/n8n/ai-studio/trends?status=new",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000002",
+      "name": "Load New Trends",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [-2352, -1200],
+      "typeVersion": 4.2,
+      "notes": "GET /api/n8n/ai-studio/trends?status=new. Token hardcoded to match every other workflow in this repo (they all send the literal 123456 against the deployed app). Do not switch to $env — n8n does not resolve $env in these workflows."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "d1e2f301-0000-4a00-8000-000000000003",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "leftValue": "={{ ($json.data || []).length }}",
+              "rightValue": 0
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000004",
+      "name": "Any New Trends?",
+      "type": "n8n-nodes-base.if",
+      "position": [-2112, -1200],
+      "typeVersion": 2.2,
+      "notes": "Exits quietly when there is nothing new. Loose validation + a length count so an auth failure (neverError returns {success:false,error} with no 'data' key) exits instead of throwing."
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000005",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [-1800, -1040],
+      "typeVersion": 1,
+      "credentials": {
+        "openRouterApi": {
+          "id": "EbbUdiq5aCjllGWD",
+          "name": "OpenRouter account"
+        }
+      },
+      "notes": "Reuses the existing OpenRouter credential already proven in telegram-fb-post, whatsapp and ecommerce workflows."
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Trends to work from (JSON):\n{{ JSON.stringify($('Load New Trends').first().json.data) }}",
+        "options": {
+          "systemMessage": "You are the Design Director for 7alm, an Egyptian phone-case brand. You turn market trend signals into ONE concrete, original phone-case design concept.\n\nRules:\n- Base the concept on the supplied trends. Do not invent a trend that is not there.\n- Propose a design that is specific enough to hand to an illustrator: name the motif, the colour palette, and the composition. Avoid vague words like \"modern\" or \"stylish\" on their own.\n- The concept must suit printing on a phone case: it must survive a camera cutout and edge wrap, and read clearly at small size.\n- Write `title` and `description` in Egyptian Arabic (the admin reviews these on Telegram). Write `concept` in English as a dense, factual design brief.\n- `concept` is what the system fingerprints for duplicate detection, so put the distinguishing design substance there and keep it free of filler.\n\nReturn ONLY a raw JSON object, no markdown fences and no commentary, with exactly these three string keys:\n{\"title\": \"...\", \"description\": \"...\", \"concept\": \"...\"}"
+        }
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000006",
+      "name": "Design Director",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [-1872, -1200],
+      "typeVersion": 1.6,
+      "notes": "Generates one design concept per run. Returns title/description/concept ONLY — the server computes concept_fingerprint, runs dedup and marks the source trends used (automation-plan.md §1's server-authoritative rule). Do not add fingerprinting or dedup logic here."
+    },
+    {
+      "parameters": {
+        "jsCode": "// The agent is asked for raw JSON, but LLMs still wrap it in ```json fences often\n// enough that parsing defensively is cheaper than a retry loop.\nconst raw = String($input.first().json.output ?? '').trim();\nconst cleaned = raw.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();\n\nlet idea;\ntry {\n  idea = JSON.parse(cleaned);\n} catch (e) {\n  // Last resort: pull the outermost {...} out of surrounding prose.\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (!match) {\n    throw new Error('Design Director did not return JSON. Got: ' + raw.slice(0, 200));\n  }\n  idea = JSON.parse(match[0]);\n}\n\nfor (const key of ['title', 'description', 'concept']) {\n  if (!idea[key] || !String(idea[key]).trim()) {\n    throw new Error(`Design Director output is missing \"${key}\"`);\n  }\n}\n\n// Every trend fed to the model is consumed by this run, whether or not the\n// resulting idea turns out to be a duplicate server-side.\nconst trends = $('Load New Trends').first().json.data || [];\n\nreturn [{\n  json: {\n    title: String(idea.title).trim(),\n    description: String(idea.description).trim(),\n    concept: String(idea.concept).trim(),\n    source_trend_ids: trends.map((t) => t.id).filter(Boolean),\n  },\n}];"
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000007",
+      "name": "Parse Idea",
+      "type": "n8n-nodes-base.code",
+      "position": [-1632, -1200],
+      "typeVersion": 2,
+      "notes": "Parses the agent's JSON (tolerating markdown fences) and attaches source_trend_ids. Throws loudly on malformed output rather than POSTing an empty idea — the route would 400 anyway, but failing here names the cause."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/n8n/ai-studio/ideas",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.title, description: $json.description, concept: $json.concept, source_trend_ids: $json.source_trend_ids }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "d1e2f301-0000-4a00-8000-000000000008",
+      "name": "Ideas → 7alm",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [-1392, -1200],
+      "typeVersion": 4.2,
+      "notes": "POST /api/n8n/ai-studio/ideas — body {title, description, concept, source_trend_ids}. Response is {success, data, isDuplicate}. The server computes the fingerprint, skips on duplicate, and marks the source trends used unconditionally, so a duplicate does not leave those trends to be re-read next run. neverError:true, matching the repo convention."
+    }
+  ],
+  "connections": {
+    "Director Trigger": {
+      "main": [[{ "node": "Load New Trends", "type": "main", "index": 0 }]]
+    },
+    "Load New Trends": {
+      "main": [[{ "node": "Any New Trends?", "type": "main", "index": 0 }]]
+    },
+    "Any New Trends?": {
+      "main": [[{ "node": "Design Director", "type": "main", "index": 0 }], []]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [[{ "node": "Design Director", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Design Director": {
+      "main": [[{ "node": "Parse Idea", "type": "main", "index": 0 }]]
+    },
+    "Parse Idea": {
+      "main": [[{ "node": "Ideas → 7alm", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c31f5ec5b1eee1ec799e27877c1321810ce9d2d5d1a612b4595d3912ef083f88"
+  }
+}
