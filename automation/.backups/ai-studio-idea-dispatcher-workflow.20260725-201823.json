@@ -32,7 +32,7 @@
             },
             {
               "name": "x-n8n-access-token",
-              "value": "123456"
+              "value": "={{ $env.N8N_API_ACCESS_TOKEN }}"
             }
           ]
         },
@@ -53,7 +53,7 @@
         -1600
       ],
       "typeVersion": 4.2,
-      "notes": "GET /api/n8n/ai-studio/ideas?status=pending_review — validated by the same x-n8n-access-token / N8N_API_ACCESS_TOKEN mechanism as the existing 'Load Active Products' node (src/lib/n8n-auth.ts). Token is hardcoded to match every other workflow in this repo (they all send the literal 123456 and work against the deployed app). Do not switch to $env — n8n does not resolve $env in these workflows."
+      "notes": "GET /api/n8n/ai-studio/ideas?status=pending_review — validated by the same x-n8n-access-token / N8N_API_ACCESS_TOKEN mechanism as the existing 'Load Active Products' node (src/lib/n8n-auth.ts). Set N8N_API_ACCESS_TOKEN in n8n's environment (Settings → Variables); do not hardcode the real token literal here."
     },
     {
       "parameters": {
@@ -61,7 +61,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "combinator": "and",
@@ -69,11 +69,11 @@
             {
               "id": "a1b2c301-0000-4a00-8000-000000000003",
               "operator": {
-                "type": "number",
-                "operation": "gt"
+                "type": "array",
+                "operation": "notEmpty"
               },
-              "leftValue": "={{ ($json.data || []).length }}",
-              "rightValue": 0
+              "leftValue": "={{ $json.data }}",
+              "rightValue": ""
             }
           ]
         },
@@ -86,8 +86,7 @@
         -2112,
         -1600
       ],
-      "typeVersion": 2.2,
-      "notes": "Fail-soft: 'Load Pending Ideas' uses neverError, so an auth failure returns {success:false,error} with no 'data' key. Strict validation on an array operator would throw there instead of exiting quietly, so this counts ($json.data || []).length instead."
+      "typeVersion": 2.2
     },
     {
       "parameters": {
@@ -105,52 +104,34 @@
     },
     {
       "parameters": {
-        "chatId": "REPLACE_WITH_ADMIN_CHAT_ID",
+        "chatId": "={{ $env.AI_STUDIO_ADMIN_CHAT_ID }}",
         "text": "=🎨 *فكرة تصميم جديدة*\n\n*{{ $json.title }}*\n\n{{ $json.description }}",
-        "replyMarkup": "inlineKeyboard",
-        "inlineKeyboard": {
-          "rows": [
-            {
-              "row": {
-                "buttons": [
-                  {
-                    "text": "✅ موافقة",
-                    "additionalFields": {
-                      "callback_data": "=ais:approve:{{ $json.id }}"
-                    }
-                  },
-                  {
-                    "text": "❌ رفض",
-                    "additionalFields": {
-                      "callback_data": "=ais:reject:{{ $json.id }}"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "row": {
-                "buttons": [
-                  {
-                    "text": "⭐ تفضيل",
-                    "additionalFields": {
-                      "callback_data": "=ais:favorite:{{ $json.id }}"
-                    }
-                  },
-                  {
-                    "text": "🚀 نشر",
-                    "additionalFields": {
-                      "callback_data": "=ais:publish:{{ $json.id }}"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        },
         "additionalFields": {
           "parse_mode": "Markdown",
-          "appendAttribution": false
+          "reply_markup": {
+            "inline_keyboard": [
+              [
+                {
+                  "text": "✅ Approve",
+                  "callback_data": "=ais:approve:{{ $json.id }}"
+                },
+                {
+                  "text": "❌ Reject",
+                  "callback_data": "=ais:reject:{{ $json.id }}"
+                }
+              ],
+              [
+                {
+                  "text": "⭐ Favorite",
+                  "callback_data": "=ais:favorite:{{ $json.id }}"
+                },
+                {
+                  "text": "🚀 Publish",
+                  "callback_data": "=ais:publish:{{ $json.id }}"
+                }
+              ]
+            ]
+          }
         }
       },
       "id": "a1b2c301-0000-4a00-8000-000000000006",
@@ -167,7 +148,7 @@
           "name": "Telegram account"
         }
       },
-      "notes": "BLOCKER: chatId is a placeholder. Replace REPLACE_WITH_ADMIN_CHAT_ID with the real admin Telegram chat id (seed it once from any inbound message.chat.id / callback_query.from.id on the existing bot). Until then this workflow cannot send. Keyboard uses the Telegram node's native replyMarkup:'inlineKeyboard' + inlineKeyboard.rows[].row.buttons[] shape, with callback_data under each button's additionalFields — verified against nodes-base Telegram.node.js and GenericFunctions.addAdditionalFields. Do NOT revert to a raw additionalFields.reply_markup object: it only survives because replyMarkup defaults to 'none' and the function returns before wiping body.reply_markup, and the n8n UI would strip it on any save. 4 buttons per automation-plan.md §6 (Edit/Regenerate out of scope). callback_data = ais:<action>:<ideaId>, matched by the 'Message Kind?' switch in telegram-fb-post-workflow.json."
+      "notes": "TODO: replace with the real admin Telegram chat id — capture it from any inbound message.chat.id on the existing bot, or set AI_STUDIO_ADMIN_CHAT_ID in n8n's environment (Settings → Variables) since this workflow's JSON has no other env-injection point. 4-button keyboard per automation-plan.md §6 (Approve/Reject/Favorite/Publish only — Edit/Regenerate are out of scope for this slice). callback_data = ais:<action>:<ideaId>, matched by the 'Message Kind?' switch inserted into telegram-fb-post-workflow.json."
     }
   ],
   "connections": {

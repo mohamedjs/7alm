@@ -125,7 +125,7 @@
             },
             {
               "name": "x-webhook-secret",
-              "value": "123456"
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
             }
           ]
         },
@@ -149,7 +149,40 @@
         -2432
       ],
       "typeVersion": 4.2,
-      "notes": "POST /api/webhooks/n8n/ai-studio/idea-action. Header is x-webhook-secret (validated against N8N_WEBHOOK_SECRET) — NOT x-n8n-access-token; see automation-plan.md §3 B2's correction note. Secret hardcoded to 123456 to match every other workflow in this repo: the live 'order-action?secret=123456' calls work against the deployed app, so that is what production validates (.env.local shows a different, local-only value). neverError:true so this node never throws; downstream nodes branch on the JSON body's success field."
+      "notes": "Same auth header pattern as the whatsapp workflow's 'Call 7alm API' node (x-webhook-secret, validated against N8N_WEBHOOK_SECRET by /api/webhooks/n8n/order-action-style routes), and the same neverError:true so this node never throws — the 'Action OK?' if node branches on the JSON body's success field instead. NOTE: existing workflows in this repo send the literal secret '123456' in this header; that is flagged as a possible config mismatch against .env.local's real N8N_WEBHOOK_SECRET in automation-plan.md §0. This new node references $env.N8N_WEBHOOK_SECRET instead of hardcoding a literal, so whichever value n8n's environment actually has configured is what gets sent — set N8N_WEBHOOK_SECRET in n8n's environment (Settings → Variables) to match the deployed app's env var of the same name."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "b1c2d301-0000-4a00-8000-000000000011",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ String($json.success ?? false) }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1c2d301-0000-4a00-8000-000000000012",
+      "name": "Action OK?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -2016,
+        -2432
+      ],
+      "typeVersion": 2.2
     },
     {
       "parameters": {
@@ -174,7 +207,7 @@
           "name": "Telegram account"
         }
       },
-      "notes": "Answers the Telegram callback query so the button stops spinning. Input is now 'Idea Action → 7alm' directly (the old 'Action OK?' if-node was removed — both its outputs went here, so it decided nothing), which means $json here IS the 7alm response body."
+      "notes": "Answers the Telegram callback query so the button stops spinning — reuses the existing 'Telegram account' credential, same as every other Telegram node in this workflow. Both branches of 'Action OK?' route here; the toast text is derived from $json.success/$json.error."
     },
     {
       "parameters": {
@@ -182,7 +215,7 @@
         "operation": "editMessageText",
         "chatId": "={{ $('Parse Callback').item.json.chatId }}",
         "messageId": "={{ $('Parse Callback').item.json.messageId }}",
-        "text": "={{ $('Idea Action → 7alm').item.json.success ? ('✅ الحالة الجديدة: ' + $('Idea Action → 7alm').item.json.status) : ('⚠️ فشل تنفيذ \"' + $('Parse Callback').item.json.action + '\": ' + ($('Idea Action → 7alm').item.json.error || 'خطأ غير معروف')) }}",
+        "text": "={{ $json.success ? ('✅ الحالة الجديدة: ' + $json.status) : ('⚠️ فشل تنفيذ \"' + $('Parse Callback').item.json.action + '\": ' + ($json.error || 'خطأ غير معروف')) }}",
         "additionalFields": {}
       },
       "id": "b1c2d301-0000-4a00-8000-000000000014",
@@ -199,7 +232,7 @@
           "name": "Telegram account"
         }
       },
-      "notes": "Updates the original approval card in place. Sources from $('Idea Action → 7alm').item.json, NOT $json: this node's input is 'Answer Callback', whose $json is the Telegram API response, so $json.success/$json.status are undefined there and the ternary always took the failure arm — showing 'فشل' even on success."
+      "notes": "Updates the original approval card in place to show the new status (or the error) so the admin doesn't have to scroll back to the 7alm dashboard to see the result."
     },
     {
       "parameters": {
@@ -644,6 +677,24 @@
     },
     "Idea Action → 7alm": {
       "main": [
+        [
+          {
+            "node": "Action OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action OK?": {
+      "main": [
+        [
+          {
+            "node": "Answer Callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Answer Callback",
