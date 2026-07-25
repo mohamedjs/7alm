@@ -121,9 +121,9 @@ Legend:
     every run after the first.
 
   **Blocked by:** T006, T029.
-- ⬜ **T032** `GET /api/n8n/ai-studio/trends?status=new` (`requireN8nAccess`) —
+- ✅ **T032** `GET /api/n8n/ai-studio/trends?status=new` (`requireN8nAccess`) —
   the Design Director's context read. **Blocked by:** T006.
-- ⬜ **T033 LLM Design Director n8n workflow** —
+- ✅ **T033 LLM Design Director n8n workflow** *(built; untested at runtime)* —
   `automation/ai-studio-design-director-workflow.json`:
   `scheduleTrigger` → `httpRequest` GET trends (T032) →
   `@n8n/n8n-nodes-langchain.agent` on the **OpenRouter account**
@@ -133,7 +133,14 @@ Legend:
   **only** — no fingerprint, no status. The hourly dispatcher (T015) picks the
   ideas up independently, so the two workflows stay decoupled.
   **Blocked by:** T031, T032, T034.
-- ⬜ **T034 Pin the two n8n secret values.** `.env.local` defines
+- 🟡 **T034 Pin the two n8n secret values.** *(secrets PINNED — both are
+  `123456`, evidenced by the live `order-action?secret=123456` calls that work
+  against the deployed app; `.env.local`'s differing value is local-only. All
+  `$env.*` converted to literals. **STILL OPEN: `AI_STUDIO_ADMIN_CHAT_ID`** —
+  the dispatcher's `chatId` is the placeholder `REPLACE_WITH_ADMIN_CHAT_ID`,
+  so it cannot send until seeded.)*
+
+  Original text: `.env.local` defines
   `N8N_WEBHOOK_SECRET` (not `123456`) and has **no** `N8N_API_ACCESS_TOKEN`,
   yet the live workflows send the literal `123456` and work. Confirm against
   the **deployed Railway env** what `/api/n8n/*` and `/api/webhooks/n8n/*`
@@ -149,19 +156,25 @@ Legend:
   need someone else to read the Railway env) — **start it first, in parallel
   with T029.** Note T035–T038 do *not* depend on it: none of those four
   touches a secret value.
-- ⬜ **T035 (B2)** Dispatcher `Send Idea Card` — the inline keyboard is a raw
-  Bot API object at `additionalFields.reply_markup`. n8n's Telegram node wants
-  its own `replyMarkup: "inlineKeyboard"` + structured rows/buttons collection,
-  and silently drops unknown keys → **the card renders with no buttons**, which
-  makes the entire callback branch unreachable. No in-repo example exists:
-  build it once in the n8n UI and copy the emitted JSON.
-- ⬜ **T036 (B3)** `telegram-fb-post` `Edit Card Status` reads `$json.success` /
+- ✅ **T035 (B2)** Dispatcher `Send Idea Card` — rebuilt using the Telegram
+  node's native `replyMarkup: "inlineKeyboard"` + `inlineKeyboard.rows[].row
+  .buttons[]` shape, `callback_data` under each button's `additionalFields`.
+  Verified against `nodes-base` `Telegram.node.js` + `GenericFunctions
+  .addAdditionalFields`.
+  **Correction to the original finding:** the raw `additionalFields
+  .reply_markup` object would *not* have rendered a buttonless card —
+  `replyMarkup` defaults to `'none'`, so the function returns *before*
+  `body.reply_markup = {}` wipes it, and the raw object survives. It was
+  fragile, not broken: the n8n UI strips undeclared collection keys on save.
+  Changed anyway for round-trip safety; see the node `notes`.
+  **Untested at runtime** — not yet round-tripped through the n8n UI.
+- ✅ **T036 (B3)** *(fixed — now sources `$('Idea Action → 7alm').item.json`)* `telegram-fb-post` `Edit Card Status` reads `$json.success` /
   `$json.status`, but its input is `Answer Callback` (a Telegram API response),
   not the 7alm body — so it **always takes the failure arm and shows "فشل"
   even on success**. Source from `$('Idea Action → 7alm').item.json`.
-- ⬜ **T037 (B4)** `telegram-fb-post` `Action OK?` — both IF outputs wire to the
+- ✅ **T037 (B4)** *(fixed — node deleted, HTTP wired straight to `Answer Callback`)* `telegram-fb-post` `Action OK?` — both IF outputs wire to the
   same node, so it decides nothing. Delete it.
-- ⬜ **T038 (B5)** Dispatcher `Has Any?` — `strict` typeValidation on
+- ✅ **T038 (B5)** *(fixed — counts `($json.data || []).length` under loose validation)* Dispatcher `Has Any?` — `strict` typeValidation on
   `$json.data` throws on a 401/503 body (which has no `data` key) instead of
   exiting quietly.
 - ⬜ **T039 Admin UI plumbing** (absent repo-wide, blocks T009):

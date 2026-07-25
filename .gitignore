@@ -44,3 +44,6 @@ next-env.d.ts
 package-lock.json
 *storybook.log
 storybook-static
+
+# Local pre-edit workflow snapshots (git already holds the committed versions)
+automation/.backups/
