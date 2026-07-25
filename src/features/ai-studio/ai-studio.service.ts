@@ -76,3 +76,5 @@ export class AiStudioService {
     return `{${entries.join(",")}}`;
   }
 }
+
+export const aiStudioService = new AiStudioService();

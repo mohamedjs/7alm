@@ -1,4 +1,5 @@
 import { DesignIdeasRepository, designIdeasRepository } from "@/features/ai-studio/design-ideas.repository";
+import { AiStudioService } from "@/features/ai-studio/ai-studio.service";
 import { productRepository, ProductRepository } from "@/features/products/products.repository";
 import {
   canApplyAction,
@@ -12,6 +13,18 @@ export interface ApplyActionResult {
   success: boolean;
   status?: DesignIdeaStatus;
   error?: string;
+}
+
+export interface CreateIdeaInput {
+  title: string;
+  description: string;
+  concept: string;
+  sourceTrendIds?: string[];
+}
+
+export interface CreateIdeaResult {
+  idea: DesignIdea;
+  isDuplicate: boolean;
 }
 
 /**
@@ -43,6 +56,55 @@ export class DesignIdeasService {
 
   async getById(id: string): Promise<DesignIdea | null> {
     return this.repo.getById(id);
+  }
+
+  /**
+   * Create a design idea proposed by the LLM Design Director (FR-002/FR-003).
+   * The server — never the LLM — computes `concept_fingerprint`, reusing
+   * `AiStudioService.fingerprint`'s hashing scheme (sha256 over a
+   * stable-stringified payload) rather than inventing a second one.
+   *
+   * If an idea with the same fingerprint already exists, the duplicate is
+   * NOT inserted (the column is `UNIQUE`) — the existing idea is returned
+   * with `isDuplicate: true` so the caller can skip it (FR-003: "prevent ...
+   * duplicate design ideas before they reach human review").
+   */
+  async createIdea(input: CreateIdeaInput): Promise<CreateIdeaResult> {
+    const fingerprint = DesignIdeasService.fingerprint(input.concept);
+
+    const existing = await this.repo.getByConceptFingerprint(fingerprint);
+    if (existing) {
+      return { idea: existing, isDuplicate: true };
+    }
+
+    try {
+      const idea = await this.repo.create({
+        title: input.title,
+        description: input.description,
+        concept_fingerprint: fingerprint,
+        source_trend_ids: input.sourceTrendIds ?? [],
+      });
+      return { idea, isDuplicate: false };
+    } catch (err) {
+      // 23505 = unique_violation: another request inserted the same
+      // fingerprint between our pre-check and this insert. Treat it the
+      // same as a pre-check hit rather than a 500.
+      if ((err as { code?: string })?.code === "23505") {
+        const winner = await this.repo.getByConceptFingerprint(fingerprint);
+        if (winner) return { idea: winner, isDuplicate: true };
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Normalized-concept dedup key, same hashing scheme as
+   * `AiStudioService.fingerprint`. Hashes `concept` only (not `title`) so a
+   * reworded title for the same underlying concept still collides.
+   */
+  private static fingerprint(concept: string): string {
+    const normalized = concept.trim().toLowerCase().replace(/\s+/g, " ");
+    return AiStudioService.fingerprint("design_idea", { concept: normalized });
   }
 
   /**

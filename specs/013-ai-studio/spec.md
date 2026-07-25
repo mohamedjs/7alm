@@ -232,8 +232,22 @@ run's prompt context includes that memory.
   `analytics` and derive learnings into `ai_memory`.
 - **FR-012**: Idea generation MUST be able to incorporate relevant
   `ai_memory` entries as context.
-- **FR-013**: All new AI Studio API routes MUST require admin authentication
-  via the existing `verifyAdmin()` mechanism — no public endpoints.
+- **FR-013** *(amended 2026-07-25 — see note below)*: No AI Studio API route
+  may be public. **Admin-facing** routes (`/api/admin/ai-studio/*`, everything
+  the dashboard calls) MUST authenticate via the existing `extractToken` +
+  `verifyAdmin()` mechanism. **Machine-to-machine** routes called by n8n MUST
+  authenticate via the shared-secret convention already established elsewhere
+  in this repo: `x-n8n-access-token` → `N8N_API_ACCESS_TOKEN` for `/api/n8n/*`
+  (as the four existing `/api/n8n/*` routes do), and `x-webhook-secret` →
+  `N8N_WEBHOOK_SECRET` for `/api/webhooks/n8n/*` (as `order-action` does).
+
+  > **Amendment rationale.** As originally written, FR-013 required
+  > `verifyAdmin()` on *every* route, which n8n cannot satisfy — it holds no
+  > admin JWT. The shipped n8n-facing routes therefore use shared secrets.
+  > This is a **deliberate decision recorded here**, not a violation: SC-005
+  > is about regressions to existing functionality, and the convention being
+  > followed is the one `/api/webhooks/n8n/order-action` already ships in
+  > production. `tasks.md` T028 mirrors this wording.
 - **FR-014**: System MUST NOT modify or remove any existing table, column, or
   API route used by `products`, `orders`, `customers`, or `social_connections`.
 - **FR-015**: System MUST expose an admin dashboard section
@@ -282,10 +296,15 @@ run's prompt context includes that memory.
 
 ## Assumptions
 
-- Telegram is reused via a new bot (no existing Telegram integration exists
-  today); a `TELEGRAM_BOT_TOKEN` / chat ID will need to be provisioned and
-  added to `.env.local` — **not yet available**, tracked as a blocker in
-  `tasks.md`.
+- ~~Telegram is reused via a new bot (no existing Telegram integration exists
+  today); a `TELEGRAM_BOT_TOKEN` / chat ID will need to be provisioned.~~
+  **Corrected 2026-07-25:** a live bot and n8n credential already exist
+  (`automation-plan.md` §0), so no token needs provisioning and no
+  `TELEGRAM_BOT_TOKEN` env var is needed — n8n holds the credential. Only the
+  admin **chat id** must be seeded once. Because Telegram allows one webhook
+  per bot and `telegram-fb-post-workflow.json` already owns it, the approval
+  receiver is a `callback_query` branch on that workflow, not a new
+  trigger or a 7alm webhook route (`automation-plan.md` §2).
 - Image generation and trend-source scraping require external AI/API
   credentials beyond the existing `GEMINI_API_TOKEN` (e.g. an image-gen
   provider, and API/scraping access for Pinterest/Etsy/TikTok/Instagram/

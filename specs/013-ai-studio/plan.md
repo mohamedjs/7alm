@@ -13,7 +13,9 @@ the repo (Repository → Service → API Route → RTK Query/Hooks). It reuses,
 rather than replaces:
 
 - `src/lib/supabase.ts` for all data access (new `*.repository.ts` files only)
-- `src/lib/auth.ts` (`verifyAdmin`) for every new API route
+- `src/lib/auth.ts` (`verifyAdmin`) for every new **admin-facing** API route;
+  machine-to-machine n8n routes use the shared-secret convention instead —
+  see the FR-013 amendment in `spec.md`
 - the n8n integration pattern already proven by `whatsapp`/order-notification
   workflows, for scheduling trend-collection runs and handling the Telegram
   webhook
@@ -44,14 +46,18 @@ follow.
 │ └── ai-studio/ai-studio.hooks.ts       (NEW)                      │
 ├──────────────────────────────────────────────────────────────────┤
 │ Features (Server) — one repository+service pair per agent domain  │
-│ ├── ai-studio/trends.repository.ts     (NEW — Phase 1)           │
-│ ├── ai-studio/trends.service.ts        (NEW — Phase 1, "Trend    │
+│ ├── ai-studio/ai-studio.repository.ts  (NEW — Phase 1, shipped)  │
+│ ├── ai-studio/ai-studio.service.ts     (NEW — Phase 1, "Trend    │
 │ │                                        Hunter" + "Market        │
 │ │                                        Research" agents)        │
+│ │   ^ shipped as `ai-studio.*`, not the `trends.*` originally     │
+│ │     planned here; the names below are still aspirational        │
 │ ├── ai-studio/design-ideas.repository.ts     (Phase 1b)          │
 │ ├── ai-studio/design-ideas.service.ts        (Phase 1b, "Design   │
 │ │                                              Director" agent)   │
-│ ├── ai-studio/telegram.service.ts            (Phase 1c)          │
+│ ├── ai-studio/telegram.service.ts   (SUPERSEDED — outbound send   │
+│ │                                    lives in n8n, automation-    │
+│ │                                    plan.md §2; see tasks T012)  │
 │ ├── ai-studio/generated-assets.repository.ts (Phase 2, "Prompt    │
 │ │                                              Engineer" +        │
 │ │                                              "Mockup Director") │
@@ -69,7 +75,14 @@ follow.
 │ │                                                  triggered by    │
 │ │                                                  n8n schedule)   │
 │ ├── /api/admin/ai-studio/ideas/route.ts          (NEW — Phase 1b)│
-│ ├── /api/webhooks/telegram/route.ts              (NEW — Phase 1c)│
+│ ├── /api/n8n/ai-studio/{ideas,trends}/route.ts   (NEW — n8n read │
+│ │                                    + Director sink, shared     │
+│ │                                    secret, not verifyAdmin)    │
+│ ├── /api/webhooks/n8n/ai-studio/idea-action/route.ts  (NEW)      │
+│ ├── /api/webhooks/telegram/route.ts   (SUPERSEDED — a second     │
+│ │                                    telegramTrigger would steal │
+│ │                                    the bot's only webhook;     │
+│ │                                    receiver is an n8n branch)  │
 │ └── ... (assets/marketing/ads/analytics routes — Phase 2/3)      │
 ├──────────────────────────────────────────────────────────────────┤
 │ Database (additive only — see migration file)                     │
@@ -84,8 +97,12 @@ follow.
 │ └── telegram_approval_logs              (NEW)                     │
 ├──────────────────────────────────────────────────────────────────┤
 │ n8n                                                                │
-│ ├── ai-studio-trend-collection-workflow.json   (NEW, Phase 1)    │
-│ └── ai-studio-telegram-approval-workflow.json  (NEW, Phase 1c)   │
+│ ├── ai-studio-trend-collection-workflow.json   (deferred — no    │
+│ │                                    scraper credentials exist)  │
+│ ├── ai-studio-idea-dispatcher-workflow.json    (NEW, shipped)    │
+│ ├── ai-studio-design-director-workflow.json    (NEW, Phase 1b)   │
+│ └── telegram-fb-post-workflow.json — callback_query branch       │
+│     (the approval receiver; NOT a standalone workflow)           │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -142,26 +159,51 @@ see `tasks.md` for sequencing and the credentials each phase blocks on.
 
 ## Database Migration Policy
 
-Per the safety rules for this task: the migration SQL is **drafted but not
-executed** against the live Supabase project this session (no Supabase MCP
-connection is available in this environment, and schema changes are
-irreversible-by-default). The admin should review
-`docs/migrations/20260725120000_ai_studio_core.sql` and run it via the
-Supabase SQL Editor when ready — same manual-apply convention already used
-for every prior migration in `docs/migrations/`.
+The migration SQL was **drafted but not executed** in the authoring session.
+**Correction:** Supabase MCP *is* available in this environment, and
+`list_tables` confirms **none of the 9 AI Studio tables exist yet**. The
+migration will therefore be applied via `mcp__supabase__apply_migration`
+(tasks.md T006) rather than pasted into the Supabase SQL Editor by hand.
+`docs/migrations/20260725120000_ai_studio_core.sql` stays the checked-in
+source of truth, per the existing `docs/migrations/` convention.
+
+**One edit is required before it is applied:** add `UNIQUE
+(concept_fingerprint)` to `design_ideas` (tasks.md T029) — the file currently
+creates only an index, and `getByConceptFingerprint()` calls `.single()`
+against it. Schema changes are irreversible-by-default, so the `UNIQUE` goes
+in first, not as a follow-up.
 
 ## Open Blockers (credentials/decisions needed before Phase 1b+ can run for real)
 
-1. **Telegram bot token + admin chat ID** — not present in `.env.local`.
-2. **Trend-source access** — Pinterest/Etsy/TikTok/Instagram/Google
+**Unblocked since this plan was written** (see `automation-plan.md` §0 for the
+credential IDs):
+
+1. ~~**Telegram bot token + admin chat ID**~~ — a live bot and the
+   `telegramApi` credential `AsXbM9hYArJ88apL` already exist and are proven by
+   `telegram-fb-post-workflow.json`. Only the admin **chat id** still needs
+   seeding once from an inbound update (tasks.md T034).
+2. ~~**LLM access**~~ — Gemini (`pj3wNPsZG5Yic3Ho`), OpenRouter
+   (`EbbUdiq5aCjllGWD`) and the Supabase Postgres credential are all live.
+3. ~~**Supabase migration access**~~ — MCP available; see above.
+
+**Still blocked:**
+
+4. **Trend-source access** — Pinterest/Etsy/TikTok/Instagram/Google
    Trends/Reddit/Amazon each need either an official API key or an agreed
-   scraping approach (ToS-compliant). None configured today.
-3. **Image generation provider** — `GEMINI_API_TOKEN` exists (good for text
+   scraping approach (ToS-compliant). **None configured today** → the first
+   cut degrades to the manual "add trend" form.
+5. **Image generation provider** — `GEMINI_API_TOKEN` exists (good for text
    agents) but photorealistic 8K product photography needs a decision on
    provider (e.g. Gemini image models, or a dedicated image-gen API) plus a
    quality-gate implementation for the Image Standards checklist.
-4. **Meta Ads API access** — needed only for the (out-of-scope-for-v1)
+6. **Meta Ads API access** — needed only for the (out-of-scope-for-v1)
    auto-publish step; drafting doesn't require it.
 
-None of these block Phase 1 (trend storage + duplicate-safe idea scaffolding
-+ spec/plan/migration draft), which is what ships this session.
+**Verify, not blocked:** the two n8n secret values — `.env.local` has no
+`N8N_API_ACCESS_TOKEN` (so `requireN8nAccess` 503s) and defines a
+`N8N_WEBHOOK_SECRET` that differs from the `123456` the live workflows send.
+Confirm against the deployed Railway env before wiring anything (T034).
+
+Neither remaining blocker stops the first cut — trend → LLM idea → Telegram →
+approve → publish → `products` — which uses only credentials that already
+exist.

@@ -1,11 +1,11 @@
 import type { DesignIdeaStatus, TelegramApprovalAction } from "@/features/shared/types";
+import type { DictKey } from "@/features/i18n/dictionary";
 
 export interface DesignIdeaState {
   status: DesignIdeaStatus;
-  label: string;
-  labelAr: string;
+  labelKey: DictKey;
   colorClass: string;
-  availableActions: { label: string; action: DesignIdeaAction; nextStatus: DesignIdeaStatus; style: string }[];
+  availableActions: { labelKey: DictKey; action: DesignIdeaAction; nextStatus: DesignIdeaStatus; style: string }[];
 }
 
 /**
@@ -27,41 +27,36 @@ export type DesignIdeaAction = "approve" | "reject" | "favorite" | "publish";
 export const DesignIdeaStateMachine: Record<DesignIdeaStatus, DesignIdeaState> = {
   pending_review: {
     status: "pending_review",
-    label: "Pending Review",
-    labelAr: "قيد المراجعة",
+    labelKey: "aiStudio.status.pendingReview",
     colorClass: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     availableActions: [
-      { label: "Approve", action: "approve", nextStatus: "approved", style: "bg-green-500/10 text-green-400 hover:bg-green-500/20 neu-raised-sm" },
-      { label: "Reject", action: "reject", nextStatus: "rejected", style: "bg-red-500/10 text-red-400 hover:bg-red-500/20 neu-raised-sm" },
+      { labelKey: "aiStudio.action.approve", action: "approve", nextStatus: "approved", style: "bg-green-500/10 text-green-400 hover:bg-green-500/20 neu-raised-sm" },
+      { labelKey: "aiStudio.action.reject", action: "reject", nextStatus: "rejected", style: "bg-red-500/10 text-red-400 hover:bg-red-500/20 neu-raised-sm" },
     ],
   },
   approved: {
     status: "approved",
-    label: "Approved",
-    labelAr: "تمت الموافقة",
+    labelKey: "aiStudio.status.approved",
     colorClass: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
     availableActions: [
-      { label: "Publish", action: "publish", nextStatus: "published", style: "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 neu-raised-sm" },
+      { labelKey: "aiStudio.action.publish", action: "publish", nextStatus: "published", style: "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 neu-raised-sm" },
     ],
   },
   rejected: {
     status: "rejected",
-    label: "Rejected",
-    labelAr: "مرفوض",
+    labelKey: "aiStudio.status.rejected",
     colorClass: "bg-red-500/10 text-red-400 border-red-500/20",
     availableActions: [],
   },
   possible_duplicate: {
     status: "possible_duplicate",
-    label: "Possible Duplicate",
-    labelAr: "تكرار محتمل",
+    labelKey: "aiStudio.status.possibleDuplicate",
     colorClass: "bg-gray-500/10 text-gray-400 border-gray-500/20",
     availableActions: [],
   },
   published: {
     status: "published",
-    label: "Published",
-    labelAr: "منشور",
+    labelKey: "aiStudio.status.published",
     colorClass: "bg-green-500/10 text-green-400 border-green-500/20",
     availableActions: [],
   },

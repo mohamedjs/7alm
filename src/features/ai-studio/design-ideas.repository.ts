@@ -69,6 +69,31 @@ export class DesignIdeasRepository {
     return data;
   }
 
+  /** Insert a brand-new design idea in `pending_review`. */
+  async create(input: {
+    title: string;
+    description: string;
+    concept_fingerprint: string;
+    source_trend_ids: string[];
+  }): Promise<DesignIdea> {
+    const { data, error } = await supabase
+      .from("design_ideas")
+      .insert({
+        title: input.title,
+        description: input.description,
+        concept_fingerprint: input.concept_fingerprint,
+        source_trend_ids: input.source_trend_ids,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating design idea:", error);
+      throw error;
+    }
+    return data;
+  }
+
   /** Update a design idea's status (and optionally its linked `product_id` on publish). */
   async updateStatus(
     id: string,

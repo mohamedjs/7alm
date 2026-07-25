@@ -65,7 +65,9 @@ the truth.*
   (T010), fingerprint/dedup (`ai-studio.service.ts`, already built for trends;
   same for `concept_fingerprint` on ideas), the **`products` table write on
   publish** (must reuse `products.repository.ts`, never a parallel path),
-  `verifyAdmin()`, and RLS-service-role access.
+  `verifyAdmin()` (on the **admin-facing** routes — the n8n-facing ones use
+  shared secrets, see the FR-013 amendment in `spec.md`), and
+  RLS-service-role access.
 - **Both (n8n → 7alm API route)** = anything that is an LLM/Telegram action but
   mutates domain state. n8n never writes `design_ideas`, `generated_assets`,
   `ad_campaigns`, or `products` **directly**. It calls a 7alm API route that
@@ -120,8 +122,14 @@ workflow.**
 
 ## 3. Workflow decomposition (modular, matching the existing style)
 
-Three workflows, each following the existing trigger → normalize/set →
-route/if/switch → agent-or-httpRequest → 7alm-API/Postgres write → reply shape.
+Four workflows (A, B, **D**, and C-later), each following the existing
+trigger → normalize/set → route/if/switch → agent-or-httpRequest →
+7alm-API/Postgres write → reply shape.
+
+> **Scope change:** the first cut now also includes **Workflow D, the LLM
+> Design Director** (below). Without it nothing ever inserts a `design_ideas`
+> row, so Workflow A has nothing to dispatch and the approval loop is
+> unreachable end-to-end.
 
 ### Workflow A (NEW, safe standalone) — `ai-studio-idea-dispatcher-workflow.json`
 Sends design-idea approval cards to the admin on Telegram. **No `telegramTrigger`
@@ -133,7 +141,13 @@ Sends design-idea approval cards to the admin on Telegram. **No `telegramTrigger
 | A2 | `Load Pending Ideas` | `httpRequest` GET | `GET {BASE}/api/n8n/ai-studio/ideas?status=pending_review` with `x-n8n-access-token` |
 | A3 | `Has Any?` | `if` | Stop if none |
 | A4 | `Split Ideas` | `splitInBatches`/`itemLists` | One card per idea |
-| A5 | `Send Idea Card` | `telegram` (sendMessage) — **Telegram account** cred | Text = title+description+concept; `replyMarkup: inlineKeyboard` with 6 buttons, each `callback_data` = `ais:<action>:<idea_id>` (`ais:approve:<uuid>`, `ais:reject:…`, `ais:edit:…`, `ais:regen:…`, `ais:fav:…`, `ais:publish:…`) |
+| A5 | `Send Idea Card` | `telegram` (sendMessage) — **Telegram account** cred | Text = title+description+concept; `replyMarkup: inlineKeyboard` with **4** buttons, each `callback_data` = `ais:<action>:<idea_id>` (`ais:approve:<uuid>`, `ais:reject:…`, `ais:favorite:…`, `ais:publish:…`) |
+
+> **Corrected:** this row previously listed **6** buttons including `ais:edit`
+> and `ais:regen`. The shipped card has **4**, matching the action route's
+> `SUPPORTED_ACTIONS` (`approve|reject|favorite|publish`) and §6/§7, which
+> already said 4. `edit`/`regenerate` are deferred (§6) — do not emit those
+> two `callback_data` values; the route rejects them.
 
 Chat id: `chatId` = the admin chat id (see §4 config — seed once).
 
@@ -153,17 +167,47 @@ AI Studio approval branch nodes:
 | # | Node (name) | Type | Does |
 |---|---|---|---|
 | B1 | `Parse Callback` | `set` | Extract `action` + `ideaId` from `callback_query.data` (`ais:<action>:<id>`), `telegram_user_id` from `callback_query.from.id`, `chatId` from `callback_query.message.chat.id` |
-| B2 | `Idea Action → 7alm` | `httpRequest` POST | `POST {BASE}/api/webhooks/n8n/ai-studio/idea-action` header `x-n8n-access-token`; body `{ ideaId, action, telegramUserId }`. Server runs `designIdeaStateMachine`, writes `design_ideas.status` + `telegram_approval_logs`, and on `publish` creates the `products` row. `neverError:true` like whatsapp's "Call 7alm API" |
+| B2 | `Idea Action → 7alm` | `httpRequest` POST | `POST {BASE}/api/webhooks/n8n/ai-studio/idea-action` header **`x-webhook-secret`** (→ `N8N_WEBHOOK_SECRET`, **not** `x-n8n-access-token` — see note); body `{ ideaId, action, telegramUserId }`. Server runs `designIdeaStateMachine`, writes `design_ideas.status` + `telegram_approval_logs`, and on `publish` creates the `products` row. `neverError:true` like whatsapp's "Call 7alm API" |
 | B3 | `Action OK?` | `if` | Branch on `$json.success` |
 | B4 | `Answer Callback` | `telegram` (answerCallbackQuery) — **Telegram account** | Toast to the admin ("تمت الموافقة ✅" / "تم الرفض") so the button stops spinning |
 | B5 | `Edit Card Status` | `telegram` (editMessageText / editMessageReplyMarkup) | Update the original card to show new status / disable buttons |
 | B6 (edit/regen) | `Ask For Feedback` or `Kick Regeneration` | `telegram` sendMessage / `httpRequest` | `edit`→prompt admin for free-text (stored as `design_versions.admin_feedback`); `regenerate`→POST to Workflow C |
+
+> **Corrected (B2 header).** This row previously said the idea-action route
+> uses `x-n8n-access-token`. It does **not**. Both the shipped workflow and
+> the shipped route use **`x-webhook-secret` → `N8N_WEBHOOK_SECRET`**, matching
+> the `/api/webhooks/n8n/order-action` precedent. `x-n8n-access-token` →
+> `N8N_API_ACCESS_TOKEN` is for the **`/api/n8n/*` read routes only** (A2, and
+> the Workflow D calls). Following the old wording means every callback
+> silently 401s. §7 Step 3 carried the same error and is corrected there too.
 
 `edit` and `regenerate` reuse the LLM-agent pattern; the follow-up free-text the
 admin types comes back as a **`message`** update (route 2) — so keep a light
 `design_ideas` "awaiting_feedback" hint (server-side) to correlate it, or handle
 `edit`/`regenerate` fully inside the app UI in v1 and keep the bot to
 approve/reject/favorite/publish first (recommended smallest cut — see §6).
+
+### Workflow D (NEW, first cut) — `ai-studio-design-director-workflow.json`
+The idea **producer**. Decoupled from Workflow A: it only writes ideas; the
+hourly dispatcher picks them up on its own schedule.
+
+| # | Node (name) | Type | Does |
+|---|---|---|---|
+| D1 | `Director Trigger` | `scheduleTrigger` | Cron (e.g. daily) |
+| D2 | `Load New Trends` | `httpRequest` GET | `GET {BASE}/api/n8n/ai-studio/trends?status=new` with `x-n8n-access-token` |
+| D3 | `Design Director` | `@n8n/n8n-nodes-langchain.agent` — **OpenRouter account** (`EbbUdiq5aCjllGWD`) | Generates phone-case concepts from the trend context. Copy the agent + `$fromAI(...)` pattern from telegram-fb-post's "Generate FB Post" |
+| D4 | `Ideas → 7alm` | `httpRequest` POST | `POST {BASE}/api/n8n/ai-studio/ideas` with `x-n8n-access-token`. Server dedups, stores, and marks the source trends used |
+
+**Output contract — do not guess this when writing the agent's output
+parser.** The LLM returns **`title` / `description` / `concept` only**. The
+**server** computes `concept_fingerprint` and runs the dedup check; the LLM
+never sees or sends a fingerprint or a status. This is §1's
+server-authoritative rule ("Insert a new design idea (with dedup) | Next.js |
+Dedup rule (FR) must be server-authoritative") applied to the Director.
+
+The POST route must also call `markTrendsUsed()` on the trends it consumed,
+or D2 returns the same rows on the next run and dedup silences every run
+after the first.
 
 ### Workflow C (NEW, Phase 2) — `ai-studio-asset-generation-workflow.json`
 Kicked off after an idea is `approved`. Not needed for the first ship.
@@ -252,7 +296,9 @@ initially). This gets the full **idea → Telegram → approve → publish →
 
 **Dependencies the first cut still needs (not n8n, but must exist):**
 1. Migration `20260725120000_ai_studio_core.sql` applied (creates
-   `design_ideas`, `telegram_approval_logs`, etc.) — admin action, T006.
+   `design_ideas`, `telegram_approval_logs`, etc.) — **T006, applied via
+   Supabase MCP**, after the `UNIQUE (concept_fingerprint)` fix (T029). *(No
+   longer an admin-manual SQL Editor step; MCP access exists.)*
 2. Next.js route **`/api/webhooks/n8n/ai-studio/idea-action`** implementing
    `designIdeaStateMachine` (T010) + audit log + publish→products.
 3. Next.js route **`/api/n8n/ai-studio/ideas?status=pending_review`** (read for
@@ -271,13 +317,18 @@ Build in this order. Do **not** create a second `telegramTrigger`.
   `pending_review→approved|rejected`, `approved→published`, `*→possible_duplicate`).
 - Add `src/features/ai-studio/design-ideas.repository.ts` + `.service.ts`
   (dedup via `concept_fingerprint`, same shape as the trend slice).
-- Add API routes, each `verifyAdmin()`-free but guarded by the n8n access token
-  the deployed app actually checks:
-  - `GET /api/n8n/ai-studio/ideas` (list by status).
-  - `POST /api/webhooks/n8n/ai-studio/idea-action` — body `{ideaId, action,
-    telegramUserId}`; runs the state machine, writes `design_ideas.status` +
-    `telegram_approval_logs`, and on `publish` inserts into `products`
-    (`is_active:false`) via `products.repository.ts`. Returns `{success:bool}`.
+- Add API routes, each `verifyAdmin()`-free but guarded by the shared secret
+  the deployed app actually checks (per the FR-013 amendment in `spec.md`):
+  - `GET /api/n8n/ai-studio/ideas` (list by status) — `x-n8n-access-token`.
+  - `GET /api/n8n/ai-studio/trends?status=new` (Director context) —
+    `x-n8n-access-token`.
+  - `POST /api/n8n/ai-studio/ideas` (Director sink) — `x-n8n-access-token`;
+    server computes `concept_fingerprint`, dedups, calls `markTrendsUsed()`.
+  - `POST /api/webhooks/n8n/ai-studio/idea-action` — **`x-webhook-secret`**;
+    body `{ideaId, action, telegramUserId}`; runs the state machine, writes
+    `design_ideas.status` + `telegram_approval_logs`, and on `publish` inserts
+    into `products` (`is_active:false`) via `products.repository.ts`. Returns
+    `{success:bool}`.
 
 **Step 2 — Build `ai-studio-idea-dispatcher-workflow.json` (Workflow A, standalone):**
 scheduleTrigger → `httpRequest` GET pending ideas → `if` any → split → `telegram`
@@ -287,10 +338,17 @@ using **Telegram account** cred and the seeded `adminChatId`.
 **Step 3 — Edit `automation/telegram-fb-post-workflow.json` (Workflow B branch):**
 add `"callback_query"` to the trigger's `updates`; insert a top Switch that
 routes `callback_query.data` starting with `ais:` into: `Parse Callback` (Set) →
-`Idea Action → 7alm` (`httpRequest` POST to the action route, `neverError:true`)
-→ `Action OK?` (if) → `Answer Callback` (answerCallbackQuery) + `Edit Card
-Status` (editMessageText). Leave the existing voice/text FB-post branch
-untouched.
+`Idea Action → 7alm` (`httpRequest` POST to the action route with
+**`x-webhook-secret`** — *not* `x-n8n-access-token`, see §3 B2's correction —
+`neverError:true`) → `Answer Callback` (answerCallbackQuery) + `Edit Card
+Status` (editMessageText, sourced from `$('Idea Action → 7alm').item.json`).
+Leave the existing voice/text FB-post branch untouched.
+
+**Step 3b — Build `ai-studio-design-director-workflow.json` (Workflow D):**
+`scheduleTrigger` → GET `/api/n8n/ai-studio/trends?status=new` → langchain
+agent on the **OpenRouter account** → POST `/api/n8n/ai-studio/ideas`. Without
+this there are no ideas for Step 2 to dispatch. LLM returns `title` /
+`description` / `concept` only — the server fingerprints and dedups.
 
 **Step 4 — later:** `ai-studio-asset-generation-workflow.json` (Workflow C)
 once the image-gen provider decision is made; then marketing/ads/analytics.
@@ -298,5 +356,7 @@ once the image-gen provider decision is made; then marketing/ads/analytics.
 **Reference patterns to copy verbatim from existing workflows:**
 `@n8n/n8n-nodes-langchain.agent` + `httpRequestTool` + `$fromAI(...)` tool
 arguments (telegram-fb-post "Generate FB Post"); `httpRequest` → 7alm with
-`x-n8n-access-token` and `neverError:true` (whatsapp "Call 7alm API"); inbound
+`x-n8n-access-token` and `neverError:true` (whatsapp "Call 7alm API" — copy the
+`neverError` shape, but swap the header to `x-webhook-secret` for any
+`/api/webhooks/n8n/*` target); inbound
 secret validation `if` (whatsapp "Validate Send Secret").

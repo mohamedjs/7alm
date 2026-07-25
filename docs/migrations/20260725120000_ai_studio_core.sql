@@ -39,11 +39,11 @@ CREATE TABLE IF NOT EXISTS design_ideas (
   is_favorite       boolean NOT NULL DEFAULT false,
   product_id        uuid REFERENCES public.products(id) ON DELETE SET NULL, -- set on publish
   created_at        timestamptz NOT NULL DEFAULT now(),
-  updated_at        timestamptz NOT NULL DEFAULT now()
+  updated_at        timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (concept_fingerprint)
 );
 
 CREATE INDEX IF NOT EXISTS idx_design_ideas_status ON design_ideas (status);
-CREATE INDEX IF NOT EXISTS idx_design_ideas_concept_fingerprint ON design_ideas (concept_fingerprint);
 
 -- 3. Design Versions — each iteration (original + regenerations) of an idea
 CREATE TABLE IF NOT EXISTS design_versions (
