@@ -627,6 +627,12 @@ const en = {
   "aiStudio.action.archive": "Archive",
   "aiStudio.action.copy": "Copy",
   "aiStudio.action.copied": "Copied!",
+  "aiStudio.action.generateImage": "Generate image",
+  "aiStudio.action.regenerateImage": "Regenerate image",
+  "aiStudio.image.generating": "Generating…",
+  "aiStudio.image.promptPlaceholder": "Leave empty to auto-generate, or describe a change…",
+  "aiStudio.image.failed": "Image generation failed. Try again.",
+  "aiStudio.image.alt": "Campaign visual",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -1214,6 +1220,12 @@ const ar: Record<DictKey, string> = {
   "aiStudio.action.archive": "أرشفة",
   "aiStudio.action.copy": "نسخ",
   "aiStudio.action.copied": "تم النسخ!",
+  "aiStudio.action.generateImage": "إنشاء صورة",
+  "aiStudio.action.regenerateImage": "إعادة إنشاء الصورة",
+  "aiStudio.image.generating": "جارٍ الإنشاء…",
+  "aiStudio.image.promptPlaceholder": "اتركه فارغًا للإنشاء التلقائي، أو صف التعديل المطلوب…",
+  "aiStudio.image.failed": "فشل إنشاء الصورة. حاول مرة أخرى.",
+  "aiStudio.image.alt": "صورة الحملة",
 };
 
 export type Locale = "en" | "ar";

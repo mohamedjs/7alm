@@ -15,8 +15,16 @@ const FILTERS: { status: CampaignStatusFilter; key: DictKey }[] = [
 
 export default function AiStudioPage() {
   const { t } = useLocale();
-  const { campaigns, isLoading, statusFilter, setStatusFilter, markPublished, archive } =
-    useAiStudioManager();
+  const {
+    campaigns,
+    isLoading,
+    statusFilter,
+    setStatusFilter,
+    markPublished,
+    archive,
+    generateImage,
+    generatingId,
+  } = useAiStudioManager();
 
   return (
     <div className="space-y-6">
@@ -48,6 +56,8 @@ export default function AiStudioPage() {
         isLoading={isLoading}
         onMarkPublished={markPublished}
         onArchive={archive}
+        onGenerateImage={generateImage}
+        generatingId={generatingId}
       />
     </div>
   );

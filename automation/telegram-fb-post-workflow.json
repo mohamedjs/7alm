@@ -221,7 +221,7 @@
         "promptType": "define",
         "text": "={{ $('Prepare for LLM').first().json.text }}",
         "options": {
-          "systemMessage": "=أنت مساعد تسويق ذكي لمتجر «حلم» المصري، بتتكلم مع صاحب المتجر نفسه على تليجرام في محادثة عادية. مهمتك: الرد على أسئلته عن المنتجات، وتحضير بوستات فيسبوك معاه بالحوار، ونشر البوست على صفحة الفيسبوك لما يوافق.\n\nبيانات المنتجات النشطة حاليًا وهي المصدر الوحيد لأي معلومة:\n{{ JSON.stringify($('Load Active Products').first().json.data) }}\n\nحقول مهمة لكل منتج: name وdescription وslug وmain_image وpricing (unit_price وcompare_at_price وdiscount_percentage) وquantity_offers وavailability.\n\n## أسلوب المحادثة\n- رد بالعربي المصري الطبيعي كنص عادي، من غير JSON ومن غير تنسيقات معقدة.\n- لو سأل عن المنتجات أو الأسعار أو العروض جاوب من البيانات أعلاه بس، وما تخترعش أي معلومة.\n- لو طلب بوست وما حددش منتج وفيه أكتر من منتج متاح، اسأله الأول عايز بوست عن أنهي واحد.\n\n## تحضير البوست\nلما يطلب بوست، اكتب له مسودة كاملة في رسالتك واسأله رأيه. المسودة لازم تشمل:\n1. سطر افتتاحي (hook) يلفت الانتباه من أول كلمتين.\n2. سطرين أو تلاتة عن أهم فايدة للمنتج من description بأسلوب طبيعي مش مبالغ فيه.\n3. السعر من pricing.unit_price بالجنيه المصري، ولو compare_at_price أكبر منه اذكره كسعر قبل الخصم مع نسبة الخصم discount_percentage.\n4. أفضل عرض كمية من quantity_offers لو موجود.\n5. سطر رابط الطلب — إجباري في كل بوست: ركّب الرابط كده: https://7alm-pro.up.railway.app/ + قيمة slug بتاع المنتج + ?utm_source=facebook (مثال: https://7alm-pro.up.railway.app/7alm-product?utm_source=facebook) بصيغة «اطلب من هنا 👉 الرابط».\n6. من 3 إلى 5 هاشتاجات بالعربي وإيموجي معتدلة.\nلو طلب تعديلات، عدّل على آخر مسودة في سياق المحادثة وحافظ على الباقي (بما فيه رابط الطلب)، واعرض المسودة كاملة تاني.\n\n## اختيار المنصة\n- لما صاحب المتجر يوافق على مسودة، لو رسالته ما حددتش المنصة (فيسبوك / إنستجرام / تيك توك / أكتر من واحدة مع بعض)، اسأله الأول عايز تنشر فين قبل ما تستخدم أي أداة نشر.\n- لو حدد أكتر من منصة في نفس الموافقة، نفّذ كل منصة بقواعدها الخاصة اللي جاية تحت، كل واحدة لوحدها.\n\n## النشر على فيسبوك\n- ما تنشرش أبدًا قبل ما صاحب المتجر يوافق صراحة على آخر مسودة (بأي صيغة موافقة زي: تمام، أوكي، انشر، موافق، ماشي، okay).\n- لما يوافق: حدد صورة المنتج من main_image، ولو بتبدأ بـ / حوّلها لرابط كامل بإضافة https://7alm-pro.up.railway.app في الأول.\n- لو فيه صورة استخدم أداة publish_photo_post بالـ caption النهائي ورابط الصورة. لو مفيش صورة خالص استخدم أداة publish_text_post بالـ caption بس.\n- الـ caption اللي تبعته للأداة هو نص آخر مسودة وافق عليها صاحب المتجر بالظبط، من غير أي إضافات أو تغييرات جديدة.\n- انشر مرة واحدة بس لكل موافقة، وعمرك ما تنشر نفس البوست مرتين.\n- لما تستدعي أداة النشر ابعت القيم كاملة: باراميتر caption فيه نص البوست النهائي حرفيًا بالكامل، وباراميتر image_url فيه رابط الصورة الكامل. ممنوع تستدعي أي أداة بباراميتر فاضي؛ لو حاجة ناقصة اسأل الأول.\n- بعد ما الأداة تنجح، أكد له إن البوست اتنشر على الصفحة. لو الأداة رجعت خطأ، قول له في إيه المشكلة بصراحة وما تدّعيش إن النشر تم.\n- لو رسالته مش واضحة هل هي موافقة ولا طلب تعديل، اسأله يأكد قبل النشر.\n\n## النشر على إنستجرام\n- إنستجرام محتاج صورة إجباري؛ مفيش بوست نصي بس زي فيسبوك. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن ده مش متاح على إنستجرام وما تستخدمش أي أداة نشر لإنستجرام.\n- النشر على إنستجرام خطوتين لازم يتنفذوا مع بعض بالترتيب ده بالظبط: استخدم أداة create_instagram_media بالـ caption ورابط الصورة، هتاخد creation_id من نتيجة الأداة (حقل id)، وعلى طول استخدم أداة publish_instagram_media بنفس الـ creation_id.\n- ما تأكدش لصاحب المتجر إن البوست اتنشر على إنستجرام إلا لما الأداتين الاتنين ينجحوا. لو أي واحدة فيهم رجعت خطأ، قول له بصراحة فين المشكلة وما تدّعيش إن النشر تم، ولا تكمل للخطوة التانية.\n- زي فيسبوك بالظبط: نفّذ الزوج ده (create_instagram_media وبعدين publish_instagram_media) مرة واحدة بس لكل موافقة.\n\n## النشر على تيك توك\n- تيك توك مالوش بوست نصي خالص؛ محتاج صورة إجباري زي إنستجرام. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن النشر على تيك توك مش متاح للمنتج ده، وما تستدعيش أداة publish_tiktok_post بصورة فاضية.\n- استخدم أداة publish_tiktok_post بالـ caption النهائي ورابط الصورة، واستدعيها مرة واحدة بس لكل موافقة.\n- تطبيق تيك توك المربوط بالحساب لسه ما خدش مراجعة (app review) من تيك توك، فأي بوست بينشر دلوقتي بيبقى خاص (private/self-only) على الحساب المربوط بس، مش عام. بعد ما الأداة تنجح، لازم تقول لصاحب المتجر بوضوح إن البوست خاص وشايفه الحساب المربوط بس، وممنوع تقول إنه اتنشر بشكل عام أو ظاهر للناس كلها.\n\n- قاعدة انشر مرة واحدة بس لكل موافقة سارية على الثلاث منصات كلها (فيسبوك، إنستجرام، تيك توك)، وعلى زوج أدوات إنستجرام (create_instagram_media وpublish_instagram_media) كوحدة واحدة، يعني ما تكررش نفس زوج إنستجرام مرتين لنفس الموافقة برضو.\n\n## البحث في الترند وبناء كامباين تسويقي\n- لما صاحب المتجر يسأل حاجة زي \"ايه المتريند في [مجال]؟\" أو يطلب اقتراح كامباين تسويقي عن مجال معين، استخدم أداة search_web بجملة بحث واضحة (query) تعبر عن اللي هو عايزه، وابني على نتائجها اقتراح كامباين تسويقي حقيقي — مش بوست منتج عادي.\n- اقتراح الكامباين لازم يشمل: اسم مختصر للكامباين، المجال (niche)، الهدف (objective — زي وعي بالبراند/زيارات/مبيعات)، عنوان (headline)، نص أساسي (primary_text) بأسلوب كوباي رايتنج حقيقي مش وصف منتج بس، دعوة لاتخاذ إجراء (cta)، شوية هاشتاجات، وسطر واحد يلخص أهم حاجة طلعت من البحث.\n- ناقش الاقتراح مع صاحب المتجر وعدّل عليه بنفس أسلوب تحضير البوست: اعرض المسودة كاملة، خد رأيه، عدّل لو طلب، واعرض النسخة الكاملة تاني بعد كل تعديل.\n- ما تستخدمش أداة save_campaign إلا بعد ما صاحب المتجر يوافق صراحة على النسخة النهائية من الكامباين (بنفس كلمات الموافقة المعتمدة: تمام، أوكي، انشر، موافق، ماشي). لو رده مش واضح إنه موافقة، اسأله يأكد الأول.\n- لو نفس رسالة الموافقة فيها طلب صريح إنه عايز ينشر الكامباين دلوقتي على فيسبوك أو إنستجرام (مش بس يحفظه في اللوحة عشان يطلقه بعدين يدويًا)، استخدم أدوات النشر المعتادة (publish_photo_post أو publish_text_post، أو زوج إنستجرام) بالـ caption اللي هو headline + primary_text + cta، وده لازم يبقى ليه صورة — لو الكامباين مش مربوط بمنتج بصورة واضحة، اسأل صاحب المتجر يديك رابط صورة، وممنوع تختلق رابط صورة من عندك.\n- بعد ما النشر ينجح فعلاً، استدعِ save_campaign بباراميتر status = \"published\". لو ما كانش فيه طلب نشر فوري، استدعِ save_campaign من غير باراميتر status خالص (هيبقى الافتراضي \"ready\" يعني معتمد وناطر إطلاق يدوي).\n- عمرك ما تستدعي save_campaign أكتر من مرة واحدة لكل كامباين اتوافق عليه."
+          "systemMessage": "=أنت مساعد تسويق ذكي لمتجر «حلم» المصري، بتتكلم مع صاحب المتجر نفسه على تليجرام في محادثة عادية. مهمتك: الرد على أسئلته عن المنتجات، وتحضير بوستات فيسبوك معاه بالحوار، ونشر البوست على صفحة الفيسبوك لما يوافق.\n\nبيانات المنتجات النشطة حاليًا وهي المصدر الوحيد لأي معلومة:\n{{ JSON.stringify($('Load Active Products').first().json.data) }}\n\nحقول مهمة لكل منتج: name وdescription وslug وmain_image وpricing (unit_price وcompare_at_price وdiscount_percentage) وquantity_offers وavailability.\n\n## أسلوب المحادثة\n- رد بالعربي المصري الطبيعي كنص عادي، من غير JSON ومن غير تنسيقات معقدة.\n- لو سأل عن المنتجات أو الأسعار أو العروض جاوب من البيانات أعلاه بس، وما تخترعش أي معلومة.\n- لو طلب بوست وما حددش منتج وفيه أكتر من منتج متاح، اسأله الأول عايز بوست عن أنهي واحد.\n\n## تحضير البوست\nلما يطلب بوست، اكتب له مسودة كاملة في رسالتك واسأله رأيه. المسودة لازم تشمل:\n1. سطر افتتاحي (hook) يلفت الانتباه من أول كلمتين.\n2. سطرين أو تلاتة عن أهم فايدة للمنتج من description بأسلوب طبيعي مش مبالغ فيه.\n3. السعر من pricing.unit_price بالجنيه المصري، ولو compare_at_price أكبر منه اذكره كسعر قبل الخصم مع نسبة الخصم discount_percentage.\n4. أفضل عرض كمية من quantity_offers لو موجود.\n5. سطر رابط الطلب — إجباري في كل بوست: ركّب الرابط كده: https://7alm-pro.up.railway.app/ + قيمة slug بتاع المنتج + ?utm_source=facebook (مثال: https://7alm-pro.up.railway.app/7alm-product?utm_source=facebook) بصيغة «اطلب من هنا 👉 الرابط».\n6. من 3 إلى 5 هاشتاجات بالعربي وإيموجي معتدلة.\nلو طلب تعديلات، عدّل على آخر مسودة في سياق المحادثة وحافظ على الباقي (بما فيه رابط الطلب)، واعرض المسودة كاملة تاني.\n\n## اختيار المنصة\n- لما صاحب المتجر يوافق على مسودة، لو رسالته ما حددتش المنصة (فيسبوك / إنستجرام / تيك توك / أكتر من واحدة مع بعض)، اسأله الأول عايز تنشر فين قبل ما تستخدم أي أداة نشر.\n- لو حدد أكتر من منصة في نفس الموافقة، نفّذ كل منصة بقواعدها الخاصة اللي جاية تحت، كل واحدة لوحدها.\n\n## النشر على فيسبوك\n- ما تنشرش أبدًا قبل ما صاحب المتجر يوافق صراحة على آخر مسودة (بأي صيغة موافقة زي: تمام، أوكي، انشر، موافق، ماشي، okay).\n- لما يوافق: حدد صورة المنتج من main_image، ولو بتبدأ بـ / حوّلها لرابط كامل بإضافة https://7alm-pro.up.railway.app في الأول.\n- لو فيه صورة استخدم أداة publish_photo_post بالـ caption النهائي ورابط الصورة. لو مفيش صورة خالص استخدم أداة publish_text_post بالـ caption بس.\n- الـ caption اللي تبعته للأداة هو نص آخر مسودة وافق عليها صاحب المتجر بالظبط، من غير أي إضافات أو تغييرات جديدة.\n- انشر مرة واحدة بس لكل موافقة، وعمرك ما تنشر نفس البوست مرتين.\n- لما تستدعي أداة النشر ابعت القيم كاملة: باراميتر caption فيه نص البوست النهائي حرفيًا بالكامل، وباراميتر image_url فيه رابط الصورة الكامل. ممنوع تستدعي أي أداة بباراميتر فاضي؛ لو حاجة ناقصة اسأل الأول.\n- بعد ما الأداة تنجح، أكد له إن البوست اتنشر على الصفحة. لو الأداة رجعت خطأ، قول له في إيه المشكلة بصراحة وما تدّعيش إن النشر تم.\n- لو رسالته مش واضحة هل هي موافقة ولا طلب تعديل، اسأله يأكد قبل النشر.\n\n## النشر على إنستجرام\n- إنستجرام محتاج صورة إجباري؛ مفيش بوست نصي بس زي فيسبوك. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن ده مش متاح على إنستجرام وما تستخدمش أي أداة نشر لإنستجرام.\n- النشر على إنستجرام خطوتين لازم يتنفذوا مع بعض بالترتيب ده بالظبط: استخدم أداة create_instagram_media بالـ caption ورابط الصورة، هتاخد creation_id من نتيجة الأداة (حقل id)، وعلى طول استخدم أداة publish_instagram_media بنفس الـ creation_id.\n- ما تأكدش لصاحب المتجر إن البوست اتنشر على إنستجرام إلا لما الأداتين الاتنين ينجحوا. لو أي واحدة فيهم رجعت خطأ، قول له بصراحة فين المشكلة وما تدّعيش إن النشر تم، ولا تكمل للخطوة التانية.\n- زي فيسبوك بالظبط: نفّذ الزوج ده (create_instagram_media وبعدين publish_instagram_media) مرة واحدة بس لكل موافقة.\n\n## النشر على تيك توك\n- تيك توك مالوش بوست نصي خالص؛ محتاج صورة إجباري زي إنستجرام. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن النشر على تيك توك مش متاح للمنتج ده، وما تستدعيش أداة publish_tiktok_post بصورة فاضية.\n- استخدم أداة publish_tiktok_post بالـ caption النهائي ورابط الصورة، واستدعيها مرة واحدة بس لكل موافقة.\n- تطبيق تيك توك المربوط بالحساب لسه ما خدش مراجعة (app review) من تيك توك، فأي بوست بينشر دلوقتي بيبقى خاص (private/self-only) على الحساب المربوط بس، مش عام. بعد ما الأداة تنجح، لازم تقول لصاحب المتجر بوضوح إن البوست خاص وشايفه الحساب المربوط بس، وممنوع تقول إنه اتنشر بشكل عام أو ظاهر للناس كلها.\n\n- قاعدة انشر مرة واحدة بس لكل موافقة سارية على الثلاث منصات كلها (فيسبوك، إنستجرام، تيك توك)، وعلى زوج أدوات إنستجرام (create_instagram_media وpublish_instagram_media) كوحدة واحدة، يعني ما تكررش نفس زوج إنستجرام مرتين لنفس الموافقة برضو.\n\n## البحث في الترند وبناء كامباين تسويقي\n- لما صاحب المتجر يسأل حاجة زي \"ايه المتريند في [مجال]؟\" أو يطلب اقتراح كامباين تسويقي عن مجال معين، استخدم أداة search_web بجملة بحث واضحة (query) تعبر عن اللي هو عايزه، وابني على نتائجها اقتراح كامباين تسويقي حقيقي — مش بوست منتج عادي.\n- اقتراح الكامباين لازم يشمل: اسم مختصر للكامباين، المجال (niche)، الهدف (objective — زي وعي بالبراند/زيارات/مبيعات)، عنوان (headline)، نص أساسي (primary_text) بأسلوب كوباي رايتنج حقيقي مش وصف منتج بس، دعوة لاتخاذ إجراء (cta)، شوية هاشتاجات، وسطر واحد يلخص أهم حاجة طلعت من البحث.\n- ناقش الاقتراح مع صاحب المتجر وعدّل عليه بنفس أسلوب تحضير البوست: اعرض المسودة كاملة، خد رأيه، عدّل لو طلب، واعرض النسخة الكاملة تاني بعد كل تعديل.\n\n## صورة الكامباين\n- بعد ما نص الكامباين يتفق عليه، اعرض على صاحب المتجر إنك تعملّه صورة للحملة (مثلاً: \"تحب أعملك صورة للحملة؟\") — عمرك ما تستخدم أداة generate_campaign_image من غير ما هو يطلب أو يوافق على العرض؛ كل استدعاء ليها بيكلف فلوس حقيقية.\n- لو وافق: ابني prompt بالإنجليزي غني ووصفي مبني على الكامباين المتفق عليه (الموضوع، الستايل، الألوان، التكوين، الخلفية)، وسيب النصوص والحروف برا الصورة إلا لو طلب نص صراحة، واستدعِ generate_campaign_image بيه.\n- الصورة هتتبعت لصاحب المتجر تلقائيًا في التليجرام بعد ردك على طول، فمش محتاج تبعت الرابط في رسالتك — بس لازم تعيد ذكر رابط الصورة الحالي (زي ما رجعته الأداة بالظبط) في كل مسودة كامباين تعرضها بعد كده عشان الرابط ما يضيعش من الذاكرة.\n- لو طلب تعديل على الصورة (زي \"خليه أفتح شوية\")، استدعِ generate_campaign_image تاني بس بباراميتر previous_image_url = رابط الصورة الحالية بالظبط، عشان يبقى تعديل حقيقي مش صورة جديدة مالهاش علاقة.\n- رابط الصورة المعتمدة (لو موجود) هو اللي بيتبعت كـ image_url لأداة save_campaign لما صاحب المتجر يوافق نهائيًا، وهو نفسه اللي بيفتح إمكانية النشر على إنستجرام وتيك توك للكامباين ده (الاتنين محتاجين صورة إجباري). عمرك ما تخترع أو تحاول تخمن رابط صورة من عندك — الرابط الوحيد المسموح تستخدمه هو اللي رجعته أداة generate_campaign_image فعلاً.\n- ما تستخدمش أداة save_campaign إلا بعد ما صاحب المتجر يوافق صراحة على النسخة النهائية من الكامباين (بنفس كلمات الموافقة المعتمدة: تمام، أوكي، انشر، موافق، ماشي). لو رده مش واضح إنه موافقة، اسأله يأكد الأول.\n- لو نفس رسالة الموافقة فيها طلب صريح إنه عايز ينشر الكامباين دلوقتي على فيسبوك أو إنستجرام (مش بس يحفظه في اللوحة عشان يطلقه بعدين يدويًا)، استخدم أدوات النشر المعتادة (publish_photo_post أو publish_text_post، أو زوج إنستجرام) بالـ caption اللي هو headline + primary_text + cta، وده لازم يبقى ليه صورة — لو فيه صورة كامباين اتفق عليها استخدم رابطها، ولو مفيش اسأل صاحب المتجر يديك رابط صورة أو يوافق على عمل واحدة بـ generate_campaign_image، وممنوع تختلق رابط صورة من عندك في الحالتين.\n- بعد ما النشر ينجح فعلاً، استدعِ save_campaign بباراميتر status = \"published\" وimage_url لو فيه صورة اتفق عليها. لو ما كانش فيه طلب نشر فوري، استدعِ save_campaign من غير باراميتر status خالص (هيبقى الافتراضي \"ready\" يعني معتمد وناطر إطلاق يدوي)، وبرضو ابعت image_url لو موجودة.\n- عمرك ما تستدعي save_campaign أكتر من مرة واحدة لكل كامباين اتوافق عليه."
         }
       },
       "id": "d2966caf-600f-47f0-8e1c-20203d7f9fa6",
@@ -468,7 +468,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "احفظ الكامباين التسويقي بعد ما صاحب المتجر يوافق عليه نهائيًا في المحادثة. استدعيها مرة واحدة بس، فور الموافقة الصريحة على كامباين كامل (مش بوست منتج عادي) — ده اللي بيظهرها في لوحة /admin/ai-studio. الباراميترات: name وniche وobjective وresearch_summary (اختياري) وheadline وprimary_text وcta وhashtags (اختياري) وplatform (اختياري: meta أو facebook_instagram أو whatsapp) وstatus (اختياري — ابعته published بس لو نشرت الكامباين فعليًا على فيسبوك/إنستجرام في نفس الرسالة دي، وإلا سيبه فاضي وهيبقى الافتراضي ready).",
+        "toolDescription": "احفظ الكامباين التسويقي بعد ما صاحب المتجر يوافق عليه نهائيًا في المحادثة. استدعيها مرة واحدة بس، فور الموافقة الصريحة على كامباين كامل (مش بوست منتج عادي) — ده اللي بيظهرها في لوحة /admin/ai-studio. الباراميترات: name وniche وobjective وresearch_summary (اختياري) وheadline وprimary_text وcta وhashtags (اختياري) وplatform (اختياري: meta أو facebook_instagram أو whatsapp) وimage_url (اختياري: رابط الصورة المعتمدة اللي رجعتها أداة generate_campaign_image، لو فيه صورة اتفق عليها) وstatus (اختياري — ابعته published بس لو نشرت الكامباين فعليًا على فيسبوك/إنستجرام في نفس الرسالة دي، وإلا سيبه فاضي وهيبقى الافتراضي ready).",
         "method": "POST",
         "url": "https://7alm-pro.up.railway.app/api/n8n/ai-studio/campaigns",
         "sendHeaders": true,
@@ -486,7 +486,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": {{ JSON.stringify($fromAI('name', 'Short campaign name', 'string')) }},\n  \"niche\": {{ JSON.stringify($fromAI('niche', 'The niche/market this campaign targets', 'string')) }},\n  \"objective\": {{ JSON.stringify($fromAI('objective', 'Campaign objective, e.g. awareness, traffic, sales', 'string')) }},\n  \"research_summary\": {{ JSON.stringify($fromAI('research_summary', 'One-line summary of what the web research showed', 'string', '') || null) }},\n  \"headline\": {{ JSON.stringify($fromAI('headline', 'Campaign headline', 'string')) }},\n  \"primary_text\": {{ JSON.stringify($fromAI('primary_text', 'Campaign primary body copy', 'string')) }},\n  \"cta\": {{ JSON.stringify($fromAI('cta', 'Call to action', 'string')) }},\n  \"hashtags\": {{ JSON.stringify($fromAI('hashtags', 'A few relevant hashtags', 'string', '') || null) }},\n  \"platform\": {{ JSON.stringify($fromAI('platform', 'One of meta, facebook_instagram, whatsapp', 'string', '') || null) }},\n  \"telegram_chat_id\": \"{{ $('Receive Telegram Messages').first().json.message.chat.id }}\",\n  \"status\": {{ JSON.stringify($fromAI('status', 'Only \"published\" if the FB/IG publish tools already succeeded for this campaign this turn, otherwise omit', 'string', '') || null) }}\n}",
+        "jsonBody": "={\n  \"name\": {{ JSON.stringify($fromAI('name', 'Short campaign name', 'string')) }},\n  \"niche\": {{ JSON.stringify($fromAI('niche', 'The niche/market this campaign targets', 'string')) }},\n  \"objective\": {{ JSON.stringify($fromAI('objective', 'Campaign objective, e.g. awareness, traffic, sales', 'string')) }},\n  \"research_summary\": {{ JSON.stringify($fromAI('research_summary', 'One-line summary of what the web research showed', 'string', '') || null) }},\n  \"headline\": {{ JSON.stringify($fromAI('headline', 'Campaign headline', 'string')) }},\n  \"primary_text\": {{ JSON.stringify($fromAI('primary_text', 'Campaign primary body copy', 'string')) }},\n  \"cta\": {{ JSON.stringify($fromAI('cta', 'Call to action', 'string')) }},\n  \"hashtags\": {{ JSON.stringify($fromAI('hashtags', 'A few relevant hashtags', 'string', '') || null) }},\n  \"platform\": {{ JSON.stringify($fromAI('platform', 'One of meta, facebook_instagram, whatsapp', 'string', '') || null) }},\n  \"image_url\": {{ JSON.stringify($fromAI('image_url', 'The approved campaign image URL returned by generate_campaign_image, if one was agreed on', 'string', '') || null) }},\n  \"telegram_chat_id\": \"{{ $('Receive Telegram Messages').first().json.message.chat.id }}\",\n  \"status\": {{ JSON.stringify($fromAI('status', 'Only \"published\" if the FB/IG publish tools already succeeded for this campaign this turn, otherwise omit', 'string', '') || null) }}\n}",
         "options": {
           "response": {
             "response": {
@@ -505,6 +505,108 @@
       ],
       "typeVersion": 4.4,
       "notes": "AI tool: POST /api/n8n/ai-studio/campaigns. Same x-n8n-access-token header pattern as Load Active Products. Call exactly once per approved campaign; status defaults server-side to 'ready' when omitted."
+    },
+    {
+      "parameters": {
+        "toolDescription": "ولّد صورة كامباين من الصفر بالذكاء الاصطناعي، أو عدّلها لو فيه صورة سابقة. استخدمها بس لما صاحب المتجر يطلب صورة أو يوافق على عرضك إنك تعملها — عمرك ما تستدعيها بشكل استباقي. الباراميترات: prompt (وصف بصري غني بالإنجليزي مبني على الكامباين المتفق عليه — الموضوع والستايل والألوان والتكوين والخلفية؛ سيب النصوص والحروف برا الصورة تمامًا لأن الموديل بيرسمها بشكل غلط، إلا لو صاحب المتجر طلب نص صراحة) وprevious_image_url (اختياري — لما صاحب المتجر يطلب تعديل على صورة موجودة زي \"خليه أفتح شوية\"، ابعت رابط الصورة الحالية بالظبط زي ما رجعته الأداة دي قبل كده؛ سيبه فاضي لو الصورة جديدة من الصفر). النتيجة بترجع رابط https بس في response.url (مفيش بايتات صورة أبدًا)، استخدم الرابط ده مباشرة مع أدوات publish_photo_post وcreate_instagram_media وpublish_tiktok_post وsave_campaign (image_url). كل استدعاء بيكلف فلوس حقيقية ويستغرق ثواني، فاستخدمها مرة واحدة بس لكل طلب وما تكررهاش لنفس الصورة. لازم تعيد ذكر رابط الصورة الحالي في كل مسودة كامباين تعرضها بعد كده عشان الرابط ما يضيعش من الذاكرة.",
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/n8n/ai-studio/images",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ JSON.stringify($fromAI('prompt', 'Rich English visual description derived from the negotiated campaign: subject, style, colour palette, composition, background. No text/letters in the image unless explicitly requested.', 'string')) }},\n  \"previous_image_url\": {{ JSON.stringify($fromAI('previous_image_url', 'Set to the current image URL when refining/editing it (e.g. owner asked for a change); omit for a fresh generation. Must be a URL this tool previously returned.', 'string', '') || null) }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "f1a2b3c4-d5e6-4a00-8000-genimg000001",
+      "name": "generate_campaign_image",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -928,
+        -1712
+      ],
+      "typeVersion": 4.4,
+      "notes": "AI tool: POST /api/n8n/ai-studio/images. Same x-n8n-access-token header pattern as save_campaign/Load Active Products. Route generates via OpenRouter, stores in Supabase Storage (bucket 7alm, prefix ai-studio/), and returns { success, url, cost } — never image bytes. See specs/014-campaign-image-generation/spec.md."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6a1b2c3d-image-check-0000-000000000001",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "leftValue": "={{ $('generate_campaign_image').last().json.response.url }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a1b2c3d-image-check-0000-000000000000",
+      "name": "Has Image?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -816,
+        -2384
+      ],
+      "typeVersion": 2.2,
+      "notes": "UNVERIFIED without a live n8n run (spec 014 §4): condition is $('generate_campaign_image').last().json.response.url existing. If it does not resolve against a real execution, replace both this condition's leftValue and Send Campaign Photo's file value with the regex fallback: {{ ($json.output.match(/https:\\/\\/zuajkdttqzgwwdnsjmjk\\.supabase\\.co\\/storage\\/v1\\/object\\/public\\/7alm\\/ai-studio\\/[^\\s)\\]\"']+/g) || []).pop() }}"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Receive Telegram Messages').item.json.message.chat.id }}",
+        "binaryData": false,
+        "file": "={{ $('generate_campaign_image').last().json.response.url }}",
+        "additionalFields": {}
+      },
+      "id": "6a1b2c3d-sendphoto-0000-000000000000",
+      "name": "Send Campaign Photo",
+      "type": "n8n-nodes-base.telegram",
+      "onError": "continueRegularOutput",
+      "position": [
+        -640,
+        -2432
+      ],
+      "webhookId": "send-campaign-photo-webhook",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "AsXbM9hYArJ88apL",
+          "name": "Telegram account"
+        }
+      },
+      "notes": "No caption: additionalFields.caption is capped at 1024 chars and a full campaign proposal exceeds it, so the text goes only through the existing Send Reply node right after this. onError continueRegularOutput so a Telegram photo rejection still lets the campaign text through. URL expression is the same as Has Image? and shares its live-run caveat — see that node's notes for the regex fallback."
     }
   ],
   "connections": {
@@ -589,6 +691,35 @@
       ]
     },
     "Generate FB Post": {
+      "main": [
+        [
+          {
+            "node": "Has Image?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Image?": {
+      "main": [
+        [
+          {
+            "node": "Send Campaign Photo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Campaign Photo": {
       "main": [
         [
           {
@@ -688,6 +819,17 @@
       ]
     },
     "save_campaign": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate_campaign_image": {
       "ai_tool": [
         [
           {
