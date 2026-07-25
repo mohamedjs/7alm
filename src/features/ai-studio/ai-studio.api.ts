@@ -15,6 +15,11 @@ export interface UpdateCampaignStatusParams {
   status: AdCampaignStatus;
 }
 
+export interface GenerateCampaignImageParams {
+  id: string;
+  prompt?: string;
+}
+
 export const aiStudioApi = createApi({
   reducerPath: "aiStudioApi",
   baseQuery: baseQueryWithAuth,
@@ -46,7 +51,26 @@ export const aiStudioApi = createApi({
       },
       invalidatesTags: [{ type: "Campaign", id: "LIST" }],
     }),
+
+    generateCampaignImage: builder.mutation<AdCampaign, GenerateCampaignImageParams>({
+      query: ({ id, prompt }) => ({
+        url: `/admin/ai-studio/campaigns/${id}/image`,
+        method: "POST",
+        body: { prompt },
+      }),
+      transformResponse: (response: ApiEnvelope<AdCampaign>) => {
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to generate image");
+        }
+        return response.data;
+      },
+      invalidatesTags: [{ type: "Campaign", id: "LIST" }],
+    }),
   }),
 });
 
-export const { useGetCampaignsQuery, useUpdateCampaignStatusMutation } = aiStudioApi;
+export const {
+  useGetCampaignsQuery,
+  useUpdateCampaignStatusMutation,
+  useGenerateCampaignImageMutation,
+} = aiStudioApi;

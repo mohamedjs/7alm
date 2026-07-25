@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Megaphone } from "lucide-react";
+import Image from "next/image";
+import { Copy, Check, Megaphone, Loader2 } from "lucide-react";
 import { useLocale } from "@/features/i18n/i18n.hooks";
 import type { DictKey } from "@/features/i18n/dictionary";
 import type { AdCampaign, AdCampaignPlatform, AdCampaignStatus } from "@/features/shared/types";
@@ -31,6 +32,9 @@ interface CampaignsListProps {
   isLoading: boolean;
   onMarkPublished: (id: string) => Promise<unknown>;
   onArchive: (id: string) => Promise<unknown>;
+  onGenerateImage: (id: string, prompt?: string) => Promise<unknown>;
+  /** Id of the campaign currently generating an image, or null if none. */
+  generatingId: string | null;
 }
 
 function formatDate(value: string, locale: string): string {
@@ -60,11 +64,84 @@ function CopyButton({ text, t }: { text: string; t: (key: DictKey) => string }) 
   );
 }
 
+function CampaignImagePanel({
+  campaign,
+  isGenerating,
+  disabled,
+  onGenerate,
+  t,
+}: {
+  campaign: AdCampaign;
+  isGenerating: boolean;
+  disabled: boolean;
+  onGenerate: (id: string, prompt?: string) => Promise<unknown>;
+  t: (key: DictKey) => string;
+}) {
+  const [prompt, setPrompt] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    setError(null);
+    try {
+      await onGenerate(campaign.id, prompt.trim() || undefined);
+      setPrompt("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("aiStudio.image.failed"));
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {campaign.image_url && (
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-surface-raised">
+          <Image
+            src={campaign.image_url}
+            alt={t("aiStudio.image.alt")}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+          />
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          disabled={disabled}
+          placeholder={t("aiStudio.image.promptPlaceholder")}
+          className="flex-1 rounded-xl bg-surface-raised px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:outline-none disabled:opacity-50"
+        />
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={disabled}
+          className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-brand-500/10 px-3 py-1.5 text-xs font-medium text-brand-500 transition-all neu-raised-sm disabled:opacity-50"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {t("aiStudio.image.generating")}
+            </>
+          ) : (
+            t(
+              campaign.image_url ? "aiStudio.action.regenerateImage" : "aiStudio.action.generateImage"
+            )
+          )}
+        </button>
+      </div>
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
 export function CampaignsList({
   campaigns,
   isLoading,
   onMarkPublished,
   onArchive,
+  onGenerateImage,
+  generatingId,
 }: CampaignsListProps) {
   const { t, locale } = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -116,6 +193,14 @@ export function CampaignsList({
                 {t(STATUS_KEY[campaign.status])}
               </span>
             </div>
+
+            <CampaignImagePanel
+              campaign={campaign}
+              isGenerating={generatingId === campaign.id}
+              disabled={generatingId !== null}
+              onGenerate={onGenerateImage}
+              t={t}
+            />
 
             <div className="space-y-1.5 rounded-xl bg-surface-raised p-3 text-sm">
               {campaign.headline && (

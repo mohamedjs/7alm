@@ -591,6 +591,8 @@ export interface AdCampaign {
   hashtags: string | null;
   platform: AdCampaignPlatform | null;
   status: AdCampaignStatus;
+  /** Public https URL of the approved campaign visual (spec 014). */
+  image_url: string | null;
   target_audience: Record<string, unknown> | null;
   daily_budget: number | null;
   external_campaign_id: string | null;
@@ -610,6 +612,7 @@ export interface AdCampaignInput {
   cta: string;
   hashtags?: string | null;
   platform?: AdCampaignPlatform | null;
+  image_url?: string | null;
   target_audience?: Record<string, unknown> | null;
   telegram_chat_id?: string | null;
   status?: AdCampaignStatus;

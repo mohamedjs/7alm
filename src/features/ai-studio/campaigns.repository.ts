@@ -53,6 +53,7 @@ export class CampaignsRepository {
         platform: input.platform ?? null,
         target_audience: input.target_audience ?? {},
         telegram_chat_id: input.telegram_chat_id ?? null,
+        image_url: input.image_url ?? null,
         status: input.status ?? "ready",
       })
       .select()
@@ -60,6 +61,21 @@ export class CampaignsRepository {
 
     if (error) {
       console.error("Error creating ad campaign:", error);
+      throw error;
+    }
+    return data;
+  }
+
+  async updateImageUrl(id: string, imageUrl: string): Promise<AdCampaign> {
+    const { data, error } = await supabase
+      .from("ad_campaigns")
+      .update({ image_url: imageUrl, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating ad campaign image:", error);
       throw error;
     }
     return data;
