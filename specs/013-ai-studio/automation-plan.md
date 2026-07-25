@@ -1,19 +1,18 @@
-# AI Studio — n8n Automation Plan (CTO second pass)
+# AI Studio — n8n Automation Plan
 
 **Spec:** 013-ai-studio
-**Supplements:** `plan.md`, `tasks.md`
+**Supplements:** `spec.md`, `plan.md`, `tasks.md`
 **Date:** 2026-07-25
-**Status:** planning only — no workflow built, no DB touched, no credential created.
-**Audience:** the implementation pass that will author the actual n8n workflow JSON.
+**Rewritten:** 2026-07-26 for the conversational-campaign pivot
+**Audience:** whoever edits `automation/telegram-fb-post-workflow.json`
 
 ---
 
-## 0. What changed since `plan.md` / `tasks.md`
+## 0. Existing credentials and infra facts *(unchanged, still accurate)*
 
-`plan.md` listed the Telegram bot token as a hard blocker (Blocker #1) and
-`tasks.md` marked **T013 ⛔ blocked**. **That is now wrong.** The repo already
-ships a live, working Telegram bot inside
-`automation/telegram-fb-post-workflow.json`, wired to real n8n credentials:
+The repo already ships a live, working Telegram bot inside
+`automation/telegram-fb-post-workflow.json`, wired to real n8n credentials.
+Nothing new needs provisioning for this feature.
 
 | Credential (n8n) | Type | id | name (exact) | Proven by |
 |---|---|---|---|---|
@@ -22,341 +21,243 @@ ships a live, working Telegram bot inside
 | OpenRouter LLM | `openRouterApi` | `EbbUdiq5aCjllGWD` | **OpenRouter account** | telegram-fb-post + whatsapp + ecommerce |
 | Supabase Postgres | `postgres` | (in whatsapp wf) | **Postgres account** | whatsapp-ai-workflow (chat memory) |
 
-So Telegram, Gemini, OpenRouter, and Postgres are **all already unblocked**.
-The blocker list must be re-derived (see §5), and the Telegram approval loop
-(User Story 3) can ship now by **reusing the existing bot**, not provisioning a
-new one.
-
-### Non-secret infra facts discovered (hardcoded in existing workflows)
+### Non-secret infra facts (hardcoded in existing workflows)
 
 | Fact | Value | Source node |
 |---|---|---|
 | 7alm API base URL (prod) | `https://7alm-pro.up.railway.app` | whatsapp "Call 7alm API", telegram-fb "Load Active Products" |
 | n8n instance base URL | `https://n8n-production-7712.up.railway.app` | `.env.local` `N8N_ORDER_WEBHOOK_URL` |
 | n8n→7alm auth header | `x-n8n-access-token: 123456` | whatsapp/telegram-fb HTTP nodes |
-| n8n→7alm auth (alt) | `?secret=123456` query param | whatsapp "Call 7alm API" |
 | Inbound-webhook secret header | `x-n8n-send-secret: 123456` | whatsapp "Validate Send Secret" |
 
-> ⚠️ **Config mismatch to verify before building.** The workflows send the
-> literal string `123456`, but `.env.local` defines
-> `N8N_WEBHOOK_SECRET='Ca7x2U72XFdQVt6'` (and there is **no** literal
-> `N8N_ACCESS_TOKEN` var in `.env.local`). Either the deployed app validates a
-> different value than `.env.local` shows, or these existing workflows are
-> running with a placeholder secret. The AI Studio routes must validate against
-> **whatever the deployed 7alm app actually checks** — confirm by reading the
-> existing `/api/n8n/*` and `/api/webhooks/n8n/*` route handlers before wiring
-> the AI Studio route. Do **not** blindly copy `123456`.
+> **Config status update (2026-07-26).** The earlier warning here said the
+> workflows send `123456` while `.env.local` had no matching variable.
+> `.env.local` now defines `N8N_API_ACCESS_TOKEN='123456'`, so **locally the
+> values agree.** What remains unverified is the **deployed Railway
+> environment** — `requireN8nAccess` returns **503** when the variable is
+> unset, which would make `save_campaign` fail silently while the Telegram
+> conversation still looks healthy. See `tasks.md` **T052**. Also note
+> `AGENTS.md` documents the name as `N8N_ACCESS_TOKEN` while the code reads
+> `N8N_API_ACCESS_TOKEN` — verify before renaming either.
 
 ---
 
-## 1. Split of responsibility — the single most important decision
+## 1. Split of responsibility
 
-**Boundary rule:** *n8n owns the outside world and the LLM loop; Next.js owns
-the truth.*
+**Boundary rule (unchanged):** *n8n owns the outside world and the LLM loop;
+Next.js owns the truth.*
 
-- **n8n** = every external I/O edge and every LLM-agent orchestration:
-  scheduling, trend-source HTTP calls, the Gemini/OpenRouter agent nodes with
-  tool-calling (exactly the `@n8n/n8n-nodes-langchain.agent` + `httpRequestTool`
-  pattern in telegram-fb-post-workflow), Telegram send/receive, image-gen HTTP
-  calls, Meta Ads calls (later). This is where the credentials live and where
-  the business already trusts automation.
-- **Next.js (`src/features/ai-studio/*` + `/api/*`)** = the canonical business
-  logic and the *only* writer of domain state: the `designIdeaStateMachine`
-  (T010), fingerprint/dedup (`ai-studio.service.ts`, already built for trends;
-  same for `concept_fingerprint` on ideas), the **`products` table write on
-  publish** (must reuse `products.repository.ts`, never a parallel path),
-  `verifyAdmin()` (on the **admin-facing** routes — the n8n-facing ones use
-  shared secrets, see the FR-013 amendment in `spec.md`), and
-  RLS-service-role access.
-- **Both (n8n → 7alm API route)** = anything that is an LLM/Telegram action but
-  mutates domain state. n8n never writes `design_ideas`, `generated_assets`,
-  `ad_campaigns`, or `products` **directly**. It calls a 7alm API route that
-  runs the state machine + writes the audit row + (on publish) creates the
-  product — atomically, server-side. This mirrors the whatsapp
-  **"Call 7alm API"** node (`POST /api/webhooks/n8n/order-action`).
+- **n8n** — the Telegram conversation, the LLM agent, the web search, per-chat
+  conversation memory, and the Facebook/Instagram/TikTok publish calls. This is
+  where the credentials live.
+- **Next.js** — the only writer of `ad_campaigns`: field validation, the
+  `status` default, and the dashboard read/update surface.
+- **The seam** — n8n never writes `ad_campaigns` directly. Its `save_campaign`
+  tool calls `POST /api/n8n/ai-studio/campaigns`, mirroring the WhatsApp
+  workflow's "Call 7alm API" node.
 
-### Direct-Postgres vs. 7alm-API — the concrete cut
-
-| Data operation | Who does it | Mechanism | Why |
-|---|---|---|---|
-| Read trends/ideas as LLM context | n8n | `httpRequest` GET → 7alm API (`x-n8n-access-token`) | Same as "Load Active Products"; keeps auth + shaping in one place |
-| Insert a new **design idea** (with dedup) | Next.js | 7alm API route → `design-ideas.service.ts` (`concept_fingerprint`) | Dedup rule (FR) must be server-authoritative |
-| **Status transition** (approve/reject/publish/regenerate) | Next.js, called by n8n | n8n `httpRequest` → 7alm API → `designIdeaStateMachine` | Invalid transitions must be rejected in ONE place |
-| Write `telegram_approval_logs` | Next.js (inside the action route) | same route, same transaction as the status change | Audit must never drift from the state change |
-| **Publish → `products` row** | Next.js | action route → `products.repository.ts` (`is_active:false`) | Backward-compat + single catalog rule |
-| LLM conversation memory | n8n | `postgres` credential direct (as whatsapp already does) | Append-only, non-domain, low-risk — matches existing convention |
-| Seed a trend manually | Next.js | existing `/admin/ai-studio` "add trend" form → `ai-studio.service.ts` | Already scaffolded; no external cred needed |
-
-**Net:** the only thing n8n writes to Postgres directly is LLM memory. All AI
-Studio domain mutations go through **one new 7alm API route** so the state
-machine, dedup, audit log, and product creation are enforced exactly once.
+| Data operation | Who | Mechanism |
+|---|---|---|
+| Web research for a niche | n8n | OpenRouter online model (`search_web` tool) |
+| Campaign negotiation state | n8n | `memoryBufferWindow`, keyed per Telegram chat |
+| Persist an approved campaign | Next.js, called by n8n | `httpRequestTool` → `POST /api/n8n/ai-studio/campaigns` (`x-n8n-access-token`) |
+| Read campaigns for the dashboard | Next.js | `GET /api/admin/ai-studio/campaigns` (`verifyAdmin`) |
+| Mark published / archived | Next.js | `PATCH /api/admin/ai-studio/campaigns/[id]` (`verifyAdmin`) |
+| Publish organic FB/IG post | n8n | the five existing publish tools, unchanged |
 
 ---
 
-## 2. The hard constraint that shapes the workflow decomposition
+## 2. The hard constraint that shapes the decomposition *(unchanged — and now the reason for the whole shape)*
 
 **Telegram allows exactly one webhook URL per bot token.** The n8n
 `telegramTrigger` node *sets* that webhook when its workflow is activated.
 `telegram-fb-post-workflow.json`'s **"Receive Telegram Messages"** trigger
-(`webhookId: f913897a-...`, updates: `["message"]`) **already owns the bot's
-single webhook.**
+already owns the bot's single webhook.
 
 Consequences:
+
 - You **cannot** create a second standalone workflow with its own
   `telegramTrigger` on the **Telegram account** credential — activating it would
   steal the webhook from the FB-post workflow and silently break FB/IG/TikTok
   posting.
-- Therefore **all inbound Telegram traffic (including approval button presses)
-  must funnel through the one existing trigger.** Button presses arrive as
-  `callback_query` updates, which the existing trigger does **not** currently
-  subscribe to (it only listens for `message`).
-- **Outbound** Telegram messages (sending an idea card) need **no** trigger and
-  can live in any workflow or even in the 7alm backend — no conflict.
+- Therefore **all inbound Telegram traffic must funnel through the one existing
+  trigger** — including every message in a campaign negotiation.
 
-This constraint is the biggest architectural decision in this pass and it
-directly answers §3's "new workflow vs. new branch" question: **the receiver
-must be a new branch on the existing workflow; the sender is a separate
-workflow.**
+This is why the campaign agent is **an extension of the existing
+`Generate FB Post` agent inside the existing workflow**, not a new workflow. It
+was already the reason the old approval branch had to live there; under the
+pivot it becomes the reason the entire feature does.
 
 ---
 
-## 3. Workflow decomposition (modular, matching the existing style)
+## 3. Workflow decomposition — one workflow, one agent, two new tools
 
-Four workflows (A, B, **D**, and C-later), each following the existing
-trigger → normalize/set → route/if/switch → agent-or-httpRequest →
-7alm-API/Postgres write → reply shape.
+> **Collapsed 2026-07-26.** This section previously specified four workflows:
+> **A** (`ai-studio-idea-dispatcher-workflow.json`, sending 4-button approval
+> cards), **B** (an `ais:` `callback_query` branch inside the FB-post
+> workflow), **C** (`ai-studio-asset-generation-workflow.json`, image
+> generation), and **D** (`ai-studio-design-director-workflow.json`, scheduled
+> LLM ideation). **A and D are deleted files. B has been removed from the
+> workflow JSON (`tasks.md` T046). C was never built and is out of scope.**
+> The campaign flow needs none
+> of them: research, negotiation, approval, and publishing all happen inside a
+> single conversation, so they belong to the single agent that owns it.
 
-> **Scope change:** the first cut now also includes **Workflow D, the LLM
-> Design Director** (below). Without it nothing ever inserts a `design_ideas`
-> row, so Workflow A has nothing to dispatch and the approval loop is
-> unreachable end-to-end.
+### The only change: extend `Generate FB Post`
 
-### Workflow A (NEW, safe standalone) — `ai-studio-idea-dispatcher-workflow.json`
-Sends design-idea approval cards to the admin on Telegram. **No `telegramTrigger`
-— outbound only**, so it cannot conflict with the bot webhook.
+`automation/telegram-fb-post-workflow.json` →
+`@n8n/n8n-nodes-langchain.agent` node **"Generate FB Post"**, which already has
+`OpenRouter Chat Model`, `Post Memory` (per-chat buffer), the active-product
+catalog injected into its system prompt, and five publish tools.
 
-| # | Node (name) | Type | Does |
-|---|---|---|---|
-| A1 | `Dispatch Trigger` | `scheduleTrigger` (or `webhook`) | Fires on a cron (e.g. hourly) or when the app POSTs "new idea ready" |
-| A2 | `Load Pending Ideas` | `httpRequest` GET | `GET {BASE}/api/n8n/ai-studio/ideas?status=pending_review` with `x-n8n-access-token` |
-| A3 | `Has Any?` | `if` | Stop if none |
-| A4 | `Split Ideas` | `splitInBatches`/`itemLists` | One card per idea |
-| A5 | `Send Idea Card` | `telegram` (sendMessage) — **Telegram account** cred | Text = title+description+concept; `replyMarkup: inlineKeyboard` with **4** buttons, each `callback_data` = `ais:<action>:<idea_id>` (`ais:approve:<uuid>`, `ais:reject:…`, `ais:favorite:…`, `ais:publish:…`) |
+**Two tools added:**
 
-> **Corrected:** this row previously listed **6** buttons including `ais:edit`
-> and `ais:regen`. The shipped card has **4**, matching the action route's
-> `SUPPORTED_ACTIONS` (`approve|reject|favorite|publish`) and §6/§7, which
-> already said 4. `edit`/`regenerate` are deferred (§6) — do not emit those
-> two `callback_data` values; the route rejects them.
+| Tool | Type | Does |
+|---|---|---|
+| `search_web` | OpenRouter **online/web-enabled model** on cred `EbbUdiq5aCjllGWD` | Live web search for "what's trending in \<niche\>". Scope decision #2: reuse the existing OpenRouter account — **no new search-API credential** (no SerpApi, Perplexity, Brave). |
+| `save_campaign` | `httpRequestTool` | `POST {BASE}/api/n8n/ai-studio/campaigns`, header `x-n8n-access-token`. Called **once**, only after the owner explicitly approves in chat. |
 
-Chat id: `chatId` = the admin chat id (see §4 config — seed once).
+**Existing tools, unchanged and reused for the "auto-create on Facebook and
+Instagram" path:** `publish_photo_post`, `publish_text_post`,
+`create_instagram_media` → `publish_instagram_media`, `publish_tiktok_post`.
 
-### Workflow B (NEW BRANCH inside existing `telegram-fb-post-workflow.json`) — the receiver
-Do **not** create a new trigger. Modify the existing workflow:
+### `save_campaign` body contract
 
-1. **Edit "Receive Telegram Messages"** → add `"callback_query"` to
-   `parameters.updates` (currently `["message"]` → `["message","callback_query"]`).
-2. **Insert a top Switch "Message Kind?"** right after the trigger:
-   - route 1 (`callback_query` exists AND `data` starts with `ais:`) → **AI
-     Studio approval branch** (below);
-   - route 2 (else) → the existing **"Voice or Text?"** switch (FB-post flow,
-     unchanged).
+```
+name            required   campaign name
+niche           required   the niche researched
+objective       required   what the campaign is for
+headline        required   ad copy
+primary_text    required   ad copy
+cta             required   ad copy
+research_summary optional  what search_web found
+hashtags        optional
+platform        optional   meta | facebook_instagram | whatsapp
+target_audience optional   JSON object
+telegram_chat_id optional  provenance
+status          optional   omit → server defaults to "ready";
+                           send "published" ONLY if the FB/IG publish
+                           tools already ran successfully this turn
+```
 
-AI Studio approval branch nodes:
+The route 400s on a missing required field or an out-of-range
+`platform`/`status`. It **always inserts** — there is no dedup, so the agent
+must not call it twice for one approval.
 
-| # | Node (name) | Type | Does |
-|---|---|---|---|
-| B1 | `Parse Callback` | `set` | Extract `action` + `ideaId` from `callback_query.data` (`ais:<action>:<id>`), `telegram_user_id` from `callback_query.from.id`, `chatId` from `callback_query.message.chat.id` |
-| B2 | `Idea Action → 7alm` | `httpRequest` POST | `POST {BASE}/api/webhooks/n8n/ai-studio/idea-action` header **`x-webhook-secret`** (→ `N8N_WEBHOOK_SECRET`, **not** `x-n8n-access-token` — see note); body `{ ideaId, action, telegramUserId }`. Server runs `designIdeaStateMachine`, writes `design_ideas.status` + `telegram_approval_logs`, and on `publish` creates the `products` row. `neverError:true` like whatsapp's "Call 7alm API" |
-| B3 | `Action OK?` | `if` | Branch on `$json.success` |
-| B4 | `Answer Callback` | `telegram` (answerCallbackQuery) — **Telegram account** | Toast to the admin ("تمت الموافقة ✅" / "تم الرفض") so the button stops spinning |
-| B5 | `Edit Card Status` | `telegram` (editMessageText / editMessageReplyMarkup) | Update the original card to show new status / disable buttons |
-| B6 (edit/regen) | `Ask For Feedback` or `Kick Regeneration` | `telegram` sendMessage / `httpRequest` | `edit`→prompt admin for free-text (stored as `design_versions.admin_feedback`); `regenerate`→POST to Workflow C |
+### System prompt additions (Egyptian Arabic, same voice as today)
 
-> **Corrected (B2 header).** This row previously said the idea-action route
-> uses `x-n8n-access-token`. It does **not**. Both the shipped workflow and
-> the shipped route use **`x-webhook-secret` → `N8N_WEBHOOK_SECRET`**, matching
-> the `/api/webhooks/n8n/order-action` precedent. `x-n8n-access-token` →
-> `N8N_API_ACCESS_TOKEN` is for the **`/api/n8n/*` read routes only** (A2, and
-> the Workflow D calls). Following the old wording means every callback
-> silently 401s. §7 Step 3 carried the same error and is corrected there too.
+Three behaviours to add without disturbing the existing publishing rules:
 
-`edit` and `regenerate` reuse the LLM-agent pattern; the follow-up free-text the
-admin types comes back as a **`message`** update (route 2) — so keep a light
-`design_ideas` "awaiting_feedback" hint (server-side) to correlate it, or handle
-`edit`/`regenerate` fully inside the app UI in v1 and keep the bot to
-approve/reject/favorite/publish first (recommended smallest cut — see §6).
+1. **Research** — when the owner asks what's trending in a niche, call
+   `search_web` first and ground the answer in what came back; say so plainly if
+   nothing useful returned, never invent trends.
+2. **Negotiate** — propose a full campaign as readable chat text (not JSON):
+   name, objective, headline, primary text, CTA, hashtags, audience. On a change
+   request, revise only that part and re-present the whole campaign. Repeat
+   until the owner agrees.
+3. **Approve** — only on an explicit typed approval ("تمام", "أوكي", "انشر",
+   "موافق"), call `save_campaign` **once** with the exact agreed values. If the
+   message is ambiguous between approval and revision, **ask for confirmation
+   first** — the same rule the existing prompt already applies before
+   publishing. If the owner also asked to post it to Facebook/Instagram, run
+   the publish tools first, then save with `status: "published"`.
 
-### Workflow D (NEW, first cut) — `ai-studio-design-director-workflow.json`
-The idea **producer**. Decoupled from Workflow A: it only writes ideas; the
-hourly dispatcher picks them up on its own schedule.
+### Why chat approval and not inline buttons
 
-| # | Node (name) | Type | Does |
-|---|---|---|---|
-| D1 | `Director Trigger` | `scheduleTrigger` | Cron (e.g. daily) |
-| D2 | `Load New Trends` | `httpRequest` GET | `GET {BASE}/api/n8n/ai-studio/trends?status=new` with `x-n8n-access-token` |
-| D3 | `Design Director` | `@n8n/n8n-nodes-langchain.agent` — **OpenRouter account** (`EbbUdiq5aCjllGWD`) | Generates phone-case concepts from the trend context. Copy the agent + `$fromAI(...)` pattern from telegram-fb-post's "Generate FB Post" |
-| D4 | `Ideas → 7alm` | `httpRequest` POST | `POST {BASE}/api/n8n/ai-studio/ideas` with `x-n8n-access-token`. Server dedups, stores, and marks the source trends used |
+Buttons cannot express "make the headline shorter" — a negotiation loop needs
+free text, and every revision would otherwise need a fresh card. The mechanism
+is also already proven in this exact agent: it gates live FB/IG/TikTok
+publishing on a typed approval today. Full reasoning and the accepted tradeoff:
+`spec.md` §Approval Model.
 
-**Output contract — do not guess this when writing the agent's output
-parser.** The LLM returns **`title` / `description` / `concept` only**. The
-**server** computes `concept_fingerprint` and runs the dedup check; the LLM
-never sees or sends a fingerprint or a status. This is §1's
-server-authoritative rule ("Insert a new design idea (with dedup) | Next.js |
-Dedup rule (FR) must be server-authoritative") applied to the Director.
-
-The POST route must also call `markTrendsUsed()` on the trends it consumed,
-or D2 returns the same rows on the next run and dedup silences every run
-after the first.
-
-### Workflow C (NEW, Phase 2) — `ai-studio-asset-generation-workflow.json`
-Kicked off after an idea is `approved`. Not needed for the first ship.
-
-| # | Node | Type | Does |
-|---|---|---|---|
-| C1 | `Asset Trigger` | `webhook` | App POSTs `{ designVersionId, prompt }` when idea approved |
-| C2 | `Prompt Engineer` | `agent` (OpenRouter/Gemini) | Build the 8K/photoreal prompt from the Image Standards checklist |
-| C3 | `Generate Image` | `httpRequest` | Call image-gen provider (**blocked — see §5**) |
-| C4 | `Persist Asset` | `httpRequest` POST → 7alm API | Insert `generated_assets` (`status:'pending_review'`) |
-| C5 | `Notify` | `telegram` sendMessage | Send the mockup to the admin for QA (reuses the same card pattern) |
-
-### Later — Marketing/Ads/Analytics
-`marketing_content` + `ad_campaigns` generation are pure LLM-text jobs (Gemini,
-no new dependency): fold them into Workflow C's tail or a small
-`ai-studio-marketing-workflow.json`. Analytics ingestion (Phase 3) starts as a
-manual CSV import in the app, no workflow needed until Meta Ads API exists.
+**Do not add an `ais:`-style `callback_query` branch back.** It is being
+deleted (`tasks.md` T046) and its HTTP node targets a route that no longer
+exists.
 
 ---
 
-## 4. Credential & config plan (per node)
+## 4. Credential & config plan
 
-### Credentials
+### Credentials — all reuse, none new
 
 | Node(s) | Decision | Exact name |
 |---|---|---|
-| Telegram send/answer/edit (A5, B4, B5, C5) | **(a) reuse** | **Telegram account** (`AsXbM9hYArJ88apL`) |
-| LLM agent (B6 edit, C2 Prompt Engineer, Design Director) | **(a) reuse** | **OpenRouter account** (`EbbUdiq5aCjllGWD`) — primary, strong tool-calling |
-| Voice/text/image via Gemini | **(a) reuse** for text; **(c) undecided** for image | **Google Gemini(PaLM) Api account** (`pj3wNPsZG5Yic3Ho`) |
-| LLM memory (optional) | **(a) reuse** | **Postgres account** |
-| Trend scraping — Pinterest | **(b) new** | "AI Studio — Pinterest API" (`httpHeaderAuth` / OAuth2) |
-| Trend scraping — Etsy | **(b) new** | "AI Studio — Etsy API" (`httpHeaderAuth`) |
-| Trend scraping — Reddit | **(b) new** | "AI Studio — Reddit API" (OAuth2) |
-| Trend scraping — Google Trends | **(b) new / (c) degrade** | "AI Studio — SerpApi (Google Trends)" (`httpQueryAuth`) — no official API |
-| Trend scraping — Amazon | **(b) new / (c) degrade** | "AI Studio — Rainforest/Amazon" (`httpHeaderAuth`) |
-| Trend scraping — TikTok/Instagram | **(c) degrade** | placeholder "TikTok API account" exists; IG needs review — manual until then |
-| Image generation (dedicated) | **(b) new, if Gemini rejected** | "AI Studio — Image Gen" (provider TBD) |
-| Meta Ads publish (later) | **(b) new** | "AI Studio — Meta Ads API" (`httpHeaderAuth`, system-user token) |
+| Telegram trigger + replies | **reuse** | **Telegram account** (`AsXbM9hYArJ88apL`) |
+| Conversational agent + `search_web` | **reuse** | **OpenRouter account** (`EbbUdiq5aCjllGWD`) |
+| Voice transcription (existing path) | **reuse** | **Google Gemini(PaLM) Api account** (`pj3wNPsZG5Yic3Ho`) |
+| Conversation memory | **reuse** | in-workflow `memoryBufferWindow` (no Postgres needed) |
 
-### Non-secret config (Set-node fields / hardcoded, **not** `.env`)
+Previously listed as "new credentials required" and **no longer needed**:
+Pinterest, Etsy, Reddit, Google Trends/SerpApi, Amazon/Rainforest, TikTok
+scraping, and a dedicated image-generation provider. The trend-scraping
+pipeline they served is deleted, and web search reuses OpenRouter.
+**Meta Ads API** remains a future-phase credential — not needed, because this
+cut posts organically and never touches the Marketing API.
 
-Per the discovery that these workflows do **not** read `$env.*`, put these as
-literal values in a leading **"Config"** Set node or inline:
+### Non-secret config (literal values, **not** `$env.*`)
 
-| Config key | Value | Notes |
+Per the existing convention in these workflows:
+
+| Config key | Value |
+|---|---|
+| `apiBase` | `https://7alm-pro.up.railway.app` |
+| `n8nAccessToken` | the value the **deployed** app validates — header `x-n8n-access-token` (see §0 and `tasks.md` T052) |
+| Live table | `ad_campaigns` — the only table this feature reads or writes |
+
+`adminChatId` is **no longer needed**: the agent replies into whichever chat
+messaged it, and there is no unsolicited outbound card any more.
+
+---
+
+## 5. Blocker list
+
+| Area | Status | Reason |
 |---|---|---|
-| `apiBase` | `https://7alm-pro.up.railway.app` | 7alm prod base |
-| `n8nAccessToken` | value the deployed app validates (verify — see §0 warning) | header `x-n8n-access-token` |
-| `adminChatId` | **discoverable, seed once** | Not in repo. Capture from any inbound `message.chat.id` / `callback_query.from.id`, then hardcode into Workflow A's `chatId`. Blocks **unsolicited outbound** cards only. |
-| Table names | `trends`, `design_ideas`, `design_versions`, `generated_assets`, `marketing_content`, `ad_campaigns`, `analytics`, `ai_memory`, `telegram_approval_logs` | Exactly as in `docs/migrations/20260725120000_ai_studio_core.sql` |
-| `callbackPrefix` | `ais:` | namespaces AI-Studio callbacks vs. any future bot callbacks |
+| Telegram conversation loop | ✅ **UNBLOCKED** | Existing bot + credential; agent already runs there |
+| OpenRouter agent | ✅ **UNBLOCKED** | Proven in 3 workflows |
+| Web search | ✅ **UNBLOCKED** | Decision #2 — OpenRouter online model, no new account |
+| Campaign persistence | ✅ **BUILT** | Migration applied; route + service + repository shipped |
+| `N8N_API_ACCESS_TOKEN` on the deployed app | 🟡 **VERIFY** | Set locally (`123456`); unconfirmed on Railway. Unset → `save_campaign` 503s and nothing persists (`tasks.md` T052) |
+| Admin `chatId` | ✅ **MOOT** | No unsolicited outbound message exists |
+| Trend scraping credentials | ⊘ **NOT NEEDED** | Trend pipeline removed |
+| Image generation | ⊘ **NOT NEEDED** in this cut | Campaigns reuse existing product imagery |
+| **Meta Marketing API (paid ads)** | ⛔ **out of scope** | Decision #1 — organic posts now; paid campaigns are a named future phase |
+| WhatsApp broadcast / bulk send | ⛔ **out of scope** | Only single-send exists (`whatsapp.service.ts`); `platform='whatsapp'` records intent for a manual launch |
+| Analytics ingestion | ⛔ **out of scope** | No `analytics` / `ai_memory` writes |
 
 ---
 
-## 5. Definitive updated blocker list
+## 6. What ships first
 
-| Area | Old status | **New status** | Reason |
-|---|---|---|---|
-| **Telegram approval loop** | ⛔ blocked (no bot) | ✅ **UNBLOCKED** | Reuse **Telegram account** cred + existing bot; add `callback_query` branch |
-| Gemini text agents | ⚠️ | ✅ **UNBLOCKED** | **Google Gemini(PaLM) Api account** works today |
-| OpenRouter LLM agent | ⚠️ | ✅ **UNBLOCKED** | **OpenRouter account** proven in 3 workflows |
-| Postgres access | ⚠️ | ✅ **UNBLOCKED** | **Postgres account** proven (chat memory) |
-| Design Director ideation | blocked-by-Telegram | ✅ **UNBLOCKED** | Only needs LLM + 7alm API |
-| Admin `chatId` for outbound | not tracked | 🟡 **minor** | Seed once from first inbound update; else outbound cards can't be sent unsolicited |
-| n8n↔7alm secret value | assumed `123456` | 🟡 **verify** | `.env.local` shows `N8N_WEBHOOK_SECRET='Ca7x2U72XFdQVt6'`, not `123456` — confirm which the app checks |
-| **Trend scraping** (Pinterest/Etsy/TikTok/IG/Google Trends/Reddit/Amazon) | ⛔ | ⛔ **STILL BLOCKED** | No such credential anywhere in repo → **degrade to manual "add trend"** |
-| **Image generation** | ⛔ | 🟠 **DECISION, not hard-blocked** | Gemini cred exists, but the used model is text/audio (`gemini-2.5-flash` transcription). Gemini *image* models (e.g. `gemini-2.5-flash-image`) may work on the **same** `googlePalmApi` cred — but the 8K/photoreal Image Standards are a quality decision. Attempt Gemini-image first; escalate to a dedicated provider only if QA fails |
-| **Meta Ads publish** | ⛔ | ⛔ **still blocked, but not needed** | v1 is drafts only (`status:'draft'`) — never calls the Ads API |
+The whole cut is small enough to ship at once, and everything it needs already
+exists. Order of operations:
 
----
-
-## 6. What ships first — recommendation (confirmed, with one refinement)
-
-**Confirmed:** the smallest useful, credential-free build is the **Telegram
-design-idea approval loop, reusing the existing bot**, with ideas **seeded
-manually** via the already-scaffolded `/admin/ai-studio` "add trend/idea" flow
-(no scraper, no image gen).
-
-**Refinement — scope the first cut to 4 of the 6 buttons.** `edit` and
-`regenerate` require a stateful free-text follow-up correlation over Telegram
-`message` updates, which is the fiddliest part. Ship
-**Approve / Reject / Favorite / Publish** first (pure one-shot callbacks); add
-`edit`/`regenerate` in a second increment (or handle them in the dashboard UI
-initially). This gets the full **idea → Telegram → approve → publish →
-`products`** loop live with zero new credentials.
-
-**Dependencies the first cut still needs (not n8n, but must exist):**
-1. Migration `20260725120000_ai_studio_core.sql` applied (creates
-   `design_ideas`, `telegram_approval_logs`, etc.) — **T006, applied via
-   Supabase MCP**, after the `UNIQUE (concept_fingerprint)` fix (T029). *(No
-   longer an admin-manual SQL Editor step; MCP access exists.)*
-2. Next.js route **`/api/webhooks/n8n/ai-studio/idea-action`** implementing
-   `designIdeaStateMachine` (T010) + audit log + publish→products.
-3. Next.js route **`/api/n8n/ai-studio/ideas?status=pending_review`** (read for
-   the dispatcher) — thin wrapper over `design-ideas.repository.ts`.
-4. `adminChatId` seeded once.
+1. **Verify `N8N_API_ACCESS_TOKEN` on Railway** (`tasks.md` T052). Longest lead
+   time, no upstream dependency, and it decides whether anything persists.
+   Start here.
+2. **Edit `telegram-fb-post-workflow.json`**: remove the dead `ais:` branch
+   (T046), add `search_web` + `save_campaign` and the extended prompt (T045).
+   The existing FB/IG/TikTok publishing rules must come through byte-intact —
+   that path is live production.
+3. **Rebuild `/admin/ai-studio`** as the campaigns list with the
+   `published`/`archived` actions (T047, T048).
+4. **Smoke test end to end** (T051): niche question → search → two revisions →
+   approve → exactly one `ad_campaigns` row (`status='ready'`) → visible in the
+   dashboard → mark published.
 
 ---
 
-## 7. Handoff to implementation
+## 7. Handoff notes
 
-Build in this order. Do **not** create a second `telegramTrigger`.
+**Do not** create a second `telegramTrigger` (§2). **Do not** reintroduce
+inline-button approval (§3). **Do not** rebuild the fingerprint/dedup machinery
+reflexively — the campaign flow has no dedup by design, and whether it needs
+one is an open question, not a known gap (`tasks.md` T049).
 
-**Step 1 — App side (prereq for the workflows):**
-- Apply the migration (admin).
-- Add `src/lib/designIdeaStateMachine.ts` (mirror `orderStateMachine.ts`:
-  `pending_review→approved|rejected`, `approved→published`, `*→possible_duplicate`).
-- Add `src/features/ai-studio/design-ideas.repository.ts` + `.service.ts`
-  (dedup via `concept_fingerprint`, same shape as the trend slice).
-- Add API routes, each `verifyAdmin()`-free but guarded by the shared secret
-  the deployed app actually checks (per the FR-013 amendment in `spec.md`):
-  - `GET /api/n8n/ai-studio/ideas` (list by status) — `x-n8n-access-token`.
-  - `GET /api/n8n/ai-studio/trends?status=new` (Director context) —
-    `x-n8n-access-token`.
-  - `POST /api/n8n/ai-studio/ideas` (Director sink) — `x-n8n-access-token`;
-    server computes `concept_fingerprint`, dedups, calls `markTrendsUsed()`.
-  - `POST /api/webhooks/n8n/ai-studio/idea-action` — **`x-webhook-secret`**;
-    body `{ideaId, action, telegramUserId}`; runs the state machine, writes
-    `design_ideas.status` + `telegram_approval_logs`, and on `publish` inserts
-    into `products` (`is_active:false`) via `products.repository.ts`. Returns
-    `{success:bool}`.
-
-**Step 2 — Build `ai-studio-idea-dispatcher-workflow.json` (Workflow A, standalone):**
-scheduleTrigger → `httpRequest` GET pending ideas → `if` any → split → `telegram`
-sendMessage with a 4-button (v1) inline keyboard, `callback_data = ais:<action>:<ideaId>`,
-using **Telegram account** cred and the seeded `adminChatId`.
-
-**Step 3 — Edit `automation/telegram-fb-post-workflow.json` (Workflow B branch):**
-add `"callback_query"` to the trigger's `updates`; insert a top Switch that
-routes `callback_query.data` starting with `ais:` into: `Parse Callback` (Set) →
-`Idea Action → 7alm` (`httpRequest` POST to the action route with
-**`x-webhook-secret`** — *not* `x-n8n-access-token`, see §3 B2's correction —
-`neverError:true`) → `Answer Callback` (answerCallbackQuery) + `Edit Card
-Status` (editMessageText, sourced from `$('Idea Action → 7alm').item.json`).
-Leave the existing voice/text FB-post branch untouched.
-
-**Step 3b — Build `ai-studio-design-director-workflow.json` (Workflow D):**
-`scheduleTrigger` → GET `/api/n8n/ai-studio/trends?status=new` → langchain
-agent on the **OpenRouter account** → POST `/api/n8n/ai-studio/ideas`. Without
-this there are no ideas for Step 2 to dispatch. LLM returns `title` /
-`description` / `concept` only — the server fingerprints and dedups.
-
-**Step 4 — later:** `ai-studio-asset-generation-workflow.json` (Workflow C)
-once the image-gen provider decision is made; then marketing/ads/analytics.
-
-**Reference patterns to copy verbatim from existing workflows:**
-`@n8n/n8n-nodes-langchain.agent` + `httpRequestTool` + `$fromAI(...)` tool
-arguments (telegram-fb-post "Generate FB Post"); `httpRequest` → 7alm with
-`x-n8n-access-token` and `neverError:true` (whatsapp "Call 7alm API" — copy the
-`neverError` shape, but swap the header to `x-webhook-secret` for any
-`/api/webhooks/n8n/*` target); inbound
-secret validation `if` (whatsapp "Validate Send Secret").
+**Reference patterns to copy verbatim from the existing workflow:**
+the `@n8n/n8n-nodes-langchain.agent` + `httpRequestTool` + `$fromAI(...)` tool
+shape from the current publish tools; the `x-n8n-access-token` header and
+`neverError:true` HTTP shape from whatsapp's "Call 7alm API"; and the existing
+approval-gate prompt language — *"ما تنشرش أبدًا قبل ما صاحب المتجر يوافق
+صراحة"*, *"لو رسالته مش واضحة… اسأله يأكد"*, *"انشر مرة واحدة بس لكل موافقة"* —
+which the campaign flow should mirror rather than reword.
