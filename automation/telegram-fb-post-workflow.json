@@ -3,8 +3,7 @@
     {
       "parameters": {
         "updates": [
-          "message",
-          "callback_query"
+          "message"
         ],
         "additionalFields": {}
       },
@@ -23,183 +22,6 @@
           "name": "Telegram account"
         }
       }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "combinator": "and",
-          "conditions": [
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000001",
-              "operator": {
-                "type": "string",
-                "operation": "startsWith"
-              },
-              "leftValue": "={{ $json.callback_query?.data || '' }}",
-              "rightValue": "ais:"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "b1c2d301-0000-4a00-8000-000000000002",
-      "name": "Message Kind?",
-      "type": "n8n-nodes-base.if",
-      "position": [
-        -2496,
-        -2672
-      ],
-      "typeVersion": 2.2,
-      "notes": "Routes callback_query updates whose data starts with 'ais:' (design-idea approval button presses) into the new AI Studio branch; everything else (including plain 'message' updates) falls through unchanged to the existing 'Voice or Text?' FB-post flow. Added per specs/013-ai-studio/automation-plan.md §3 Workflow B / §7 Step 3 — the receiver must be a new branch on the existing trigger, not a second telegramTrigger."
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000003",
-              "name": "action",
-              "type": "string",
-              "value": "={{ $json.callback_query.data.split(':')[1] }}"
-            },
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000004",
-              "name": "ideaId",
-              "type": "string",
-              "value": "={{ $json.callback_query.data.split(':')[2] }}"
-            },
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000005",
-              "name": "telegramUserId",
-              "type": "string",
-              "value": "={{ String($json.callback_query.from.id) }}"
-            },
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000006",
-              "name": "chatId",
-              "type": "string",
-              "value": "={{ $json.callback_query.message.chat.id }}"
-            },
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000007",
-              "name": "messageId",
-              "type": "string",
-              "value": "={{ $json.callback_query.message.message_id }}"
-            },
-            {
-              "id": "b1c2d301-0000-4a00-8000-000000000008",
-              "name": "callbackQueryId",
-              "type": "string",
-              "value": "={{ $json.callback_query.id }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "b1c2d301-0000-4a00-8000-000000000009",
-      "name": "Parse Callback",
-      "type": "n8n-nodes-base.set",
-      "position": [
-        -2496,
-        -2432
-      ],
-      "typeVersion": 3.4,
-      "notes": "Extracts action + ideaId from callback_query.data ('ais:<action>:<ideaId>'), telegram_user_id from callback_query.from.id, and chatId/messageId from callback_query.message.* so the card can be edited in place after the action resolves."
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://7alm-pro.up.railway.app/api/webhooks/n8n/ai-studio/idea-action",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "x-webhook-secret",
-              "value": "123456"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"ideaId\": \"{{ $json.ideaId }}\",\n  \"action\": \"{{ $json.action }}\",\n  \"telegramUserId\": \"{{ $json.telegramUserId }}\"\n}",
-        "options": {
-          "response": {
-            "response": {
-              "neverError": true,
-              "responseFormat": "json"
-            }
-          }
-        }
-      },
-      "id": "b1c2d301-0000-4a00-8000-000000000010",
-      "name": "Idea Action → 7alm",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        -2256,
-        -2432
-      ],
-      "typeVersion": 4.2,
-      "notes": "POST /api/webhooks/n8n/ai-studio/idea-action. Header is x-webhook-secret (validated against N8N_WEBHOOK_SECRET) — NOT x-n8n-access-token; see automation-plan.md §3 B2's correction note. Secret hardcoded to 123456 to match every other workflow in this repo: the live 'order-action?secret=123456' calls work against the deployed app, so that is what production validates (.env.local shows a different, local-only value). neverError:true so this node never throws; downstream nodes branch on the JSON body's success field."
-    },
-    {
-      "parameters": {
-        "resource": "callback",
-        "operation": "answerQuery",
-        "queryId": "={{ $('Parse Callback').item.json.callbackQueryId }}",
-        "additionalFields": {
-          "text": "={{ $json.success ? 'تمت العملية ✅' : ('تعذر التنفيذ: ' + ($json.error || 'خطأ غير معروف')) }}"
-        }
-      },
-      "id": "b1c2d301-0000-4a00-8000-000000000013",
-      "name": "Answer Callback",
-      "type": "n8n-nodes-base.telegram",
-      "position": [
-        -1776,
-        -2432
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "telegramApi": {
-          "id": "AsXbM9hYArJ88apL",
-          "name": "Telegram account"
-        }
-      },
-      "notes": "Answers the Telegram callback query so the button stops spinning. Input is now 'Idea Action → 7alm' directly (the old 'Action OK?' if-node was removed — both its outputs went here, so it decided nothing), which means $json here IS the 7alm response body."
-    },
-    {
-      "parameters": {
-        "resource": "message",
-        "operation": "editMessageText",
-        "chatId": "={{ $('Parse Callback').item.json.chatId }}",
-        "messageId": "={{ $('Parse Callback').item.json.messageId }}",
-        "text": "={{ $('Idea Action → 7alm').item.json.success ? ('✅ الحالة الجديدة: ' + $('Idea Action → 7alm').item.json.status) : ('⚠️ فشل تنفيذ \"' + $('Parse Callback').item.json.action + '\": ' + ($('Idea Action → 7alm').item.json.error || 'خطأ غير معروف')) }}",
-        "additionalFields": {}
-      },
-      "id": "b1c2d301-0000-4a00-8000-000000000014",
-      "name": "Edit Card Status",
-      "type": "n8n-nodes-base.telegram",
-      "position": [
-        -1536,
-        -2432
-      ],
-      "typeVersion": 1.2,
-      "credentials": {
-        "telegramApi": {
-          "id": "AsXbM9hYArJ88apL",
-          "name": "Telegram account"
-        }
-      },
-      "notes": "Updates the original approval card in place. Sources from $('Idea Action → 7alm').item.json, NOT $json: this node's input is 'Answer Callback', whose $json is the Telegram API response, so $json.success/$json.status are undefined there and the ternary always took the failure arm — showing 'فشل' even on success."
     },
     {
       "parameters": {
@@ -399,7 +221,7 @@
         "promptType": "define",
         "text": "={{ $('Prepare for LLM').first().json.text }}",
         "options": {
-          "systemMessage": "=أنت مساعد تسويق ذكي لمتجر «حلم» المصري، بتتكلم مع صاحب المتجر نفسه على تليجرام في محادثة عادية. مهمتك: الرد على أسئلته عن المنتجات، وتحضير بوستات فيسبوك معاه بالحوار، ونشر البوست على صفحة الفيسبوك لما يوافق.\n\nبيانات المنتجات النشطة حاليًا وهي المصدر الوحيد لأي معلومة:\n{{ JSON.stringify($('Load Active Products').first().json.data) }}\n\nحقول مهمة لكل منتج: name وdescription وslug وmain_image وpricing (unit_price وcompare_at_price وdiscount_percentage) وquantity_offers وavailability.\n\n## أسلوب المحادثة\n- رد بالعربي المصري الطبيعي كنص عادي، من غير JSON ومن غير تنسيقات معقدة.\n- لو سأل عن المنتجات أو الأسعار أو العروض جاوب من البيانات أعلاه بس، وما تخترعش أي معلومة.\n- لو طلب بوست وما حددش منتج وفيه أكتر من منتج متاح، اسأله الأول عايز بوست عن أنهي واحد.\n\n## تحضير البوست\nلما يطلب بوست، اكتب له مسودة كاملة في رسالتك واسأله رأيه. المسودة لازم تشمل:\n1. سطر افتتاحي (hook) يلفت الانتباه من أول كلمتين.\n2. سطرين أو تلاتة عن أهم فايدة للمنتج من description بأسلوب طبيعي مش مبالغ فيه.\n3. السعر من pricing.unit_price بالجنيه المصري، ولو compare_at_price أكبر منه اذكره كسعر قبل الخصم مع نسبة الخصم discount_percentage.\n4. أفضل عرض كمية من quantity_offers لو موجود.\n5. سطر رابط الطلب — إجباري في كل بوست: ركّب الرابط كده: https://7alm-pro.up.railway.app/ + قيمة slug بتاع المنتج + ?utm_source=facebook (مثال: https://7alm-pro.up.railway.app/7alm-product?utm_source=facebook) بصيغة «اطلب من هنا 👉 الرابط».\n6. من 3 إلى 5 هاشتاجات بالعربي وإيموجي معتدلة.\nلو طلب تعديلات، عدّل على آخر مسودة في سياق المحادثة وحافظ على الباقي (بما فيه رابط الطلب)، واعرض المسودة كاملة تاني.\n\n## اختيار المنصة\n- لما صاحب المتجر يوافق على مسودة، لو رسالته ما حددتش المنصة (فيسبوك / إنستجرام / تيك توك / أكتر من واحدة مع بعض)، اسأله الأول عايز تنشر فين قبل ما تستخدم أي أداة نشر.\n- لو حدد أكتر من منصة في نفس الموافقة، نفّذ كل منصة بقواعدها الخاصة اللي جاية تحت، كل واحدة لوحدها.\n\n## النشر على فيسبوك\n- ما تنشرش أبدًا قبل ما صاحب المتجر يوافق صراحة على آخر مسودة (بأي صيغة موافقة زي: تمام، أوكي، انشر، موافق، ماشي، okay).\n- لما يوافق: حدد صورة المنتج من main_image، ولو بتبدأ بـ / حوّلها لرابط كامل بإضافة https://7alm-pro.up.railway.app في الأول.\n- لو فيه صورة استخدم أداة publish_photo_post بالـ caption النهائي ورابط الصورة. لو مفيش صورة خالص استخدم أداة publish_text_post بالـ caption بس.\n- الـ caption اللي تبعته للأداة هو نص آخر مسودة وافق عليها صاحب المتجر بالظبط، من غير أي إضافات أو تغييرات جديدة.\n- انشر مرة واحدة بس لكل موافقة، وعمرك ما تنشر نفس البوست مرتين.\n- لما تستدعي أداة النشر ابعت القيم كاملة: باراميتر caption فيه نص البوست النهائي حرفيًا بالكامل، وباراميتر image_url فيه رابط الصورة الكامل. ممنوع تستدعي أي أداة بباراميتر فاضي؛ لو حاجة ناقصة اسأل الأول.\n- بعد ما الأداة تنجح، أكد له إن البوست اتنشر على الصفحة. لو الأداة رجعت خطأ، قول له في إيه المشكلة بصراحة وما تدّعيش إن النشر تم.\n- لو رسالته مش واضحة هل هي موافقة ولا طلب تعديل، اسأله يأكد قبل النشر.\n\n## النشر على إنستجرام\n- إنستجرام محتاج صورة إجباري؛ مفيش بوست نصي بس زي فيسبوك. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن ده مش متاح على إنستجرام وما تستخدمش أي أداة نشر لإنستجرام.\n- النشر على إنستجرام خطوتين لازم يتنفذوا مع بعض بالترتيب ده بالظبط: استخدم أداة create_instagram_media بالـ caption ورابط الصورة، هتاخد creation_id من نتيجة الأداة (حقل id)، وعلى طول استخدم أداة publish_instagram_media بنفس الـ creation_id.\n- ما تأكدش لصاحب المتجر إن البوست اتنشر على إنستجرام إلا لما الأداتين الاتنين ينجحوا. لو أي واحدة فيهم رجعت خطأ، قول له بصراحة فين المشكلة وما تدّعيش إن النشر تم، ولا تكمل للخطوة التانية.\n- زي فيسبوك بالظبط: نفّذ الزوج ده (create_instagram_media وبعدين publish_instagram_media) مرة واحدة بس لكل موافقة.\n\n## النشر على تيك توك\n- تيك توك مالوش بوست نصي خالص؛ محتاج صورة إجباري زي إنستجرام. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن النشر على تيك توك مش متاح للمنتج ده، وما تستدعيش أداة publish_tiktok_post بصورة فاضية.\n- استخدم أداة publish_tiktok_post بالـ caption النهائي ورابط الصورة، واستدعيها مرة واحدة بس لكل موافقة.\n- تطبيق تيك توك المربوط بالحساب لسه ما خدش مراجعة (app review) من تيك توك، فأي بوست بينشر دلوقتي بيبقى خاص (private/self-only) على الحساب المربوط بس، مش عام. بعد ما الأداة تنجح، لازم تقول لصاحب المتجر بوضوح إن البوست خاص وشايفه الحساب المربوط بس، وممنوع تقول إنه اتنشر بشكل عام أو ظاهر للناس كلها.\n\n- قاعدة انشر مرة واحدة بس لكل موافقة سارية على الثلاث منصات كلها (فيسبوك، إنستجرام، تيك توك)، وعلى زوج أدوات إنستجرام (create_instagram_media وpublish_instagram_media) كوحدة واحدة، يعني ما تكررش نفس زوج إنستجرام مرتين لنفس الموافقة برضو."
+          "systemMessage": "=أنت مساعد تسويق ذكي لمتجر «حلم» المصري، بتتكلم مع صاحب المتجر نفسه على تليجرام في محادثة عادية. مهمتك: الرد على أسئلته عن المنتجات، وتحضير بوستات فيسبوك معاه بالحوار، ونشر البوست على صفحة الفيسبوك لما يوافق.\n\nبيانات المنتجات النشطة حاليًا وهي المصدر الوحيد لأي معلومة:\n{{ JSON.stringify($('Load Active Products').first().json.data) }}\n\nحقول مهمة لكل منتج: name وdescription وslug وmain_image وpricing (unit_price وcompare_at_price وdiscount_percentage) وquantity_offers وavailability.\n\n## أسلوب المحادثة\n- رد بالعربي المصري الطبيعي كنص عادي، من غير JSON ومن غير تنسيقات معقدة.\n- لو سأل عن المنتجات أو الأسعار أو العروض جاوب من البيانات أعلاه بس، وما تخترعش أي معلومة.\n- لو طلب بوست وما حددش منتج وفيه أكتر من منتج متاح، اسأله الأول عايز بوست عن أنهي واحد.\n\n## تحضير البوست\nلما يطلب بوست، اكتب له مسودة كاملة في رسالتك واسأله رأيه. المسودة لازم تشمل:\n1. سطر افتتاحي (hook) يلفت الانتباه من أول كلمتين.\n2. سطرين أو تلاتة عن أهم فايدة للمنتج من description بأسلوب طبيعي مش مبالغ فيه.\n3. السعر من pricing.unit_price بالجنيه المصري، ولو compare_at_price أكبر منه اذكره كسعر قبل الخصم مع نسبة الخصم discount_percentage.\n4. أفضل عرض كمية من quantity_offers لو موجود.\n5. سطر رابط الطلب — إجباري في كل بوست: ركّب الرابط كده: https://7alm-pro.up.railway.app/ + قيمة slug بتاع المنتج + ?utm_source=facebook (مثال: https://7alm-pro.up.railway.app/7alm-product?utm_source=facebook) بصيغة «اطلب من هنا 👉 الرابط».\n6. من 3 إلى 5 هاشتاجات بالعربي وإيموجي معتدلة.\nلو طلب تعديلات، عدّل على آخر مسودة في سياق المحادثة وحافظ على الباقي (بما فيه رابط الطلب)، واعرض المسودة كاملة تاني.\n\n## اختيار المنصة\n- لما صاحب المتجر يوافق على مسودة، لو رسالته ما حددتش المنصة (فيسبوك / إنستجرام / تيك توك / أكتر من واحدة مع بعض)، اسأله الأول عايز تنشر فين قبل ما تستخدم أي أداة نشر.\n- لو حدد أكتر من منصة في نفس الموافقة، نفّذ كل منصة بقواعدها الخاصة اللي جاية تحت، كل واحدة لوحدها.\n\n## النشر على فيسبوك\n- ما تنشرش أبدًا قبل ما صاحب المتجر يوافق صراحة على آخر مسودة (بأي صيغة موافقة زي: تمام، أوكي، انشر، موافق، ماشي، okay).\n- لما يوافق: حدد صورة المنتج من main_image، ولو بتبدأ بـ / حوّلها لرابط كامل بإضافة https://7alm-pro.up.railway.app في الأول.\n- لو فيه صورة استخدم أداة publish_photo_post بالـ caption النهائي ورابط الصورة. لو مفيش صورة خالص استخدم أداة publish_text_post بالـ caption بس.\n- الـ caption اللي تبعته للأداة هو نص آخر مسودة وافق عليها صاحب المتجر بالظبط، من غير أي إضافات أو تغييرات جديدة.\n- انشر مرة واحدة بس لكل موافقة، وعمرك ما تنشر نفس البوست مرتين.\n- لما تستدعي أداة النشر ابعت القيم كاملة: باراميتر caption فيه نص البوست النهائي حرفيًا بالكامل، وباراميتر image_url فيه رابط الصورة الكامل. ممنوع تستدعي أي أداة بباراميتر فاضي؛ لو حاجة ناقصة اسأل الأول.\n- بعد ما الأداة تنجح، أكد له إن البوست اتنشر على الصفحة. لو الأداة رجعت خطأ، قول له في إيه المشكلة بصراحة وما تدّعيش إن النشر تم.\n- لو رسالته مش واضحة هل هي موافقة ولا طلب تعديل، اسأله يأكد قبل النشر.\n\n## النشر على إنستجرام\n- إنستجرام محتاج صورة إجباري؛ مفيش بوست نصي بس زي فيسبوك. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن ده مش متاح على إنستجرام وما تستخدمش أي أداة نشر لإنستجرام.\n- النشر على إنستجرام خطوتين لازم يتنفذوا مع بعض بالترتيب ده بالظبط: استخدم أداة create_instagram_media بالـ caption ورابط الصورة، هتاخد creation_id من نتيجة الأداة (حقل id)، وعلى طول استخدم أداة publish_instagram_media بنفس الـ creation_id.\n- ما تأكدش لصاحب المتجر إن البوست اتنشر على إنستجرام إلا لما الأداتين الاتنين ينجحوا. لو أي واحدة فيهم رجعت خطأ، قول له بصراحة فين المشكلة وما تدّعيش إن النشر تم، ولا تكمل للخطوة التانية.\n- زي فيسبوك بالظبط: نفّذ الزوج ده (create_instagram_media وبعدين publish_instagram_media) مرة واحدة بس لكل موافقة.\n\n## النشر على تيك توك\n- تيك توك مالوش بوست نصي خالص؛ محتاج صورة إجباري زي إنستجرام. لو المنتج مفيهوش صورة، قول لصاحب المتجر إن النشر على تيك توك مش متاح للمنتج ده، وما تستدعيش أداة publish_tiktok_post بصورة فاضية.\n- استخدم أداة publish_tiktok_post بالـ caption النهائي ورابط الصورة، واستدعيها مرة واحدة بس لكل موافقة.\n- تطبيق تيك توك المربوط بالحساب لسه ما خدش مراجعة (app review) من تيك توك، فأي بوست بينشر دلوقتي بيبقى خاص (private/self-only) على الحساب المربوط بس، مش عام. بعد ما الأداة تنجح، لازم تقول لصاحب المتجر بوضوح إن البوست خاص وشايفه الحساب المربوط بس، وممنوع تقول إنه اتنشر بشكل عام أو ظاهر للناس كلها.\n\n- قاعدة انشر مرة واحدة بس لكل موافقة سارية على الثلاث منصات كلها (فيسبوك، إنستجرام، تيك توك)، وعلى زوج أدوات إنستجرام (create_instagram_media وpublish_instagram_media) كوحدة واحدة، يعني ما تكررش نفس زوج إنستجرام مرتين لنفس الموافقة برضو.\n\n## البحث في الترند وبناء كامباين تسويقي\n- لما صاحب المتجر يسأل حاجة زي \"ايه المتريند في [مجال]؟\" أو يطلب اقتراح كامباين تسويقي عن مجال معين، استخدم أداة search_web بجملة بحث واضحة (query) تعبر عن اللي هو عايزه، وابني على نتائجها اقتراح كامباين تسويقي حقيقي — مش بوست منتج عادي.\n- اقتراح الكامباين لازم يشمل: اسم مختصر للكامباين، المجال (niche)، الهدف (objective — زي وعي بالبراند/زيارات/مبيعات)، عنوان (headline)، نص أساسي (primary_text) بأسلوب كوباي رايتنج حقيقي مش وصف منتج بس، دعوة لاتخاذ إجراء (cta)، شوية هاشتاجات، وسطر واحد يلخص أهم حاجة طلعت من البحث.\n- ناقش الاقتراح مع صاحب المتجر وعدّل عليه بنفس أسلوب تحضير البوست: اعرض المسودة كاملة، خد رأيه، عدّل لو طلب، واعرض النسخة الكاملة تاني بعد كل تعديل.\n- ما تستخدمش أداة save_campaign إلا بعد ما صاحب المتجر يوافق صراحة على النسخة النهائية من الكامباين (بنفس كلمات الموافقة المعتمدة: تمام، أوكي، انشر، موافق، ماشي). لو رده مش واضح إنه موافقة، اسأله يأكد الأول.\n- لو نفس رسالة الموافقة فيها طلب صريح إنه عايز ينشر الكامباين دلوقتي على فيسبوك أو إنستجرام (مش بس يحفظه في اللوحة عشان يطلقه بعدين يدويًا)، استخدم أدوات النشر المعتادة (publish_photo_post أو publish_text_post، أو زوج إنستجرام) بالـ caption اللي هو headline + primary_text + cta، وده لازم يبقى ليه صورة — لو الكامباين مش مربوط بمنتج بصورة واضحة، اسأل صاحب المتجر يديك رابط صورة، وممنوع تختلق رابط صورة من عندك.\n- بعد ما النشر ينجح فعلاً، استدعِ save_campaign بباراميتر status = \"published\". لو ما كانش فيه طلب نشر فوري، استدعِ save_campaign من غير باراميتر status خالص (هيبقى الافتراضي \"ready\" يعني معتمد وناطر إطلاق يدوي).\n- عمرك ما تستدعي save_campaign أكتر من مرة واحدة لكل كامباين اتوافق عليه."
         }
       },
       "id": "d2966caf-600f-47f0-8e1c-20203d7f9fa6",
@@ -599,6 +421,90 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "toolDescription": "ابحث في الإنترنت عن معلومات حالية ومحدثة. استدعيها بباراميتر query (نص وصف اللي عايز تبحث عنه، مثلاً \"trending phone case designs Egypt 2026\" أو أي مجال ذكره صاحب المتجر). النتيجة بترجع في choices[0].message.content كملخص نصي من نتائج بحث حالية على الإنترنت تقدر تبني عليه اقتراح كامباين.",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"perplexity/sonar\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": {{ JSON.stringify($fromAI('query', 'What to research on the web, e.g. trending phone case designs Egypt 2026', 'string')) }} }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        },
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi"
+      },
+      "id": "f1a2b3c4-d5e6-4a00-8000-search0000001",
+      "name": "search_web",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -928,
+        -2032
+      ],
+      "typeVersion": 4.4,
+      "credentials": {
+        "openRouterApi": {
+          "id": "EbbUdiq5aCjllGWD",
+          "name": "OpenRouter account"
+        }
+      },
+      "notes": "AI tool: web-search via OpenRouter's perplexity/sonar (search-grounded, paid model — verify OpenRouter account has credit/access before relying on this in production). Auth via predefinedCredentialType/openRouterApi (same OpenRouterApi credential as 'OpenRouter Chat Model'; its credential type declares an `authenticate` header hook, so HTTP Request/Tool nodes can select it under Predefined Credential Type). Reads message content from choices[0].message.content."
+    },
+    {
+      "parameters": {
+        "toolDescription": "احفظ الكامباين التسويقي بعد ما صاحب المتجر يوافق عليه نهائيًا في المحادثة. استدعيها مرة واحدة بس، فور الموافقة الصريحة على كامباين كامل (مش بوست منتج عادي) — ده اللي بيظهرها في لوحة /admin/ai-studio. الباراميترات: name وniche وobjective وresearch_summary (اختياري) وheadline وprimary_text وcta وhashtags (اختياري) وplatform (اختياري: meta أو facebook_instagram أو whatsapp) وstatus (اختياري — ابعته published بس لو نشرت الكامباين فعليًا على فيسبوك/إنستجرام في نفس الرسالة دي، وإلا سيبه فاضي وهيبقى الافتراضي ready).",
+        "method": "POST",
+        "url": "https://7alm-pro.up.railway.app/api/n8n/ai-studio/campaigns",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-n8n-access-token",
+              "value": "123456"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": {{ JSON.stringify($fromAI('name', 'Short campaign name', 'string')) }},\n  \"niche\": {{ JSON.stringify($fromAI('niche', 'The niche/market this campaign targets', 'string')) }},\n  \"objective\": {{ JSON.stringify($fromAI('objective', 'Campaign objective, e.g. awareness, traffic, sales', 'string')) }},\n  \"research_summary\": {{ JSON.stringify($fromAI('research_summary', 'One-line summary of what the web research showed', 'string', '') || null) }},\n  \"headline\": {{ JSON.stringify($fromAI('headline', 'Campaign headline', 'string')) }},\n  \"primary_text\": {{ JSON.stringify($fromAI('primary_text', 'Campaign primary body copy', 'string')) }},\n  \"cta\": {{ JSON.stringify($fromAI('cta', 'Call to action', 'string')) }},\n  \"hashtags\": {{ JSON.stringify($fromAI('hashtags', 'A few relevant hashtags', 'string', '') || null) }},\n  \"platform\": {{ JSON.stringify($fromAI('platform', 'One of meta, facebook_instagram, whatsapp', 'string', '') || null) }},\n  \"telegram_chat_id\": \"{{ $('Receive Telegram Messages').first().json.message.chat.id }}\",\n  \"status\": {{ JSON.stringify($fromAI('status', 'Only \"published\" if the FB/IG publish tools already succeeded for this campaign this turn, otherwise omit', 'string', '') || null) }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "f1a2b3c4-d5e6-4a00-8000-savecamp00001",
+      "name": "save_campaign",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "position": [
+        -928,
+        -1872
+      ],
+      "typeVersion": 4.4,
+      "notes": "AI tool: POST /api/n8n/ai-studio/campaigns. Same x-n8n-access-token header pattern as Load Active Products. Call exactly once per approved campaign; status defaults server-side to 'ready' when omitted."
     }
   ],
   "connections": {
@@ -606,58 +512,7 @@
       "main": [
         [
           {
-            "node": "Message Kind?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Message Kind?": {
-      "main": [
-        [
-          {
-            "node": "Parse Callback",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
             "node": "Voice or Text?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Callback": {
-      "main": [
-        [
-          {
-            "node": "Idea Action → 7alm",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Idea Action → 7alm": {
-      "main": [
-        [
-          {
-            "node": "Answer Callback",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Answer Callback": {
-      "main": [
-        [
-          {
-            "node": "Edit Card Status",
             "type": "main",
             "index": 0
           }
@@ -811,6 +666,28 @@
       ]
     },
     "publish_tiktok_post": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_web": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate FB Post",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save_campaign": {
       "ai_tool": [
         [
           {

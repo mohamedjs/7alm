@@ -1,45 +1,54 @@
 "use client";
 
-import { useAiStudioManager } from "@/features/ai-studio/ai-studio.hooks";
-import { TrendsList } from "@/components/admin/ai-studio/TrendsList";
-import { AddTrendForm } from "@/components/admin/ai-studio/AddTrendForm";
-import { IdeasList } from "@/components/admin/ai-studio/IdeasList";
+import { useAiStudioManager, type CampaignStatusFilter } from "@/features/ai-studio/ai-studio.hooks";
+import { CampaignsList } from "@/components/admin/ai-studio/CampaignsList";
 import { useLocale } from "@/features/i18n/i18n.hooks";
+import type { DictKey } from "@/features/i18n/dictionary";
+
+const FILTERS: { status: CampaignStatusFilter; key: DictKey }[] = [
+  { status: "all", key: "aiStudio.filter.all" },
+  { status: "draft", key: "aiStudio.status.draft" },
+  { status: "ready", key: "aiStudio.status.ready" },
+  { status: "published", key: "aiStudio.status.published" },
+  { status: "archived", key: "aiStudio.status.archived" },
+];
 
 export default function AiStudioPage() {
-  const {
-    trends,
-    isLoadingTrends,
-    addTrend,
-    isAddingTrend,
-    ideas,
-    isLoadingIdeas,
-    ideaStatusFilter,
-    setIdeaStatusFilter,
-  } = useAiStudioManager();
   const { t } = useLocale();
+  const { campaigns, isLoading, statusFilter, setStatusFilter, markPublished, archive } =
+    useAiStudioManager();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-text-primary">{t("aiStudio.title")}</h1>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          <h2 className="text-lg font-semibold text-text-primary">{t("aiStudio.trends.title")}</h2>
-          <TrendsList trends={trends} isLoading={isLoadingTrends} />
-        </div>
-        <AddTrendForm onSubmit={addTrend} isSubmitting={isAddingTrend} />
+      <div>
+        <h1 className="text-2xl font-bold text-text-primary">{t("aiStudio.title")}</h1>
+        <p className="text-text-muted">{t("aiStudio.subtitle")}</p>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-text-primary">{t("aiStudio.ideas.title")}</h2>
-        <IdeasList
-          ideas={ideas}
-          isLoading={isLoadingIdeas}
-          statusFilter={ideaStatusFilter}
-          onStatusFilterChange={setIdeaStatusFilter}
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        {FILTERS.map((filter) => (
+          <button
+            key={filter.key}
+            type="button"
+            onClick={() => setStatusFilter(filter.status)}
+            aria-pressed={statusFilter === filter.status}
+            className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+              statusFilter === filter.status
+                ? "neu-pressed bg-surface text-brand-500"
+                : "neu-raised bg-surface text-text-muted hover:text-text-primary"
+            }`}
+          >
+            {t(filter.key)}
+          </button>
+        ))}
       </div>
+
+      <CampaignsList
+        campaigns={campaigns}
+        isLoading={isLoading}
+        onMarkPublished={markPublished}
+        onArchive={archive}
+      />
     </div>
   );
 }

@@ -569,163 +569,48 @@ export interface ProductSearchResult {
 }
 
 // ============================================================
-// AI Studio — trend discovery → design → approval → assets →
-// marketing → ads → analytics → memory
-// Spec: specs/013-ai-studio/spec.md
+// AI Studio — conversational marketing-campaign builder
+// (Telegram chat: research a niche → negotiate a campaign → approve
+// in chat → optional auto-publish to Facebook/Instagram)
+// Spec: specs/013-ai-studio/spec.md (superseded pivot, see CHANGELOG)
 // ============================================================
 
-export type TrendSource =
-  | "pinterest"
-  | "etsy"
-  | "tiktok"
-  | "instagram"
-  | "google_trends"
-  | "reddit"
-  | "amazon"
-  | "manual";
+export type AdCampaignStatus = "draft" | "ready" | "published" | "archived";
+export type AdCampaignPlatform = "meta" | "facebook_instagram" | "whatsapp";
 
-export type TrendStatus = "new" | "summarized" | "used" | "archived";
-
-/** A collected market signal that feeds design idea generation. */
-export interface Trend {
+/** A marketing campaign negotiated with the owner over Telegram chat. */
+export interface AdCampaign {
   id: string;
-  source: TrendSource;
-  fingerprint: string;
-  raw_signal: Record<string, unknown>;
-  summary: string | null;
-  score: number | null;
-  status: TrendStatus;
-  collected_at: string;
-  updated_at: string;
-}
-
-/** Body for creating a trend (manual add, or a collector run). */
-export interface TrendInput {
-  source: TrendSource;
-  raw_signal: Record<string, unknown>;
-  summary?: string | null;
-  score?: number | null;
-}
-
-export type DesignIdeaStatus =
-  | "pending_review"
-  | "approved"
-  | "rejected"
-  | "possible_duplicate"
-  | "published";
-
-/** An AI-proposed phone case concept derived from one or more trends. */
-export interface DesignIdea {
-  id: string;
-  title: string;
-  description: string;
-  concept_fingerprint: string;
-  source_trend_ids: string[];
-  status: DesignIdeaStatus;
-  is_favorite: boolean;
-  product_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-/** A specific iteration (original or regenerated) of a design idea. */
-export interface DesignVersion {
-  id: string;
-  design_idea_id: string;
-  version_number: number;
-  prompt: string;
-  admin_feedback: string | null;
-  created_at: string;
-}
-
-export type GeneratedAssetType = "studio" | "lifestyle" | "transparent_png";
-export type GeneratedAssetStatus = "pending_review" | "approved" | "rejected_qa";
-
-/** An image produced from an approved design version. */
-export interface GeneratedAsset {
-  id: string;
-  design_version_id: string;
-  asset_type: GeneratedAssetType;
-  image_url: string;
-  status: GeneratedAssetStatus;
-  qa_notes: string | null;
-  created_at: string;
-}
-
-/** AI-generated marketing copy for an approved, imaged design. */
-export interface MarketingContent {
-  id: string;
-  design_idea_id: string;
+  name: string | null;
+  niche: string | null;
+  objective: string | null;
+  research_summary: string | null;
   headline: string | null;
   primary_text: string | null;
   cta: string | null;
-  language: "ar" | "en";
-  created_at: string;
-}
-
-export type AdCampaignStatus = "draft" | "ready" | "published" | "archived";
-
-/** A Meta Ads draft — never auto-published (see FR-009). */
-export interface AdCampaign {
-  id: string;
-  marketing_content_id: string;
-  platform: "meta";
+  hashtags: string | null;
+  platform: AdCampaignPlatform | null;
   status: AdCampaignStatus;
-  target_audience: Record<string, unknown>;
+  target_audience: Record<string, unknown> | null;
   daily_budget: number | null;
   external_campaign_id: string | null;
+  telegram_chat_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
-/** Ingested performance data for a published design/campaign. */
-export interface AnalyticsRecord {
-  id: string;
-  design_idea_id: string | null;
-  ad_campaign_id: string | null;
-  metric_date: string;
-  impressions: number;
-  clicks: number;
-  conversions: number;
-  spend: number;
-  revenue: number;
-  raw_payload: Record<string, unknown>;
-  created_at: string;
-}
-
-export type AiMemoryCategory =
-  | "trend_pattern"
-  | "design_preference"
-  | "audience_insight"
-  | "pricing"
-  | "general";
-
-/** A distilled learning derived from analytics, reused as generation context. */
-export interface AiMemoryEntry {
-  id: string;
-  category: AiMemoryCategory;
-  insight: string;
-  confidence: number;
-  source_analytics_ids: string[];
-  created_at: string;
-}
-
-export type TelegramApprovalAction =
-  | "approve"
-  | "reject"
-  | "edit"
-  | "regenerate"
-  | "favorite"
-  | "publish";
-
-/** Audit log row for every Telegram approval-workflow action. */
-export interface TelegramApprovalLog {
-  id: string;
-  design_idea_id: string;
-  action: TelegramApprovalAction;
-  telegram_user_id: string | null;
-  previous_status: string | null;
-  new_status: string | null;
-  note: string | null;
-  created_at: string;
+/** Body the n8n marketing agent sends once the owner approves a campaign in chat. */
+export interface AdCampaignInput {
+  name: string;
+  niche: string;
+  objective: string;
+  research_summary?: string | null;
+  headline: string;
+  primary_text: string;
+  cta: string;
+  hashtags?: string | null;
+  platform?: AdCampaignPlatform | null;
+  target_audience?: Record<string, unknown> | null;
+  telegram_chat_id?: string | null;
+  status?: AdCampaignStatus;
 }

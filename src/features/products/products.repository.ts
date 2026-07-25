@@ -188,50 +188,6 @@ export class ProductRepository {
   }
 
   /**
-   * Insert a new product row seeded from a published AI Studio design idea
-   * (`design-ideas.service.ts#applyAction`, `publish` action). Always
-   * created with `is_active:false` — a draft the admin must review and
-   * activate manually before it appears on the storefront. Additive-only:
-   * reused so the publish→products insert has exactly one implementation,
-   * matching the rest of `/api/admin/products` create defaults.
-   */
-  async createDraftFromDesignIdea(input: {
-    name: string;
-    slug: string;
-    description: string | null;
-  }): Promise<Product> {
-    const { data, error } = await supabase
-      .from("products")
-      .insert({
-        category_id: null,
-        name: input.name,
-        slug: input.slug,
-        description: input.description,
-        price: 0,
-        compare_at_price: null,
-        quantity_prices: null,
-        sku: null,
-        qrcode: null,
-        quantity: 0,
-        stock_status: "out_of_stock",
-        main_image: null,
-        gallery: [],
-        is_active: false,
-        theme_color: "#06b6d4",
-        is_featured: false,
-        featured_sort: null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating draft product from design idea:", error);
-      throw error;
-    }
-    return data;
-  }
-
-  /**
    * Case-insensitive name search over active products — the storefront
    * search bar's backend. Ordered by newest first, capped at `limit`.
    */
