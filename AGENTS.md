@@ -324,6 +324,11 @@ BOSTA_API_KEY=xxx                     # Bosta API credentials
 BOSTA_BUSINESS_ID=xxx
 N8N_WHATSAPP_SEND_WEBHOOK_URL=https://n8n.example.com/webhook/whatsapp-crm-send  # n8n webhook for CRM WhatsApp sends
 N8N_SEND_WEBHOOK_SECRET=xxx           # Shared secret for n8n CRM send webhook auth
+RESEND_API_KEY=re_xxx                 # Resend API key — admin new-order alert emails (order-cycle-redesign §3/§8)
+ADMIN_ALERT_EMAIL=mohamedjs408@gmail.com  # Recipient of the "new order" admin alert email
+EMAIL_FROM=onboarding@resend.dev      # Verified sender; falls back to Resend's sandbox address until a domain is verified
+SHIPPING_WEBHOOK_SECRET=xxx           # Shared secret validated by /api/webhooks/shipping (required by all providers incl. `test`)
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # Base URL used for admin email links + the `test` shipping provider's self-simulated webhook calls
 ```
 
 #### n8n Environment Variables

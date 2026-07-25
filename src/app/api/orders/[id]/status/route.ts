@@ -32,6 +32,7 @@ export async function PATCH(
 
     let providerName: ShippingProviderName | undefined;
     let newStatus = "approved"; // default for backwards compatibility if needed
+    let requireConfirmation: boolean | undefined;
 
     try {
       const body = await request.json();
@@ -41,11 +42,22 @@ export async function PATCH(
       if (body.status) {
         newStatus = body.status;
       }
+      // Admin's approve-mode choice: true = "approve & ask customer to
+      // confirm on WhatsApp" (default), false = "approve & ship now".
+      // Only meaningful when status === 'approved'; ignored otherwise.
+      if (typeof body.require_confirmation === "boolean") {
+        requireConfirmation = body.require_confirmation;
+      }
     } catch {
       // No body is fine
     }
 
-    const result = await orderService.changeOrderStatus(id, newStatus, providerName);
+    const result = await orderService.changeOrderStatus(
+      id,
+      newStatus,
+      providerName,
+      requireConfirmation
+    );
 
     if (!result.success) {
       return NextResponse.json(

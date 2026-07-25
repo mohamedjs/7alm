@@ -69,7 +69,6 @@ export default function AdminLayoutClient({
     { key: "nav.customers", path: "/admin/customers" },
     { key: "nav.products", path: "/admin/products" },
     { key: "nav.categories", path: "/admin/categories" },
-    { key: "nav.testimonials", path: "/admin/testimonials" },
     { key: "nav.connections", path: "/admin/connections" },
     { key: "nav.reviews", path: "/admin/reviews" },
     { key: "nav.coupons", path: "/admin/coupons" },

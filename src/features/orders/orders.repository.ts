@@ -261,7 +261,8 @@ export class OrderRepository {
     id: string,
     status: string,
     shippingProvider?: string,
-    shippingTrackingId?: string
+    shippingTrackingId?: string,
+    requiresConfirmation?: boolean
   ): Promise<Order | null> {
     const updateData: Record<string, unknown> = {
       status,
@@ -271,6 +272,8 @@ export class OrderRepository {
     if (shippingProvider) updateData.shipping_provider = shippingProvider;
     if (shippingTrackingId)
       updateData.shipping_tracking_id = shippingTrackingId;
+    if (requiresConfirmation !== undefined)
+      updateData.requires_confirmation = requiresConfirmation;
 
     const { data, error } = await supabase
       .from("orders")

@@ -10,7 +10,6 @@ import { productsApi } from "@/features/products/products.api";
 import { categoriesApi } from "@/features/categories/categories.api";
 import { mediaApi } from "@/features/media/media.api";
 import { storeApi } from "@/features/store/store.api";
-import { testimonialsApi } from "@/features/testimonials/testimonials.api";
 import { customersApi } from "@/features/customers/customers.api";
 import { socialApi } from "@/features/social/social.api";
 import { reviewsApi } from "@/features/reviews/reviews.api";
@@ -27,7 +26,6 @@ export const store = configureStore({
     [categoriesApi.reducerPath]: categoriesApi.reducer,
     [mediaApi.reducerPath]: mediaApi.reducer,
     [storeApi.reducerPath]: storeApi.reducer,
-    [testimonialsApi.reducerPath]: testimonialsApi.reducer,
     [customersApi.reducerPath]: customersApi.reducer,
     [socialApi.reducerPath]: socialApi.reducer,
     [reviewsApi.reducerPath]: reviewsApi.reducer,
@@ -42,7 +40,6 @@ export const store = configureStore({
       .concat(categoriesApi.middleware)
       .concat(mediaApi.middleware)
       .concat(storeApi.middleware)
-      .concat(testimonialsApi.middleware)
       .concat(customersApi.middleware)
       .concat(socialApi.middleware)
       .concat(reviewsApi.middleware)

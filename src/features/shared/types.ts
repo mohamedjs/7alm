@@ -162,6 +162,8 @@ export interface Order {
   status: OrderStatus;
   shipping_provider: string | null;
   shipping_tracking_id: string | null;
+  /** Whether the WhatsApp confirmation step was required for this order (admin approval choice). Defaults true at the DB level. */
+  requires_confirmation: boolean;
   created_at: string;
   updated_at: string;
   /** Items subtotal before discount. Defaults to the items total when no coupon is applied. */
@@ -276,21 +278,6 @@ export interface WhatsAppOrderAction {
   orderId: string;
   action: "confirm" | "cancel";
 }
-
-// --- Testimonials ---
-export interface Testimonial {
-  id: string;
-  name_ar: string;
-  name_en: string | null;
-  role_ar: string | null;
-  role_en: string | null;
-  text_ar: string;
-  text_en: string | null;
-  rating: number;
-  is_active: boolean;
-  created_at: string;
-}
-
 
 // --- WhatsApp Messaging ---
 export type WhatsAppMessageDirection = "inbound" | "outbound";
@@ -506,6 +493,16 @@ export interface ProductReviewPublic {
   body: string | null;
   author_name: string;
   created_at: string;
+}
+
+/**
+ * A `ProductReviewPublic` extended with the product it belongs to — used
+ * by the store home page showcase carousel, which pulls reviews across
+ * all products rather than a single product's page.
+ */
+export interface ShowcaseReview extends ProductReviewPublic {
+  product_name: string | null;
+  product_slug: string | null;
 }
 
 // --- Coupons / Discount Codes ---

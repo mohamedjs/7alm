@@ -1,17 +1,19 @@
 import crypto from "crypto";
 import { reviewRepository } from "./reviews.repository";
+import { customerService } from "@/features/customers/customers.service";
 import type {
   ProductReview,
   ProductReviewPublic,
   ReviewAggregate,
   ReviewStatus,
+  ShowcaseReview,
   SubmitReviewInput,
 } from "@/features/shared/types";
 
 const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 interface ReviewTokenPayload {
-  customerId: string;
+  phone: string;
   productId: string;
   orderId: string;
   exp: number; // epoch ms
@@ -68,7 +70,7 @@ function verifyToken(token: string): ReviewTokenPayload {
   if (typeof payload.exp !== "number" || payload.exp < Date.now()) {
     throw new Error("Review token has expired — please request a new review link.");
   }
-  if (!payload.customerId || !payload.productId || !payload.orderId) {
+  if (!payload.phone || !payload.productId || !payload.orderId) {
     throw new Error("Malformed review token payload.");
   }
 
@@ -100,12 +102,16 @@ function toPublicDto(review: ProductReview): ProductReviewPublic {
 export class ReviewService {
   /**
    * Issue a 30-day verified-buyer token over
-   * `{ customerId, productId, orderId }` — the token itself is what makes
+   * `{ phone, productId, orderId }` — the token itself is what makes
    * the web review "verified" without requiring a login.
+   *
+   * `phone` must be the exact stored `customers.phone` value (e.g.
+   * `order.customer.phone`) — it is signed as-is, never normalized here,
+   * so `submitReview`'s `findByPhone(phone)` lookup matches byte-for-byte.
    */
-  issueReviewToken(customerId: string, productId: string, orderId: string): string {
+  issueReviewToken(phone: string, productId: string, orderId: string): string {
     return signToken({
-      customerId,
+      phone,
       productId,
       orderId,
       exp: Date.now() + TOKEN_TTL_MS,
@@ -141,8 +147,13 @@ export class ReviewService {
       return { success: false, error: "Rating must be a whole number between 1 and 5." };
     }
 
+    const customer = await customerService.findByPhone(payload.phone);
+    if (!customer) {
+      return { success: false, error: "No matching customer for this review link." };
+    }
+
     const isVerifiedBuyer = await reviewRepository.hasDeliveredOrder(
-      payload.customerId,
+      customer.id,
       payload.productId
     );
     if (!isVerifiedBuyer) {
@@ -154,7 +165,7 @@ export class ReviewService {
 
     const { review, isDuplicate } = await reviewRepository.createReview({
       product_id: payload.productId,
-      customer_id: payload.customerId,
+      customer_id: customer.id,
       order_id: payload.orderId,
       rating: input.rating,
       title: input.title?.trim() || null,
@@ -191,6 +202,31 @@ export class ReviewService {
     ]);
 
     return { reviews: reviews.map(toPublicDto), aggregate };
+  }
+
+  /**
+   * Store home page showcase data: top-rated approved reviews across all
+   * products (default 4★+, 12 rows), plus a store-wide rating aggregate.
+   * Reuses `toPublicDto` for the same author-name/no-PII guarantees as
+   * `getProductReviews`, extended with the product name/slug to link to.
+   */
+  async getShowcaseReviews(opts?: {
+    minRating?: number;
+    limit?: number;
+  }): Promise<{ reviews: ShowcaseReview[]; aggregate: ReviewAggregate }> {
+    const [reviews, aggregate] = await Promise.all([
+      reviewRepository.getTopApproved(opts),
+      reviewRepository.getGlobalAggregate(),
+    ]);
+
+    return {
+      reviews: reviews.map((review) => ({
+        ...toPublicDto(review),
+        product_name: review.product?.name ?? null,
+        product_slug: review.product?.slug ?? null,
+      })),
+      aggregate,
+    };
   }
 }
 

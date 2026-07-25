@@ -6,13 +6,14 @@ import type { OrderWithDetails } from "@/features/orders/orders.api";
 import type { OrderStatus } from "@/features/shared/types";
 import { OrderStateMachine } from "@/lib/orderStateMachine";
 import { useLocale } from "@/features/i18n/i18n.hooks";
-import { orderActionDictKey } from "@/features/orders/orders.hooks";
+import { getOrderDisplayActions } from "@/features/orders/orders.hooks";
+import type { ChangeStatusOptions } from "@/features/orders/orders.hooks";
 import type { DictKey } from "@/features/i18n/dictionary";
 
 interface OrderDetailsDrawerProps {
   order: OrderWithDetails | null;
   onClose: () => void;
-  onChangeStatus: (orderId: string, nextStatus: OrderStatus) => void;
+  onChangeStatus: (orderId: string, nextStatus: OrderStatus, options?: ChangeStatusOptions) => void;
   approvingId: string | null;
 }
 
@@ -398,44 +399,57 @@ export default function OrderDetailsDrawer({
           </Section>
 
           {/* Actions */}
-          {state?.availableActions.length > 0 && (
-            <div className="pt-2">
-              <h4 className="text-text-primary font-bold text-sm mb-3">{t("orders.drawer.actions")}</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {state.availableActions.map((action) => (
-                  <button
-                    key={action.action}
-                    onClick={() => onChangeStatus(order.id, action.nextStatus)}
-                    disabled={approvingId === order.id}
-                    className={`${action.style} px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-1.5`}
-                  >
-                    {approvingId === order.id ? (
-                      <svg
-                        className="animate-spin w-3.5 h-3.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                    ) : null}
-                    {t(orderActionDictKey(action.action))}
-                  </button>
-                ))}
+          {(() => {
+            const displayActions = getOrderDisplayActions(order.status);
+            if (displayActions.length === 0) return null;
+            return (
+              <div className="pt-2">
+                <h4 className="text-text-primary font-bold text-sm mb-3">{t("orders.drawer.actions")}</h4>
+                <div
+                  className={`grid gap-2 ${
+                    order.status === "pending" ? "grid-cols-1" : "grid-cols-2"
+                  }`}
+                >
+                  {displayActions.map((action) => (
+                    <button
+                      key={action.key}
+                      onClick={() =>
+                        onChangeStatus(order.id, action.nextStatus, {
+                          requireConfirmation: action.requireConfirmation,
+                        })
+                      }
+                      disabled={approvingId === order.id}
+                      title={action.hintKey ? t(action.hintKey) : undefined}
+                      className={`${action.style} px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-1.5`}
+                    >
+                      {approvingId === order.id ? (
+                        <svg
+                          className="animate-spin w-3.5 h-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                      ) : null}
+                      {t(action.labelKey)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </>

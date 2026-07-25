@@ -242,6 +242,29 @@
               },
               "renameOutput": true,
               "outputKey": "Cancelled"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "status-pending",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.newStatus }}",
+                    "rightValue": "pending"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Pending"
             }
           ]
         },
@@ -512,6 +535,48 @@
     },
     {
       "parameters": {
+        "method": "POST",
+        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.formattedPhone }}"
+            },
+            {
+              "name": "text",
+              "value": "=مرحباً {{ $json.customerName }} 👋\n\nاستلمنا طلبك ✅ رقم {{ $json.orderId.substring(0, 8) }}\n\nهنراجع الطلب ونتواصل معاك قريب لتأكيد التفاصيل. شكراً لثقتك في متجر حلم! 🙏"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wa-pending-001",
+      "name": "WA: Order Received",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        340,
+        -240
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -636,6 +701,13 @@
         [
           {
             "node": "WA: Order Cancelled",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WA: Order Received",
             "type": "main",
             "index": 0
           }

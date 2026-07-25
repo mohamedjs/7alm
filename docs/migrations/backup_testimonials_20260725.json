@@ -1,0 +1,79 @@
+{
+  "_note": "Backup of public.testimonials taken 2026-07-25 immediately before DROP TABLE. The feature was replaced by real product_reviews (see docs/specs/reviews-showcase.md). All 6 rows shared one created_at timestamp — they were demo seed data, not real customer submissions.",
+  "table": "public.testimonials",
+  "row_count": 6,
+  "rows": [
+    {
+      "id": "85fac348-434c-44d3-b5c5-d124bbdbb16f",
+      "name_ar": "سارة أحمد",
+      "name_en": "Sarah Ahmed",
+      "role_ar": "عميلة موثقة",
+      "role_en": "Verified Buyer",
+      "text_ar": "الجودة فاقت توقعاتي والشحن كان سريع جداً. بالتأكيد هطلب تاني!",
+      "text_en": "The quality exceeded my expectations and shipping was incredibly fast. Will definitely order again!",
+      "rating": 5,
+      "is_active": true,
+      "created_at": "2026-07-22T23:14:20.723546+00:00"
+    },
+    {
+      "id": "b35cc5d5-6ab3-4c53-ab5f-d9800992ee90",
+      "name_ar": "محمد يوسف",
+      "name_en": "Mohamed Youssef",
+      "role_ar": "عميل موثق",
+      "role_en": "Verified Buyer",
+      "text_ar": "خدمة عملاء ممتازة والمنتج شكله أحلى في الواقع. أنصح بشدة بهذا المتجر.",
+      "text_en": "Excellent customer service and the product looks even better in person. Highly recommend this store.",
+      "rating": 5,
+      "is_active": true,
+      "created_at": "2026-07-22T23:14:20.723546+00:00"
+    },
+    {
+      "id": "7f6ad57a-6b23-44a1-b49b-2f1f34cb0b7b",
+      "name_ar": "نور الدين",
+      "name_en": "Nour El-Din",
+      "role_ar": "عميل موثق",
+      "role_en": "Verified Buyer",
+      "text_ar": "كنت متردد في الأول، بس عملية الشراء كانت سهلة والطلب وصلني خلال يومين بس.",
+      "text_en": "I was skeptical at first, but the checkout process was smooth and my order arrived in just two days.",
+      "rating": 4,
+      "is_active": true,
+      "created_at": "2026-07-22T23:14:20.723546+00:00"
+    },
+    {
+      "id": "cc3019b9-e1c3-494b-a640-eb4076f10a4d",
+      "name_ar": "ليلى حسن",
+      "name_en": "Laila Hassan",
+      "role_ar": "عميلة موثقة",
+      "role_en": "Verified Buyer",
+      "text_ar": "تغليف جميل وجودة ممتازة. بقى المتجر المفضل عندي للهدايا.",
+      "text_en": "Beautiful packaging and premium quality. This has become my go-to store for gifts.",
+      "rating": 5,
+      "is_active": true,
+      "created_at": "2026-07-22T23:14:20.723546+00:00"
+    },
+    {
+      "id": "8d50bf54-7ed4-4fcc-bc65-2bd269bd449d",
+      "name_ar": "عمر خالد",
+      "name_en": "Omar Khaled",
+      "role_ar": "عميل موثق",
+      "role_en": "Verified Buyer",
+      "text_ar": "أسعار ممتازة مقابل الجودة. فريق الدعم ساعدني أختار المقاس المناسب.",
+      "text_en": "Great prices for the quality you get. The support team helped me choose the perfect size.",
+      "rating": 5,
+      "is_active": true,
+      "created_at": "2026-07-22T23:14:20.723546+00:00"
+    },
+    {
+      "id": "a7755782-74ce-4e22-a8e5-69704d243a71",
+      "name_ar": "ياسمين عادل",
+      "name_en": "Yasmin Adel",
+      "role_ar": "عميلة موثقة",
+      "role_en": "Verified Buyer",
+      "text_ar": "خمس نجوم بجد! توصيل سريع ووصف دقيق ومنتجات جميلة.",
+      "text_en": "Five stars all the way! Fast delivery, accurate description, and beautiful products.",
+      "rating": 5,
+      "is_active": true,
+      "created_at": "2026-07-22T23:14:20.723546+00:00"
+    }
+  ]
+}

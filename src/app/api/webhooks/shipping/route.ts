@@ -3,6 +3,7 @@ import { orderRepository } from "@/features/orders/orders.repository";
 import { shippingFactory } from "@/features/shipping/shipping.factory";
 import { orderService } from "@/features/orders/orders.service";
 import type { ShippingProviderName } from "@/features/shared/types";
+import { canTransition, type OrderStatus } from "@/lib/orderStateMachine";
 
 /**
  * POST /api/webhooks/shipping
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     const { supabase } = await import("@/lib/supabase");
     const { data: order } = await supabase
       .from("orders")
-      .select("id")
+      .select("id, status")
       .eq("shipping_tracking_id", trackingId)
       .single();
 
@@ -82,6 +83,17 @@ export async function POST(request: NextRequest) {
         { success: false, error: "Order not found" },
         { status: 404 }
       );
+    }
+
+    // Idempotent guard — providers (incl. the `test` simulator) send
+    // duplicate/out-of-order events (e.g. a late `in_transit` after the
+    // order is already `delivered`). A disallowed transition is a no-op,
+    // NOT an error — return 200 so providers don't retry-storm.
+    if (!canTransition(order.status as OrderStatus, internalStatus as OrderStatus)) {
+      console.log(
+        `Webhook: ignoring disallowed transition for order ${order.id}: ${order.status} -> ${internalStatus} (no-op)`
+      );
+      return NextResponse.json({ success: true });
     }
 
     await orderRepository.updateOrderStatus(order.id, internalStatus);

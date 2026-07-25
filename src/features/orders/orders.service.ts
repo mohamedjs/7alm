@@ -5,6 +5,8 @@ import { shippingFactory } from "@/features/shipping/shipping.factory";
 import { orderRepository } from "./orders.repository";
 import { reviewsService } from "@/features/reviews/reviews.service";
 import { couponsService } from "@/features/coupons/coupons.service";
+import { emailService } from "@/features/notifications/email.service";
+import { canTransition, type OrderStatus } from "@/lib/orderStateMachine";
 import type {
   CreateOrderInput,
   N8nOrderNotification,
@@ -117,6 +119,11 @@ export class OrderService {
       if (couponId) {
         await couponsService.redeem(couponId, customer.id, order.id);
       }
+
+      // 6. Best-effort "order placed" notifications — customer "received"
+      // WhatsApp (via n8n, status 'pending') + admin new-order email alert.
+      // Never blocks or fails the order create.
+      this.notifyOrderPlaced(order.id);
 
       return { success: true, orderId: order.id };
     } catch (err) {
@@ -279,7 +286,12 @@ export class OrderService {
       // 5. Persist the full line-item breakdown
       await orderRepository.createOrderItems(order.id, resolvedItems);
 
-      // 6. Best-effort coupon redemption — after order creation, never
+      // 6. Best-effort "order placed" notifications — fired only after the
+      // order_items rows exist (notifyN8n builds items[] from order.items).
+      // Never blocks or fails the order create.
+      this.notifyOrderPlaced(order.id);
+
+      // 7. Best-effort coupon redemption — after order creation, never
       // blocks the response even if it fails.
       if (couponId) {
         await couponsService.redeem(couponId, customer.id, order.id);
@@ -293,15 +305,23 @@ export class OrderService {
   }
 
   /**
-   * Admin approves a pending order.
-   * Changes status to 'approved' and sends WhatsApp confirmation to customer.
-   * Shipping is NOT triggered here — it waits for customer confirmation via WhatsApp.
+   * Admin approves a pending order. Persists `requires_confirmation` and
+   * branches on the admin's approve-mode choice:
+   * - `requireConfirmation = true` (default) — current double-opt-in
+   *   behavior: status `approved`, decrement stock, notify the customer
+   *   via WhatsApp (تأكيد/إلغاء) and wait for their reply.
+   * - `requireConfirmation = false` ("ship now") — set `approved` and
+   *   decrement stock WITHOUT the customer-facing 'approved' WhatsApp,
+   *   then immediately run `confirmOrder` (creates the shipment, status
+   *   `confirmed`, notifies 'confirmed') — no customer reply needed.
    */
   async approveOrder(
     orderId: string,
-    providerName?: ShippingProviderName
+    providerName?: ShippingProviderName,
+    requireConfirmation = true
   ): Promise<{
     success: boolean;
+    trackingId?: string;
     error?: string;
   }> {
     try {
@@ -323,15 +343,24 @@ export class OrderService {
         "bosta";
 
       // Update order status to 'approved' with the shipping provider choice
+      // and persist whether WhatsApp confirmation is required (audit + UI).
       await orderRepository.updateOrderStatus(
         orderId,
         "approved",
-        selectedProvider
+        selectedProvider,
+        undefined,
+        requireConfirmation
       );
 
       // Decrement stock
       if (order.product_id) {
         await productService.decrementStock(order.product_id, order.quantity);
+      }
+
+      if (!requireConfirmation) {
+        // "Ship now" — skip the customer confirmation step entirely and go
+        // straight to confirmed + shipment creation.
+        return this.confirmOrder(orderId);
       }
 
       // Notify n8n → sends WhatsApp with accept/cancel buttons to customer
@@ -471,10 +500,11 @@ export class OrderService {
   async changeOrderStatus(
     orderId: string,
     newStatus: string,
-    providerName?: ShippingProviderName
+    providerName?: ShippingProviderName,
+    requireConfirmation?: boolean
   ): Promise<{ success: boolean; trackingId?: string; error?: string }> {
     if (newStatus === "approved") {
-      return this.approveOrder(orderId, providerName);
+      return this.approveOrder(orderId, providerName, requireConfirmation);
     }
 
     if (newStatus === "confirmed") {
@@ -485,12 +515,21 @@ export class OrderService {
       const result = await this.cancelOrder(orderId);
       return result;
     }
-    
-    // For other status changes
+
+    // For other status changes — enforce the transition map server-side.
+    // (The approved/confirmed/cancelled routes above already enforce their
+    // own legality via each method's current-status guard.)
     try {
       const order = await orderRepository.getOrderById(orderId);
       if (!order) {
         return { success: false, error: "Order not found" };
+      }
+
+      if (!canTransition(order.status, newStatus as OrderStatus)) {
+        return {
+          success: false,
+          error: `Cannot change status from "${order.status}" to "${newStatus}"`,
+        };
       }
 
       await orderRepository.updateOrderStatus(orderId, newStatus);
@@ -583,7 +622,7 @@ export class OrderService {
     if (newStatus === "delivered" && order.product_id) {
       try {
         const reviewToken = reviewsService.issueReviewToken(
-          order.customer_id,
+          order.customer.phone,
           order.product_id,
           order.id
         );
@@ -601,6 +640,36 @@ export class OrderService {
     }).catch((err) => {
       console.error("Failed to notify n8n:", err);
     });
+  }
+
+  /**
+   * Best-effort "order placed" notifications, fired once an order row (and,
+   * for cart orders, its order_items) exists: a customer WhatsApp "received"
+   * message via n8n (status 'pending') and an admin "new order" email
+   * alert. Fire-and-forget — never blocks or fails order creation, and
+   * every failure is caught and logged.
+   */
+  private notifyOrderPlaced(orderId: string): void {
+    (async () => {
+      try {
+        const fullOrder = await orderRepository.getOrderById(orderId);
+        if (!fullOrder) return;
+
+        try {
+          this.notifyN8n(fullOrder, "pending");
+        } catch (err) {
+          console.error("Failed to notify customer of new order (pending):", err);
+        }
+
+        try {
+          await emailService.sendNewOrderAlert(fullOrder);
+        } catch (err) {
+          console.error("Failed to send new-order admin email alert:", err);
+        }
+      } catch (err) {
+        console.error("Failed to load order for placement notifications:", err);
+      }
+    })();
   }
 }
 

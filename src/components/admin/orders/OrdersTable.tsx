@@ -4,7 +4,8 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { OrderStateMachine } from "@/lib/orderStateMachine";
 import { useLocale } from "@/features/i18n/i18n.hooks";
-import { orderActionDictKey } from "@/features/orders/orders.hooks";
+import { getOrderDisplayActions } from "@/features/orders/orders.hooks";
+import type { ChangeStatusOptions } from "@/features/orders/orders.hooks";
 import type { OrderStatus, OrderWithDetails } from "@/features/orders/orders.api";
 import OrderDetailsDrawer from "./OrderDetailsDrawer";
 
@@ -12,7 +13,7 @@ interface OrdersTableProps {
   orders: OrderWithDetails[];
   loading: boolean;
   approvingId: string | null;
-  onChangeStatus: (orderId: string, nextStatus: OrderStatus) => void;
+  onChangeStatus: (orderId: string, nextStatus: OrderStatus, options?: ChangeStatusOptions) => void;
 }
 
 const platformIcons: Record<string, string> = {
@@ -173,11 +174,16 @@ export default function OrdersTable({
                     >
                       {t("orders.table.view")}
                     </button>
-                    {OrderStateMachine[order.status]?.availableActions.map((action) => (
+                    {getOrderDisplayActions(order.status).map((action) => (
                       <button
-                        key={action.action}
-                        onClick={() => onChangeStatus(order.id, action.nextStatus)}
+                        key={action.key}
+                        onClick={() =>
+                          onChangeStatus(order.id, action.nextStatus, {
+                            requireConfirmation: action.requireConfirmation,
+                          })
+                        }
                         disabled={approvingId === order.id}
+                        title={action.hintKey ? t(action.hintKey) : undefined}
                         className={`${action.style} flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium transition-all disabled:opacity-50`}
                       >
                         {approvingId === order.id ? (
@@ -186,7 +192,7 @@ export default function OrdersTable({
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                           </svg>
                         ) : null}
-                        {t(orderActionDictKey(action.action))}
+                        {t(action.labelKey)}
                       </button>
                     ))}
                     {order.shipping_tracking_id && (
