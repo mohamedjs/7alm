@@ -39,6 +39,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    // Optional — a text-only campaign stays legal (spec 014 FR-010).
+    if (body.image_url && !body.image_url.startsWith("https://")) {
+      return NextResponse.json(
+        { success: false, error: "image_url must be an https URL" },
+        { status: 400 }
+      );
+    }
     if (body.status && !VALID_STATUSES.includes(body.status)) {
       return NextResponse.json(
         { success: false, error: `status must be one of ${VALID_STATUSES.join(", ")}` },
