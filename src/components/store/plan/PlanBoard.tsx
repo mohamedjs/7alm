@@ -1,59 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState, useSyncExternalStore } from "react";
+import {
+  motion,
+  animate,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useVelocity,
+  useReducedMotion,
+  type MotionValue,
+} from "motion/react";
 import { useTheme } from "@/features/theme/theme.hooks";
-
-/**
- * Damped harmonic spring — the same model Framer Motion integrates.
- * Hand-rolled rather than imported so the page carries no animation
- * dependency: velocity carries between gestures, which is what makes a
- * thrown note settle like paper instead of easing on a fixed curve.
- */
-class Spring {
-  v: number;
-  target: number;
-  vel = 0;
-  done = true;
-  constructor(value: number, private stiffness = 170, private damping = 22) {
-    this.v = value;
-    this.target = value;
-  }
-  set(target: number, vel?: number) {
-    this.target = target;
-    if (typeof vel === "number") this.vel = vel;
-    this.done = false;
-  }
-  jump(v: number) {
-    this.v = this.target = v;
-    this.vel = 0;
-    this.done = true;
-  }
-  step(dt: number): boolean {
-    if (this.done) return false;
-    const d = this.v - this.target;
-    this.vel += (-this.stiffness * d - this.damping * this.vel) * dt;
-    this.v += this.vel * dt;
-    if (Math.abs(this.vel) < 0.02 && Math.abs(this.v - this.target) < 0.02) {
-      this.v = this.target;
-      this.vel = 0;
-      this.done = true;
-    }
-    return true;
-  }
-}
-
-interface NoteState {
-  el: HTMLElement;
-  tilt: number;
-  index: number;
-  x: Spring;
-  y: Spring;
-  rot: Spring;
-  scale: Spring;
-  opacity: number;
-  entered: boolean;
-  dragging: boolean;
-}
 
 /** Post-it stock — saturated paper that reads as material on both grounds. */
 const PAPER = {
@@ -73,234 +31,39 @@ const DM_TEXT = [
   'ابعتلي "متجر" وأبعتلك فيديو دقيقتين لمتجر شغال — من غير أي التزام.',
 ].join("\n");
 
+/**
+ * Drag is gated to fine pointers only — Motion sets touch-action on
+ * draggable elements, and a 12-note pinboard fighting page scroll on
+ * mobile is worse than losing the drag toy there. Desktop keeps it.
+ * `useSyncExternalStore` (not state-in-effect) avoids both a hydration
+ * mismatch and a synchronous setState-in-effect lint violation.
+ */
+function useCanDrag(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mql = window.matchMedia("(pointer: fine)");
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia("(pointer: fine)").matches,
+    () => false
+  );
+}
+
 export default function PlanBoard() {
   const wallRef = useRef<HTMLDivElement>(null);
-  const statesRef = useRef<NoteState[]>([]);
-  const rafRef = useRef<number | null>(null);
-  const runningRef = useRef(false);
-  const lastRef = useRef(0);
+  const noteRefs = useRef<(NoteHandle | null)[]>([]);
+  const wallReduced = useReducedMotion();
 
   const { theme, toggleTheme } = useTheme("store-theme");
   const [copied, setCopied] = useState(false);
-
-  const kick = useCallback(() => {
-    if (runningRef.current) return;
-    runningRef.current = true;
-    lastRef.current = 0;
-
-    const loop = (now: number) => {
-      const dt = lastRef.current ? Math.min((now - lastRef.current) / 1000, 0.05) : 1 / 60;
-      lastRef.current = now;
-
-      let active = false;
-      for (const s of statesRef.current) {
-        let moved = false;
-        if (!s.dragging) {
-          moved = Boolean(s.x.step(dt)) || moved;
-          moved = Boolean(s.y.step(dt)) || moved;
-        }
-        moved = Boolean(s.rot.step(dt)) || moved;
-        moved = Boolean(s.scale.step(dt)) || moved;
-
-        if (s.opacity < 1 && s.entered) {
-          s.opacity = Math.min(1, s.opacity + dt * 3.2);
-          moved = true;
-        }
-        if (moved || s.dragging) {
-          s.el.style.opacity = String(s.opacity);
-          s.el.style.transform =
-            `translate3d(${s.x.v.toFixed(2)}px,${s.y.v.toFixed(2)}px,0)` +
-            ` rotate(${s.rot.v.toFixed(3)}deg) scale(${s.scale.v.toFixed(4)})`;
-          active = true;
-        }
-      }
-
-      if (active) {
-        rafRef.current = requestAnimationFrame(loop);
-      } else {
-        runningRef.current = false;
-        lastRef.current = 0;
-      }
-    };
-    rafRef.current = requestAnimationFrame(loop);
-  }, []);
-
-  useEffect(() => {
-    const wall = wallRef.current;
-    if (!wall) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const fine = window.matchMedia("(pointer: fine)").matches;
-    const notes = Array.from(wall.querySelectorAll<HTMLElement>("[data-note]"));
-
-    const states: NoteState[] = notes.map((el, index) => {
-      const tilt = parseFloat(el.dataset.tilt || "0");
-      return {
-        el,
-        tilt,
-        index,
-        x: new Spring(0, 210, 26),
-        y: new Spring(0, 210, 26),
-        rot: new Spring(tilt, 150, 13),
-        scale: new Spring(1, 320, 24),
-        opacity: 0,
-        entered: false,
-        dragging: false,
-      };
-    });
-    statesRef.current = states;
-
-    const cleanups: (() => void)[] = [];
-
-    // ---- entrance: staggered spring drop as each note scrolls in ----
-    const enter = (s: NoteState) => {
-      if (s.entered) return;
-      s.entered = true;
-      if (reduced) {
-        s.opacity = 1;
-        s.el.style.opacity = "1";
-        s.el.style.transform = `rotate(${s.tilt}deg)`;
-        return;
-      }
-      window.setTimeout(() => {
-        s.y.jump(-52);
-        s.y.set(0);
-        s.rot.jump(s.tilt * 2.8);
-        s.rot.set(s.tilt);
-        s.scale.jump(0.93);
-        s.scale.set(1);
-        kick();
-      }, Math.min(s.index, 5) * 70);
-    };
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          const s = states[notes.indexOf(e.target as HTMLElement)];
-          if (s) enter(s);
-          io.unobserve(e.target);
-        }
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.06 }
-    );
-    notes.forEach((n) => io.observe(n));
-    cleanups.push(() => io.disconnect());
-
-    // ---- hover lift + drag with momentum (pointer-fine only, so touch
-    //      scrolling is never hijacked) ----
-    if (fine) {
-      for (const s of states) {
-        const onEnter = () => {
-          if (s.dragging) return;
-          s.rot.set(s.tilt * 0.18);
-          s.scale.set(1.02);
-          s.el.dataset.lifted = "1";
-          kick();
-        };
-        const onLeave = () => {
-          if (s.dragging) return;
-          s.rot.set(s.tilt);
-          s.scale.set(1);
-          delete s.el.dataset.lifted;
-          kick();
-        };
-
-        let startX = 0, startY = 0, baseX = 0, baseY = 0;
-        let lastX = 0, lastY = 0, lastT = 0, vx = 0, vy = 0;
-        let pid: number | null = null;
-
-        const onDown = (e: PointerEvent) => {
-          if (e.button !== 0) return;
-          if ((e.target as HTMLElement).closest("button, a, input, textarea, select")) return;
-          const sel = window.getSelection();
-          if (sel && sel.type === "Range" && !sel.isCollapsed) return;
-
-          pid = e.pointerId;
-          s.dragging = true;
-          s.el.dataset.dragging = "1";
-          s.el.dataset.lifted = "1";
-          s.el.setPointerCapture(pid);
-          startX = e.clientX;
-          startY = e.clientY;
-          baseX = s.x.v;
-          baseY = s.y.v;
-          lastX = e.clientX;
-          lastY = e.clientY;
-          lastT = performance.now();
-          vx = vy = 0;
-          s.scale.set(1.045);
-          kick();
-        };
-
-        const onMove = (e: PointerEvent) => {
-          if (!s.dragging || e.pointerId !== pid) return;
-          s.x.jump(baseX + (e.clientX - startX));
-          s.y.jump(baseY + (e.clientY - startY));
-
-          const t = performance.now();
-          const dt = (t - lastT) / 1000;
-          if (dt > 0.001) {
-            vx = (e.clientX - lastX) / dt;
-            vy = (e.clientY - lastY) / dt;
-            lastX = e.clientX;
-            lastY = e.clientY;
-            lastT = t;
-          }
-          // paper leans into the direction it's thrown
-          s.rot.set(Math.max(-14, Math.min(14, s.tilt + vx * 0.012)));
-          kick();
-        };
-
-        const onUp = (e: PointerEvent) => {
-          if (!s.dragging || e.pointerId !== pid) return;
-          s.dragging = false;
-          delete s.el.dataset.dragging;
-          delete s.el.dataset.lifted;
-          // momentum: the throw carries, then settles
-          s.x.set(s.x.v + vx * 0.09, vx);
-          s.y.set(s.y.v + vy * 0.09, vy);
-          s.rot.set(s.tilt, vx * 0.05);
-          s.scale.set(1);
-          vx = vy = 0;
-          kick();
-        };
-
-        s.el.addEventListener("pointerenter", onEnter);
-        s.el.addEventListener("pointerleave", onLeave);
-        s.el.addEventListener("pointerdown", onDown);
-        s.el.addEventListener("pointermove", onMove);
-        s.el.addEventListener("pointerup", onUp);
-        s.el.addEventListener("pointercancel", onUp);
-        cleanups.push(() => {
-          s.el.removeEventListener("pointerenter", onEnter);
-          s.el.removeEventListener("pointerleave", onLeave);
-          s.el.removeEventListener("pointerdown", onDown);
-          s.el.removeEventListener("pointermove", onMove);
-          s.el.removeEventListener("pointerup", onUp);
-          s.el.removeEventListener("pointercancel", onUp);
-        });
-      }
-    }
-
-    return () => {
-      cleanups.forEach((fn) => fn());
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      runningRef.current = false;
-    };
-  }, [kick]);
+  const canDrag = useCanDrag();
 
   const tidy = useCallback(() => {
-    statesRef.current.forEach((s, i) => {
-      window.setTimeout(() => {
-        s.x.set(0);
-        s.y.set(0);
-        s.rot.set(s.tilt);
-        s.scale.set(1);
-        kick();
-      }, i * 26);
+    noteRefs.current.forEach((note, i) => {
+      window.setTimeout(() => note?.tidy(), i * 26);
     });
-  }, [kick]);
+  }, []);
 
   const copyDm = useCallback(async () => {
     try {
@@ -383,12 +146,24 @@ export default function PlanBoard() {
         </div>
       </header>
 
-      {/* the wall */}
-      <div
+      {/* the wall — staggered spring reveal once it scrolls into view */}
+      <motion.div
         ref={wallRef}
         className="mx-auto max-w-[1180px] gap-x-5 [column-count:1] sm:[column-count:2] lg:gap-x-8 lg:[column-count:3]"
+        initial={wallReduced ? false : "hidden"}
+        whileInView={wallReduced ? undefined : "show"}
+        viewport={{ once: true, amount: 0.06 }}
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } } }}
       >
-        <Note tilt={-1.6} paper={PAPER.canary} tag="Read this first" title="Your number needs fixing">
+        <Note
+          ref={(el) => { noteRefs.current[0] = el; }}
+          tilt={-1.6}
+          paper={PAPER.canary}
+          tag="Read this first"
+          title="Your number needs fixing"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>You said “1 million in 2 months.” Everything depends on which million.</p>
           <div className="my-3.5 grid gap-2">
             <div className="flex items-baseline justify-between gap-3 rounded-[3px] bg-black/[0.07] px-3 py-2.5 shadow-[inset_3px_0_0_#1f8f4e]">
@@ -407,7 +182,15 @@ export default function PlanBoard() {
           <p>Anyone promising you the second one is selling you a course.</p>
         </Note>
 
-        <Note tilt={2.1} paper={PAPER.pink} tag="Cut it" title="ThemeForest is the wrong fight">
+        <Note
+          ref={(el) => { noteRefs.current[1] = el; }}
+          tilt={2.1}
+          paper={PAPER.pink}
+          tag="Cut it"
+          title="ThemeForest is the wrong fight"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             It rewards <strong>visual design polish</strong> — judged against studios who do nothing
             else, at $39 a sale minus Envato&apos;s cut, behind a multi-week review queue.
@@ -419,7 +202,15 @@ export default function PlanBoard() {
           <p>Revisit in month six — as a lead magnet, never as a business.</p>
         </Note>
 
-        <Note tilt={-1.1} paper={PAPER.cyan} tag="The wedge" title="You keep calling it “a store.” It isn't.">
+        <Note
+          ref={(el) => { noteRefs.current[2] = el; }}
+          tilt={-1.1}
+          paper={PAPER.cyan}
+          tag="The wedge"
+          title="You keep calling it “a store.” It isn't."
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             You built an Arabic-first commerce stack with WhatsApp order automation, auto-posting to
             Facebook, Instagram and TikTok, and an AI agent that researches a niche, writes the
@@ -431,7 +222,15 @@ export default function PlanBoard() {
           <p>That&apos;s your wedge, and it has maybe 18 months before someone copies it.</p>
         </Note>
 
-        <Note tilt={1.4} paper={PAPER.manila} tag="Offer 01 · the money" title="متجرك جاهز في 5 أيام">
+        <Note
+          ref={(el) => { noteRefs.current[3] = el; }}
+          tilt={1.4}
+          paper={PAPER.manila}
+          tag="Offer 01 · the money"
+          title="متجرك جاهز في 5 أيام"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             Egyptian merchants taking orders in Instagram DMs. Tens of thousands of them, losing
             sales every day to message chaos, with no COD flow and no repeat-purchase engine.
@@ -465,7 +264,15 @@ export default function PlanBoard() {
           </p>
         </Note>
 
-        <Note tilt={-2.2} paper={PAPER.lime} tag="Offer 02 · the real business" title="Retainers, not one-offs">
+        <Note
+          ref={(el) => { noteRefs.current[4] = el; }}
+          tilt={-2.2}
+          paper={PAPER.lime}
+          tag="Offer 02 · the real business"
+          title="Retainers, not one-offs"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             One-off builds are a treadmill. <strong>8,000 EGP/month</strong> buys them WhatsApp
             automation, 12 auto-generated posts, a monthly report, hosting and support.
@@ -481,7 +288,15 @@ export default function PlanBoard() {
           </p>
         </Note>
 
-        <Note tilt={1.9} paper={PAPER.manila} tag="The math" title="How the million lands">
+        <Note
+          ref={(el) => { noteRefs.current[5] = el; }}
+          tilt={1.9}
+          paper={PAPER.manila}
+          tag="The math"
+          title="How the million lands"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <table className="mt-3.5 w-full border-collapse font-mono text-[13px] tabular-nums">
             <tbody>
               {[
@@ -512,7 +327,15 @@ export default function PlanBoard() {
           <p>Hit half and you still made 500K EGP from a standing start. Most people never do.</p>
         </Note>
 
-        <Note tilt={-1.3} paper={PAPER.violet} tag="Offer 03 · USD" title="Sell the workflows while you sleep">
+        <Note
+          ref={(el) => { noteRefs.current[6] = el; }}
+          tilt={-1.3}
+          paper={PAPER.violet}
+          tag="Offer 03 · USD"
+          title="Sell the workflows while you sleep"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <ul className="mt-3 grid list-none gap-2.5 p-0">
             {[
               ["n8n Arabic E-commerce Pack", "WhatsApp orders, social posting, Telegram approvals · $79"],
@@ -531,7 +354,15 @@ export default function PlanBoard() {
           </p>
         </Note>
 
-        <Note tilt={2.4} paper={PAPER.orange} tag="Right instinct, wrong scoreboard" title="YouTube pays in calls, not AdSense">
+        <Note
+          ref={(el) => { noteRefs.current[7] = el; }}
+          tilt={2.4}
+          paper={PAPER.orange}
+          tag="Right instinct, wrong scoreboard"
+          title="YouTube pays in calls, not AdSense"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             Arabic AI content has almost no serious competition. But AdSense there runs $1–3 RPM —
             100K views is about $150. Meaningless.
@@ -546,7 +377,15 @@ export default function PlanBoard() {
           </p>
         </Note>
 
-        <Note tilt={-1.7} paper={PAPER.manila} tag="Keep it lean" title="7alm is your proof, not your paycheck">
+        <Note
+          ref={(el) => { noteRefs.current[8] = el; }}
+          tilt={-1.7}
+          paper={PAPER.manila}
+          tag="Keep it lean"
+          title="7alm is your proof, not your paycheck"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             Its job is to be a live store you can point at. <span dir="rtl">«ده متجري أنا»</span>{" "}
             closes deals no portfolio can.
@@ -559,7 +398,13 @@ export default function PlanBoard() {
         </Note>
 
         {/* the working tool */}
-        <Note tilt={1.2} paper={PAPER.cyan}>
+        <Note
+          ref={(el) => { noteRefs.current[9] = el; }}
+          tilt={1.2}
+          paper={PAPER.cyan}
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="m-0 text-[19px] font-extrabold leading-tight tracking-[-0.02em] text-balance">
               The DM that works
@@ -601,7 +446,15 @@ export default function PlanBoard() {
           </p>
         </Note>
 
-        <Note tilt={-2.4} paper={PAPER.pink} tag="It will go wrong here" title="You'll retreat into code">
+        <Note
+          ref={(el) => { noteRefs.current[10] = el; }}
+          tilt={-2.4}
+          paper={PAPER.pink}
+          tag="It will go wrong here"
+          title="You'll retreat into code"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <p>
             A feature feels productive. A cold DM feels awful. Building is the comfortable failure
             mode and it will quietly eat all eight weeks.
@@ -634,7 +487,14 @@ export default function PlanBoard() {
           </ul>
         </Note>
 
-        <Note tilt={1.7} paper={PAPER.canary} tag="Tomorrow">
+        <Note
+          ref={(el) => { noteRefs.current[11] = el; }}
+          tilt={1.7}
+          paper={PAPER.canary}
+          tag="Tomorrow"
+          canDrag={canDrag}
+          dragConstraints={wallRef}
+        >
           <div className="my-1.5 text-[46px] font-black leading-none tracking-[-0.04em] tabular-nums">
             20 DMs
           </div>
@@ -649,7 +509,7 @@ export default function PlanBoard() {
           </p>
           <p>The product is finished.</p>
         </Note>
-      </div>
+      </motion.div>
 
       <p className="mx-auto mt-1 hidden max-w-[1180px] text-xs font-semibold text-text-muted lg:block">
         Drag any note to move it · “Tidy board” springs them home
@@ -658,42 +518,103 @@ export default function PlanBoard() {
   );
 }
 
-function Note({
-  tilt,
-  paper,
-  tag,
-  title,
-  children,
-}: {
+interface NoteHandle {
+  /** Springs the note back to its resting slot and tilt. */
+  tidy: () => void;
+}
+
+interface NoteProps {
   tilt: number;
   paper: string;
   tag?: string;
   title?: string;
+  canDrag: boolean;
+  dragConstraints: React.RefObject<HTMLDivElement | null>;
   children: React.ReactNode;
-}) {
+}
+
+const Note = forwardRef<NoteHandle, NoteProps>(function Note(
+  { tilt, paper, tag, title, canDrag, dragConstraints, children },
+  ref
+) {
+  const prefersReducedMotion = useReducedMotion();
+  const [isDragging, setIsDragging] = useState(false);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  // Settable rest angle — hover straightens it toward 0, drag/tidy/leave
+  // spring it back to `tilt`. Combined with the velocity-driven wobble
+  // below into a single `rotate` value bound to the element.
+  const baseRotate = useSpring(tilt, { stiffness: 220, damping: 18 });
+  const xVelocity = useVelocity(x);
+  const velocityRotate = useTransform(xVelocity, [-1200, 0, 1200], [-14, 0, 14], { clamp: true });
+  const rotate: MotionValue<number> | number = useTransform(
+    [baseRotate, velocityRotate],
+    (latest) => (latest as number[])[0] + (latest as number[])[1]
+  );
+
+  useImperativeHandle(ref, () => ({
+    tidy() {
+      animate(x, 0, { type: "spring", stiffness: 260, damping: 24 });
+      animate(y, 0, { type: "spring", stiffness: 260, damping: 24 });
+      baseRotate.set(tilt);
+    },
+  }));
+
   return (
-    <article
-      data-note
-      data-tilt={tilt}
+    <motion.article
+      variants={{
+        hidden: { opacity: 0, y: -52, scale: 0.93 },
+        show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 22 } },
+      }}
       style={{
-        opacity: 0,
-        transform: `rotate(${tilt}deg)`,
+        x,
+        y,
+        rotate: prefersReducedMotion ? tilt : rotate,
         background: `linear-gradient(168deg, rgba(255,255,255,.5), rgba(255,255,255,0) 46%), ${paper}`,
       }}
-      className="group relative mb-7 block break-inside-avoid rounded-sm px-6 pb-6 pt-[30px] text-[#23262f] shadow-[0_1px_2px_rgba(30,34,45,.24),0_8px_16px_-6px_rgba(30,34,45,.3)] will-change-transform lg:mb-11 lg:cursor-grab data-[dragging]:lg:cursor-grabbing data-[lifted]:z-20 data-[lifted]:shadow-[0_3px_8px_rgba(30,34,45,.28),0_30px_50px_-12px_rgba(30,34,45,.42)] [&_p]:mb-2.5 [&_p]:text-[14.5px] [&_p]:leading-[1.62] [&_p]:text-[#4a4e5c] [&_p:last-child]:mb-0 [&_strong]:font-bold [&_strong]:text-[#23262f]"
+      drag={canDrag}
+      dragConstraints={dragConstraints}
+      dragElastic={prefersReducedMotion ? 0 : 0.12}
+      dragMomentum={!prefersReducedMotion}
+      dragTransition={{ power: 0.3, timeConstant: 200, bounceStiffness: 400, bounceDamping: 24 }}
+      onHoverStart={() => !isDragging && baseRotate.set(tilt * 0.18)}
+      onHoverEnd={() => !isDragging && baseRotate.set(tilt)}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={() => {
+        setIsDragging(false);
+        baseRotate.set(tilt);
+      }}
+      whileHover={{
+        scale: 1.02,
+        zIndex: 20,
+        boxShadow: "0 2px 4px rgba(30,34,45,.26), 0 20px 40px -14px rgba(30,34,45,.38)",
+      }}
+      whileDrag={{
+        scale: 1.045,
+        zIndex: 30,
+        boxShadow: "0 3px 8px rgba(30,34,45,.28), 0 30px 50px -12px rgba(30,34,45,.42)",
+      }}
+      className={`group relative mb-7 block break-inside-avoid rounded-sm px-6 pb-6 pt-[30px] text-[#23262f] shadow-[0_1px_2px_rgba(30,34,45,.24),0_8px_16px_-6px_rgba(30,34,45,.3)] will-change-transform lg:mb-11 [&_p]:mb-2.5 [&_p]:text-[14.5px] [&_p]:leading-[1.62] [&_p]:text-[#4a4e5c] [&_p:last-child]:mb-0 [&_strong]:font-bold [&_strong]:text-[#23262f] ${
+        canDrag ? "lg:cursor-grab" : ""
+      } ${isDragging ? "lg:cursor-grabbing" : ""}`}
     >
-      {/* دبوس — the pin, with its own cast shadow on the paper */}
-      <span
+      {/* دبوس — the pin. Lifts and its shadow widens while the note is
+          being dragged, as if it were pulled out of the board. */}
+      <motion.span
         aria-hidden="true"
-        className="absolute -top-[9px] left-1/2 z-[3] -ml-[8.5px] size-[17px] rounded-full shadow-[0_2px_3px_rgba(0,0,0,.42),inset_0_-1px_2px_rgba(0,0,0,.3)]"
+        animate={prefersReducedMotion ? undefined : { scale: isDragging ? 1.35 : 1, y: isDragging ? -3 : 0 }}
+        transition={{ type: "spring", stiffness: 400, damping: 18 }}
+        className="absolute -top-[9px] start-1/2 z-[3] -ms-[8.5px] size-[17px] rounded-full shadow-[0_2px_3px_rgba(0,0,0,.42),inset_0_-1px_2px_rgba(0,0,0,.3)]"
         style={{
-          background:
-            "radial-gradient(circle at 34% 30%, #ff8b7d, #e2483d 52%, #96241c 100%)",
+          background: "radial-gradient(circle at 34% 30%, #ff8b7d, #e2483d 52%, #96241c 100%)",
         }}
       />
-      <span
+      <motion.span
         aria-hidden="true"
-        className="absolute top-1 left-1/2 z-[2] -ml-[5px] h-2 w-3 rounded-[50%] bg-black/[0.17] blur-[3px]"
+        animate={prefersReducedMotion ? undefined : { scaleX: isDragging ? 1.7 : 1, opacity: isDragging ? 0.24 : 0.17 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className="absolute top-1 start-1/2 z-[2] -ms-[5px] h-2 w-3 rounded-[50%] bg-black blur-[3px]"
       />
 
       {tag ? (
@@ -707,6 +628,6 @@ function Note({
         </h2>
       ) : null}
       {children}
-    </article>
+    </motion.article>
   );
-}
+});
