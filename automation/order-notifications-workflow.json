@@ -284,13 +284,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",
@@ -326,13 +326,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",
@@ -368,13 +368,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",
@@ -410,13 +410,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",
@@ -452,13 +452,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",
@@ -494,13 +494,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",
@@ -536,13 +536,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://evolution-go-production-b756.up.railway.app/send/text",
+        "url": "https://evolution-go-production-e354.up.railway.app/send/text",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "apikey",
-              "value": "9c48d297-d566-49cc-8266-7fc8a202cb8f"
+              "value": "30dc0651-41db-4b42-918d-a04bcdedb2a9"
             },
             {
               "name": "Content-Type",

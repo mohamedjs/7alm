@@ -561,10 +561,10 @@
               "id": "6a1b2c3d-image-check-0000-000000000001",
               "operator": {
                 "type": "string",
-                "operation": "exists",
+                "operation": "notEmpty",
                 "singleValue": true
               },
-              "leftValue": "={{ $('generate_campaign_image').last().json.response.url }}",
+              "leftValue": "={{ $if($('generate_campaign_image').isExecuted, $('generate_campaign_image').last().json.response.url, '') }}",
               "rightValue": ""
             }
           ]
@@ -587,7 +587,7 @@
         "operation": "sendPhoto",
         "chatId": "={{ $('Receive Telegram Messages').item.json.message.chat.id }}",
         "binaryData": false,
-        "file": "={{ $('generate_campaign_image').last().json.response.url }}",
+        "file": "={{ $if($('generate_campaign_image').isExecuted, $('generate_campaign_image').last().json.response.url, '') }}",
         "additionalFields": {}
       },
       "id": "6a1b2c3d-sendphoto-0000-000000000000",
