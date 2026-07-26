@@ -139,32 +139,43 @@
     },
     {
       "parameters": {
-        "resource": "audio",
-        "modelId": {
-          "__rl": true,
-          "mode": "list",
-          "value": "models/gemini-2.5-flash",
-          "cachedResultName": "models/gemini-2.5-flash"
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "x-ai/grok-stt-1.0"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
         },
-        "inputType": "binary",
         "options": {}
       },
       "id": "1c9dcea9-2ac7-4930-9152-173013204163",
       "name": "Transcribe a recording",
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "type": "n8n-nodes-base.httpRequest",
       "position": [
         -1840,
         -2704
       ],
       "notesInFlow": true,
-      "typeVersion": 1,
+      "typeVersion": 4.2,
       "credentials": {
-        "googlePalmApi": {
-          "id": "pj3wNPsZG5Yic3Ho",
-          "name": "Google Gemini(PaLM) Api account"
+        "openRouterApi": {
+          "id": "EbbUdiq5aCjllGWD",
+          "name": "OpenRouter account"
         }
       },
-      "notes": "This node transcribes audio to text via Google Gemini; provide the Gemini credentials to establish the connection."
+      "notes": "Transcribes Telegram voice messages to text via OpenRouter using x-ai/grok-stt-1.0."
     },
     {
       "parameters": {
