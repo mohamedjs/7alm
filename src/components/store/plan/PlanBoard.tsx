@@ -12,6 +12,8 @@ import {
   type MotionValue,
 } from "motion/react";
 import { useTheme } from "@/features/theme/theme.hooks";
+import { useLocale } from "@/features/i18n/i18n.hooks";
+import type { DictKey } from "@/features/i18n/dictionary";
 
 /** Post-it stock — saturated paper that reads as material on both grounds. */
 const PAPER = {
@@ -50,14 +52,40 @@ function useCanDrag(): boolean {
   );
 }
 
+/**
+ * Tiny inline-markup renderer for plan-board copy pulled from the i18n
+ * dictionary: `**bold**` becomes `<strong>` (styled by the Note wrapper's
+ * `[&_strong]` rule) and `«quoted»` Arabic asides get an explicit
+ * `dir="rtl"` span so they render correctly even inside LTR (English) copy.
+ */
+function richText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*|«[^»]+»)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("«") && part.endsWith("»")) {
+      return (
+        <span key={i} dir="rtl">
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 export default function PlanBoard() {
   const wallRef = useRef<HTMLDivElement>(null);
   const noteRefs = useRef<(NoteHandle | null)[]>([]);
   const wallReduced = useReducedMotion();
 
   const { theme, toggleTheme } = useTheme("store-theme");
+  const { t, locale, setLocale } = useLocale();
   const [copied, setCopied] = useState(false);
   const canDrag = useCanDrag();
+
+  /** Shorthand: dictionary lookup wrapped through `richText`. */
+  const rt = useCallback((key: DictKey) => richText(t(key)), [t]);
 
   const tidy = useCallback(() => {
     noteRefs.current.forEach((note, i) => {
@@ -93,12 +121,12 @@ export default function PlanBoard() {
       <header className="mx-auto mb-8 flex max-w-[1180px] flex-wrap items-end justify-between gap-6 border-b border-text-muted/20 pb-6 lg:mb-12">
         <div>
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-text-muted">
-            Strategy board · 8 weeks · Cairo
+            {t("store.plan.meta.eyebrow")}
           </p>
           <h1 className="text-[clamp(2rem,6vw,4.2rem)] font-black leading-[0.92] tracking-[-0.035em] text-balance">
-            Stop building.
+            {t("store.plan.meta.headline1")}
             <br />
-            <span className="text-brand-500">Go sell it.</span>
+            <span className="text-brand-500">{t("store.plan.meta.headline2")}</span>
           </h1>
         </div>
 
@@ -106,8 +134,21 @@ export default function PlanBoard() {
           <div className="flex gap-2">
             <button
               type="button"
+              onClick={() => setLocale(locale === "ar" ? "en" : "ar")}
+              aria-label={t("store.plan.action.language")}
+              className="neu-raised inline-flex items-center gap-2 rounded-full bg-surface px-3.5 py-2.5 text-xs font-semibold text-text-primary transition-transform active:scale-95"
+            >
+              <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3c2.5 2.6 3.8 5.8 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.8-3.8-9s1.3-6.4 3.8-9Z" />
+              </svg>
+              {locale === "ar" ? "EN" : "AR"}
+            </button>
+
+            <button
+              type="button"
               onClick={toggleTheme}
-              aria-label="Toggle light and dark"
+              aria-label={t("store.plan.action.themeToggleAria")}
               className="neu-raised inline-flex items-center gap-2 rounded-full bg-surface px-3.5 py-2.5 text-xs font-semibold text-text-primary transition-transform active:scale-95"
             >
               {theme === "dark" ? (
@@ -120,7 +161,7 @@ export default function PlanBoard() {
                   <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
                 </svg>
               )}
-              {theme === "dark" ? "Light" : "Dark"}
+              {theme === "dark" ? t("store.plan.action.light") : t("store.plan.action.dark")}
             </button>
 
             <button
@@ -131,16 +172,16 @@ export default function PlanBoard() {
               <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 7h18M6 12h12M9 17h6" />
               </svg>
-              Tidy board
+              {t("store.plan.action.tidy")}
             </button>
           </div>
 
           <div className="text-end">
             <div className="text-[clamp(1.4rem,3.4vw,2.2rem)] font-black leading-none tracking-[-0.03em] tabular-nums">
-              1,000,000 EGP
+              {t("store.plan.target.amount")}
             </div>
             <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-              the real target
+              {t("store.plan.target.label")}
             </div>
           </div>
         </div>
@@ -159,151 +200,126 @@ export default function PlanBoard() {
           ref={(el) => { noteRefs.current[0] = el; }}
           tilt={-1.6}
           paper={PAPER.canary}
-          tag="Read this first"
-          title="Your number needs fixing"
+          tag={t("store.plan.note1.tag")}
+          title={t("store.plan.note1.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>You said “1 million in 2 months.” Everything depends on which million.</p>
+          <p>{t("store.plan.note1.p1")}</p>
           <div className="my-3.5 grid gap-2">
             <div className="flex items-baseline justify-between gap-3 rounded-[3px] bg-black/[0.07] px-3 py-2.5 shadow-[inset_3px_0_0_#1f8f4e]">
-              <b className="font-extrabold tabular-nums">1,000,000 EGP</b>
+              <b className="font-extrabold tabular-nums">{t("store.plan.note1.row1.amount")}</b>
               <span className="text-end text-[12.5px] font-semibold text-black/60">
-                Hard, but real — this board targets it
+                {t("store.plan.note1.row1.note")}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-3 rounded-[3px] bg-black/[0.07] px-3 py-2.5 shadow-[inset_3px_0_0_#c62f28]">
-              <b className="font-extrabold tabular-nums">$1,000,000 USD</b>
+              <b className="font-extrabold tabular-nums">{t("store.plan.note1.row2.amount")}</b>
               <span className="text-end text-[12.5px] font-semibold text-black/60">
-                Not happening. That&apos;s a funded team, not 8 weeks
+                {t("store.plan.note1.row2.note")}
               </span>
             </div>
           </div>
-          <p>Anyone promising you the second one is selling you a course.</p>
+          <p>{t("store.plan.note1.p2")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[1] = el; }}
           tilt={2.1}
           paper={PAPER.pink}
-          tag="Cut it"
-          title="ThemeForest is the wrong fight"
+          tag={t("store.plan.note2.tag")}
+          title={t("store.plan.note2.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            It rewards <strong>visual design polish</strong> — judged against studios who do nothing
-            else, at $39 a sale minus Envato&apos;s cut, behind a multi-week review queue.
-          </p>
-          <p>
-            Your moat is <strong>Arabic RTL, automation, and AI</strong>. ThemeForest scores none of
-            it. You&apos;d compete on your weakest axis for the smallest prize.
-          </p>
-          <p>Revisit in month six — as a lead magnet, never as a business.</p>
+          <p>{rt("store.plan.note2.p1")}</p>
+          <p>{rt("store.plan.note2.p2")}</p>
+          <p>{t("store.plan.note2.p3")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[2] = el; }}
           tilt={-1.1}
           paper={PAPER.cyan}
-          tag="The wedge"
-          title="You keep calling it “a store.” It isn't."
+          tag={t("store.plan.note3.tag")}
+          title={t("store.plan.note3.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            You built an Arabic-first commerce stack with WhatsApp order automation, auto-posting to
-            Facebook, Instagram and TikTok, and an AI agent that researches a niche, writes the
-            campaign, generates the ad image and publishes it — from your phone, in Egyptian Arabic.
-          </p>
-          <p>
-            <strong>Shopify doesn&apos;t do that. Zid and Salla don&apos;t do that.</strong>
-          </p>
-          <p>That&apos;s your wedge, and it has maybe 18 months before someone copies it.</p>
+          <p>{t("store.plan.note3.p1")}</p>
+          <p>{rt("store.plan.note3.p2")}</p>
+          <p>{t("store.plan.note3.p3")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[3] = el; }}
           tilt={1.4}
           paper={PAPER.manila}
-          tag="Offer 01 · the money"
-          title="متجرك جاهز في 5 أيام"
+          tag={t("store.plan.note4.tag")}
+          title={t("store.plan.note4.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            Egyptian merchants taking orders in Instagram DMs. Tens of thousands of them, losing
-            sales every day to message chaos, with no COD flow and no repeat-purchase engine.
-          </p>
+          <p>{t("store.plan.note4.p1")}</p>
           <div className="my-3.5 grid gap-2">
             {[
-              { name: "أساسي", price: "15,000", star: false },
-              { name: "احترافي ⭐", price: "25,000", star: true },
-              { name: "ذكي", price: "40,000", star: false },
-            ].map((t) => (
+              { name: t("store.plan.note4.tier.basic"), price: "15,000", star: false },
+              { name: t("store.plan.note4.tier.pro"), price: "25,000", star: true },
+              { name: t("store.plan.note4.tier.smart"), price: "40,000", star: false },
+            ].map((tier) => (
               <div
-                key={t.name}
+                key={tier.name}
                 className={`flex items-center justify-between gap-3 rounded-[3px] px-3 py-2.5 text-[13.5px] font-semibold ${
-                  t.star
+                  tier.star
                     ? "bg-black/15 shadow-[inset_0_0_0_1.5px_rgba(0,0,0,0.3)]"
                     : "bg-black/[0.07]"
                 }`}
               >
-                <span dir="rtl">{t.name}</span>
-                <b className="font-extrabold tabular-nums">{t.price}</b>
+                <span>{tier.name}</span>
+                <b className="font-extrabold tabular-nums">{tier.price}</b>
               </div>
             ))}
           </div>
           <p>
-            Delivered in five days because <strong>the platform already exists</strong> —
-            you&apos;re configuring, not building. Anchor on احترافي; some will take ذكي because the
-            AI agent is the only reason they called.
+            {richText(
+              t("store.plan.note4.p2")
+                .replace("{pro}", t("store.plan.note4.tier.pro"))
+                .replace("{smart}", t("store.plan.note4.tier.smart")),
+            )}
           </p>
-          <p>
-            <strong>50% up front. Always.</strong> It filters tire-kickers and funds your ad spend.
-          </p>
+          <p>{rt("store.plan.note4.p3")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[4] = el; }}
           tilt={-2.2}
           paper={PAPER.lime}
-          tag="Offer 02 · the real business"
-          title="Retainers, not one-offs"
+          tag={t("store.plan.note5.tag")}
+          title={t("store.plan.note5.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            One-off builds are a treadmill. <strong>8,000 EGP/month</strong> buys them WhatsApp
-            automation, 12 auto-generated posts, a monthly report, hosting and support.
-          </p>
-          <p>
-            Pitch it <strong>at handover</strong>, while the store is live and they&apos;re excited —
-            not at signup. Expect 60–70% to say yes.
-          </p>
-          <p>
-            Fifteen retainers is <strong>120,000 EGP/month recurring</strong> that outlives these 8
-            weeks. Chase this harder than the one-offs — it&apos;s what makes the business worth
-            something later.
-          </p>
+          <p>{rt("store.plan.note5.p1")}</p>
+          <p>{rt("store.plan.note5.p2")}</p>
+          <p>{rt("store.plan.note5.p3")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[5] = el; }}
           tilt={1.9}
           paper={PAPER.manila}
-          tag="The math"
-          title="How the million lands"
+          tag={t("store.plan.note6.tag")}
+          title={t("store.plan.note6.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
           <table className="mt-3.5 w-full border-collapse font-mono text-[13px] tabular-nums">
             <tbody>
               {[
-                ["20 store builds × 25,000", "500,000"],
-                ["15 retainers × 8,000 × 2mo", "240,000"],
-                ["Digital products (~$3.5K)", "170,000"],
-                ["7alm brand profit", "100,000"],
+                [t("store.plan.note6.row1.label"), "500,000"],
+                [t("store.plan.note6.row2.label"), "240,000"],
+                [t("store.plan.note6.row3.label"), "170,000"],
+                [t("store.plan.note6.row4.label"), "100,000"],
               ].map(([label, value]) => (
                 <tr key={label}>
                   <td className="border-b border-dashed border-black/15 py-1.5">{label}</td>
@@ -313,88 +329,68 @@ export default function PlanBoard() {
                 </tr>
               ))}
               <tr>
-                <td className="border-t-2 border-black/30 pt-2.5 text-[15px] font-extrabold">Total</td>
+                <td className="border-t-2 border-black/30 pt-2.5 text-[15px] font-extrabold">
+                  {t("store.plan.note6.total.label")}
+                </td>
                 <td className="border-t-2 border-black/30 pt-2.5 text-end text-[15px] font-extrabold">
                   1,010,000
                 </td>
               </tr>
             </tbody>
           </table>
-          <p className="mt-3.5">
-            Which means <strong>2.5 closed deals a week</strong>. At a 20% close rate: ~12 real
-            conversations, from ~40 touches. Weekly.
-          </p>
-          <p>Hit half and you still made 500K EGP from a standing start. Most people never do.</p>
+          <p className="mt-3.5">{rt("store.plan.note6.p1")}</p>
+          <p>{t("store.plan.note6.p2")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[6] = el; }}
           tilt={-1.3}
           paper={PAPER.violet}
-          tag="Offer 03 · USD"
-          title="Sell the workflows while you sleep"
+          tag={t("store.plan.note7.tag")}
+          title={t("store.plan.note7.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
           <ul className="mt-3 grid list-none gap-2.5 p-0">
             {[
-              ["n8n Arabic E-commerce Pack", "WhatsApp orders, social posting, Telegram approvals · $79"],
-              ["Claude Agent Starter Kit", "your agents, skills, hooks, changelog discipline · $49"],
-              ["AI Campaign Builder blueprint", "research → copy → image → publish · $99"],
+              [t("store.plan.note7.item1.name"), t("store.plan.note7.item1.detail")],
+              [t("store.plan.note7.item2.name"), t("store.plan.note7.item2.detail")],
+              [t("store.plan.note7.item3.name"), t("store.plan.note7.item3.detail")],
             ].map(([name, detail]) => (
               <li key={name} className="relative ps-5 text-sm leading-normal text-[#4a4e5c]">
                 <span className="absolute start-1 top-2 size-1.5 rounded-full bg-black/40" />
-                <b className="text-[#23262f]">{name}</b> — {detail}
+                <strong>{name}</strong> — {detail}
               </li>
             ))}
           </ul>
-          <p className="mt-3">
-            Realistically $2.5–4K in six weeks. The cash is modest — but it makes you{" "}
-            <strong>“the automation guy,”</strong> which is what lets you charge more for Offer 01.
-          </p>
+          <p className="mt-3">{rt("store.plan.note7.p1")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[7] = el; }}
           tilt={2.4}
           paper={PAPER.orange}
-          tag="Right instinct, wrong scoreboard"
-          title="YouTube pays in calls, not AdSense"
+          tag={t("store.plan.note8.tag")}
+          title={t("store.plan.note8.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            Arabic AI content has almost no serious competition. But AdSense there runs $1–3 RPM —
-            100K views is about $150. Meaningless.
-          </p>
-          <p>
-            So don&apos;t count views. <strong>Count booked calls.</strong>
-          </p>
-          <p>
-            One video — <span dir="rtl">«شوف إزاي بعمل حملة إعلانية كاملة من على التليجرام»</span> —
-            showing your bot research a niche, write the campaign, generate the image and publish to
-            Instagram, is the best sales asset you will ever make. It closes deals while you sleep.
-          </p>
+          <p>{t("store.plan.note8.p1")}</p>
+          <p>{rt("store.plan.note8.p2")}</p>
+          <p>{rt("store.plan.note8.p3")}</p>
         </Note>
 
         <Note
           ref={(el) => { noteRefs.current[8] = el; }}
           tilt={-1.7}
           paper={PAPER.manila}
-          tag="Keep it lean"
-          title="7alm is your proof, not your paycheck"
+          tag={t("store.plan.note9.tag")}
+          title={t("store.plan.note9.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            Its job is to be a live store you can point at. <span dir="rtl">«ده متجري أنا»</span>{" "}
-            closes deals no portfolio can.
-          </p>
-          <p>
-            One hero product, let the AI agent handle the content, target 100K profit.{" "}
-            <strong>Don&apos;t sink two months into scaling it</strong> — that takes 6–12 months and
-            working capital you&apos;d rather spend on sales.
-          </p>
+          <p>{rt("store.plan.note9.p1")}</p>
+          <p>{rt("store.plan.note9.p2")}</p>
         </Note>
 
         {/* the working tool */}
@@ -407,12 +403,12 @@ export default function PlanBoard() {
         >
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="m-0 text-[19px] font-extrabold leading-tight tracking-[-0.02em] text-balance">
-              The DM that works
+              {t("store.plan.note10.title")}
             </h2>
             <button
               type="button"
               onClick={copyDm}
-              aria-label="Copy the Arabic outreach message"
+              aria-label={t("store.plan.note10.copy.ariaLabel")}
               className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-white transition-all active:scale-95 ${
                 copied ? "bg-[#14803f]" : "bg-[#1c1f28] hover:bg-[#2c3040]"
               }`}
@@ -427,7 +423,7 @@ export default function PlanBoard() {
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
               )}
-              {copied ? "Copied" : "Copy"}
+              {copied ? t("store.plan.note10.copy.copied") : t("store.plan.note10.copy.copy")}
             </button>
           </div>
           <div
@@ -441,8 +437,7 @@ export default function PlanBoard() {
             ))}
           </div>
           <p className="mt-3 text-[12.5px] font-semibold leading-snug text-black/60">
-            Short, specific, proof-led. Then send a 2-minute Loom of a{" "}
-            <strong className="text-[#23262f]">working store</strong> — not a deck, not a PDF.
+            {rt("store.plan.note10.caption")}
           </p>
         </Note>
 
@@ -450,38 +445,24 @@ export default function PlanBoard() {
           ref={(el) => { noteRefs.current[10] = el; }}
           tilt={-2.4}
           paper={PAPER.pink}
-          tag="It will go wrong here"
-          title="You'll retreat into code"
+          tag={t("store.plan.note11.tag")}
+          title={t("store.plan.note11.title")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
-          <p>
-            A feature feels productive. A cold DM feels awful. Building is the comfortable failure
-            mode and it will quietly eat all eight weeks.
-          </p>
+          <p>{t("store.plan.note11.p1")}</p>
           <ul className="mt-3 grid list-none gap-2.5 p-0">
-            {[
-              <>
-                <b className="text-[#23262f]">Underpricing out of fear.</b> The first{" "}
-                <span dir="rtl">«ده غالي»</span> will tempt you to drop to 10K. Cheap clients demand
-                the most and refer the worst.
-              </>,
-              <>
-                <b className="text-[#23262f]">Support swallowing you.</b> Fixed hours in the contract
-                from client #1, not client #10.
-              </>,
-              <>
-                <b className="text-[#23262f]">Scope creep.</b>{" "}
-                <span dir="rtl">«ممكن كمان تعمل…»</span> is a paid change request.
-              </>,
-              <>
-                <b className="text-[#23262f]">Chasing all six channels.</b> Two of them are 74% of
-                the target.
-              </>,
-            ].map((node, i) => (
-              <li key={i} className="relative ps-5 text-sm leading-normal text-[#4a4e5c]">
+            {(
+              [
+                "store.plan.note11.item1",
+                "store.plan.note11.item2",
+                "store.plan.note11.item3",
+                "store.plan.note11.item4",
+              ] as const
+            ).map((key) => (
+              <li key={key} className="relative ps-5 text-sm leading-normal text-[#4a4e5c]">
                 <span className="absolute start-1 top-2 size-1.5 rounded-full bg-black/40" />
-                {node}
+                {rt(key)}
               </li>
             ))}
           </ul>
@@ -491,28 +472,24 @@ export default function PlanBoard() {
           ref={(el) => { noteRefs.current[11] = el; }}
           tilt={1.7}
           paper={PAPER.canary}
-          tag="Tomorrow"
+          tag={t("store.plan.note12.tag")}
           canDrag={canDrag}
           dragConstraints={wallRef}
         >
           <div className="my-1.5 text-[46px] font-black leading-none tracking-[-0.04em] tabular-nums">
-            20 DMs
+            {t("store.plan.note12.bigNumber")}
           </div>
           <h2 className="mb-3 text-[19px] font-extrabold leading-tight tracking-[-0.02em] text-balance">
-            Not a landing page. Not one more feature.
+            {t("store.plan.note12.title")}
           </h2>
-          <p>Twenty messages to twenty Instagram merchants, each with a Loom of a working store.</p>
-          <p>
-            You&apos;ll get 2–4 replies and probably one call.{" "}
-            <strong>That call is worth more than everything else on this board</strong> — it&apos;s
-            the only thing here that produces information you don&apos;t already have.
-          </p>
-          <p>The product is finished.</p>
+          <p>{t("store.plan.note12.p1")}</p>
+          <p>{rt("store.plan.note12.p2")}</p>
+          <p>{t("store.plan.note12.p3")}</p>
         </Note>
       </motion.div>
 
       <p className="mx-auto mt-1 hidden max-w-[1180px] text-xs font-semibold text-text-muted lg:block">
-        Drag any note to move it · “Tidy board” springs them home
+        {t("store.plan.footer.hint")}
       </p>
     </div>
   );
