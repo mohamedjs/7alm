@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { supabase } from "@/lib/supabase";
 
 const OPENROUTER_IMAGES_URL = "https://openrouter.ai/api/v1/images";
-const IMAGE_MODEL = "google/gemini-2.5-flash-image";
+const IMAGE_MODEL = "google/gemini-3.1-flash-lite-image";
 const STORAGE_BUCKET = "7alm";
 const STORAGE_PREFIX = "ai-studio";
 
