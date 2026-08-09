@@ -16,8 +16,12 @@ const FILTERS: { status: ReviewStatus | undefined; key: DictKey }[] = [
 
 export default function AdminReviewsPage() {
   const { t } = useLocale();
-  const [status, setStatus] = useState<ReviewStatus | undefined>("pending");
-  const { reviews, isLoading, approve, reject, moderateState } = useReviewModeration(status);
+  // Defaults to "All" (undefined) rather than "pending" so the page shows
+  // existing reviews immediately instead of an empty queue whenever there
+  // happen to be no pending rows.
+  const [status, setStatus] = useState<ReviewStatus | undefined>(undefined);
+  const { reviews, isLoading, hasError, refetch, approve, reject, moderateState } =
+    useReviewModeration(status);
 
   return (
     <div className="space-y-6">
@@ -44,15 +48,15 @@ export default function AdminReviewsPage() {
         ))}
       </div>
 
-      <div className="rounded-2xl bg-surface neu-raised">
-        <ReviewModerationList
-          reviews={reviews}
-          isLoading={isLoading}
-          onApprove={approve}
-          onReject={reject}
-          isMutating={moderateState.isLoading}
-        />
-      </div>
+      <ReviewModerationList
+        reviews={reviews}
+        isLoading={isLoading}
+        hasError={hasError}
+        onRetry={refetch}
+        onApprove={approve}
+        onReject={reject}
+        isMutating={moderateState.isLoading}
+      />
     </div>
   );
 }

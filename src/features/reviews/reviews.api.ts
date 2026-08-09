@@ -60,8 +60,16 @@ export const reviewsApi = createApi({
         url: "/admin/reviews",
         params: status ? { status } : undefined,
       }),
-      transformResponse: (response: ApiEnvelope<ProductReview[]>) =>
-        response.success && response.data ? response.data : [],
+      // A `success: false` envelope (e.g. an expired admin token) must
+      // surface as a query error, not silently render as "no reviews" —
+      // mirrors the throw-on-failure convention used across the other
+      // *.api.ts slices (see customers.api.ts, products.api.ts).
+      transformResponse: (response: ApiEnvelope<ProductReview[]>) => {
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to fetch reviews");
+        }
+        return response.data;
+      },
       providesTags: (result) =>
         result
           ? [

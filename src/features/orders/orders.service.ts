@@ -307,18 +307,24 @@ export class OrderService {
   /**
    * Admin approves a pending order. Persists `requires_confirmation` and
    * branches on the admin's approve-mode choice:
-   * - `requireConfirmation = true` (default) — current double-opt-in
-   *   behavior: status `approved`, decrement stock, notify the customer
-   *   via WhatsApp (تأكيد/إلغاء) and wait for their reply.
-   * - `requireConfirmation = false` ("ship now") — set `approved` and
-   *   decrement stock WITHOUT the customer-facing 'approved' WhatsApp,
+   * - `requireConfirmation = false` (default, "ship now") — set `approved`
+   *   and decrement stock WITHOUT the customer-facing 'approved' WhatsApp,
    *   then immediately run `confirmOrder` (creates the shipment, status
-   *   `confirmed`, notifies 'confirmed') — no customer reply needed.
+   *   `confirmed`, notifies 'confirmed') — no customer reply needed. The
+   *   'approved' WhatsApp (تأكيد/إلغاء) no longer exists in the
+   *   notification workflow, so this is the only path that reliably moves
+   *   an order forward without stalling on a reply that will never come.
+   * - `requireConfirmation = true` — legacy double-opt-in behavior, kept
+   *   as an explicit opt-in for admins who want the customer to confirm
+   *   before shipping. NOTE: the notification workflow no longer sends an
+   *   'approved' WhatsApp message, so choosing this mode currently leaves
+   *   the order silently parked in `approved` until confirmed some other
+   *   way — only pass `true` if that tradeoff is intentional.
    */
   async approveOrder(
     orderId: string,
     providerName?: ShippingProviderName,
-    requireConfirmation = true
+    requireConfirmation = false
   ): Promise<{
     success: boolean;
     trackingId?: string;
@@ -632,14 +638,28 @@ export class OrderService {
       }
     }
 
-    // Fire-and-forget — don't await
-    fetch(n8nWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch((err) => {
-      console.error("Failed to notify n8n:", err);
-    });
+    // Fire-and-forget — don't await. The idempotency check happens first,
+    // inside the same async IIFE, so a duplicate call for a status already
+    // notified (e.g. a shipping-webhook retry) never reaches the fetch.
+    (async () => {
+      try {
+        const shouldNotify = await orderRepository.markNotifiedIfNew(order.id, newStatus);
+        if (!shouldNotify) {
+          console.log(
+            `Skipping duplicate n8n notification for order ${order.id}: status "${newStatus}" was already notified.`
+          );
+          return;
+        }
+
+        await fetch(n8nWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.error("Failed to notify n8n:", err);
+      }
+    })();
   }
 
   /**

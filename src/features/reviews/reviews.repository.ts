@@ -133,7 +133,9 @@ export class ReviewRepository {
   async getAllForModeration(status?: ReviewStatus): Promise<ProductReview[]> {
     let query = supabase
       .from("product_reviews")
-      .select("*, customer:customers (full_name, phone), product:products (name, slug)")
+      .select(
+        "*, customer:customers (full_name, phone), product:products (name, slug, main_image)"
+      )
       .order("created_at", { ascending: false });
 
     if (status) {

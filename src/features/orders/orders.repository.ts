@@ -283,10 +283,41 @@ export class OrderRepository {
       .single();
 
     if (error) {
-      console.error("Error updating order:", error);
+      console.error("Error updating order status:", error);
       return null;
     }
     return data;
+  }
+
+  /**
+   * Idempotency guard for `notifyN8n`: atomically records `status` as the
+   * last-notified status for this order, but ONLY if it differs from
+   * whatever is already stored — closing the race where two concurrent
+   * requests (e.g. a shipping-webhook retry racing an admin action) both
+   * pass the state-machine guard and would otherwise each fire a
+   * WhatsApp notification for the same status. Returns `true` if this
+   * call "won" (should proceed to notify), `false` if another call
+   * already notified this status first.
+   *
+   * Fails open on a DB error — a broken guard must never silently
+   * swallow a real customer notification.
+   */
+  async markNotifiedIfNew(id: string, status: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from("orders")
+      .update({
+        last_notified_status: status,
+        last_notified_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .or(`last_notified_status.is.null,last_notified_status.neq.${status}`)
+      .select("id");
+
+    if (error) {
+      console.error("Error marking order as notified (failing open):", error);
+      return true;
+    }
+    return !!data && data.length > 0;
   }
 }
 

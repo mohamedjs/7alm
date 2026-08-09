@@ -164,6 +164,9 @@ export interface Order {
   shipping_tracking_id: string | null;
   /** Whether the WhatsApp confirmation step was required for this order (admin approval choice). Defaults true at the DB level. */
   requires_confirmation: boolean;
+  /** Idempotency guard for `notifyN8n` — the last status a customer WhatsApp was actually sent for. */
+  last_notified_status?: string | null;
+  last_notified_at?: string | null;
   created_at: string;
   updated_at: string;
   /** Items subtotal before discount. Defaults to the items total when no coupon is applied. */
@@ -465,7 +468,7 @@ export interface ProductReview {
   created_at: string;
   updated_at: string;
   customer?: { full_name: string; phone?: string } | null;
-  product?: { name: string; slug: string } | null;
+  product?: { name: string; slug: string; main_image?: string | null } | null;
 }
 
 export interface ReviewAggregate {
@@ -616,4 +619,44 @@ export interface AdCampaignInput {
   target_audience?: Record<string, unknown> | null;
   telegram_chat_id?: string | null;
   status?: AdCampaignStatus;
+}
+
+// ============================================================
+// AI Studio — Video Generation (spec 015)
+// OpenRouter's video API is async (submit -> poll/callback), so each
+// generation is persisted as a row in `ai_video_jobs` and resolved via
+// the OpenRouter webhook with a poll fallback.
+// ============================================================
+
+export type VideoJobStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "failed"
+  | "cancelled"
+  | "expired";
+
+/** A video generation job submitted to OpenRouter on the Telegram agent's behalf. */
+export interface VideoJob {
+  id: string;
+  campaign_id: string | null;
+  prompt: string;
+  previous_video_url: string | null;
+  openrouter_job_id: string | null;
+  status: VideoJobStatus;
+  video_url: string | null;
+  cost: number | null;
+  error: string | null;
+  telegram_chat_id: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+/** Body the n8n marketing agent sends to start a video generation. */
+export interface VideoJobInput {
+  prompt: string;
+  previous_video_url?: string | null;
+  campaign_id?: string | null;
+  telegram_chat_id?: string | null;
 }

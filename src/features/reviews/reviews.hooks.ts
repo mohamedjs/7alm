@@ -40,9 +40,16 @@ export function useReviewSubmit() {
   };
 }
 
-/** Admin moderation queue (approve/reject) — `/admin/reviews`. */
-export function useReviewModeration(status: ReviewStatus | undefined = "pending") {
-  const { data: reviews, isLoading, error, refetch } = useGetModerationReviewsQuery(status);
+/**
+ * Admin moderation queue (approve/reject) — `/admin/reviews`.
+ *
+ * `status` is intentionally left undefined-by-default here (not defaulted
+ * to "pending"): the page owns its own initial filter state, and a JS
+ * default parameter would otherwise fire every time the page passes
+ * `undefined` for the "All" filter, making "All" impossible to select.
+ */
+export function useReviewModeration(status?: ReviewStatus) {
+  const { data: reviews, isLoading, isError, error, refetch } = useGetModerationReviewsQuery(status);
   const [moderateReview, moderateState] = useModerateReviewMutation();
 
   const approve = useCallback(
@@ -57,6 +64,7 @@ export function useReviewModeration(status: ReviewStatus | undefined = "pending"
   return {
     reviews: reviews ?? [],
     isLoading,
+    hasError: isError,
     error,
     refetch,
     approve,

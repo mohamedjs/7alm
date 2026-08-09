@@ -322,6 +322,22 @@
       ],
       "typeVersion": 4.2,
       "notes": "Sends an error message via Evolution API sendText endpoint when the order action fails."
+    },
+    {
+      "parameters": {
+        "content": "# ⚠️ DEPRECATED\n\nتم دمج هذا الـ workflow في `whatsapp-ai-workflow.json`.\n\nلا تستخدمه — موجود للأرشيف فقط. كل منطق كشف النية وتأكيد الطلبات انتقل لـ `7alm AI Agent (WhatsApp)` في الـ workflow الموحد.",
+        "height": 560,
+        "width": 2080,
+        "color": "#FF6B6B"
+      },
+      "id": "7d02ad24-34a7-4469-b2f4-fa4cef01fd8f",
+      "name": "DEPRECATED",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        -40
+      ]
     }
   ],
   "connections": {
