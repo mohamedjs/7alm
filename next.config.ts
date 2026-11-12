@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },
       { protocol: "https", hostname: "api.dicebear.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
       // Connected-account avatars (Facebook / Instagram CDNs)
       { protocol: "https", hostname: "**.fbcdn.net" },
       { protocol: "https", hostname: "**.cdninstagram.com" },

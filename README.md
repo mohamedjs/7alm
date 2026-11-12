@@ -12,11 +12,11 @@ Storefront and RTL landing pages, a full order lifecycle with shipping, and repl
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker)](https://docs.docker.com/compose/)
 
-[Product site](https://mohamedjs.github.io/7alm/) · [Demo video](site/assets/7alm-demo.mp4) · [Architecture](docs/ARCHITECTURE.md) · [Deploy](docs/INFRASTRUCTURE.md) · [Meta setup](docs/META_INTEGRATION.md)
+[Product site](https://mohamedjs.github.io/7alm/) · [Architecture](docs/ARCHITECTURE.md) · [Deploy](docs/INFRASTRUCTURE.md) · [Meta setup](docs/META_INTEGRATION.md)
 
 </div>
 
-![7alm inbox](site/assets/screens/admin-inbox.png)
+![7alm inbox](site/assets/screens/admin-inbox.webp)
 
 ## What's inside
 

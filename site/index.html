@@ -3,24 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>حلم — متجرك ورسائل عملائك في مكان واحد</title>
-  <meta name="description" content="حلم (7alm): منصة تجارة إلكترونية عربية — متجر وصفحات هبوط، دورة طلب كاملة مع الشحن، وصندوق رسائل واحد لماسنجر وإنستجرام وواتساب وتعليقات فيسبوك." />
-  <meta property="og:title" content="7alm — Arabic e-commerce with one inbox for Facebook, Instagram and WhatsApp" />
-  <meta property="og:description" content="Storefront, landing pages, order lifecycle with shipping, and a Meta inbox for messages and comments. NestJS modular monolith on PostgreSQL, Kafka and Redis." />
-  <meta property="og:image" content="assets/7alm-poster.jpg" />
+  <title>حلم — بيع أكتر ورد على كل عملائك من مكان واحد</title>
+  <meta name="description" content="حلم: متجر وصفحة بيع لكل منتج، طلبات من الاستلام للتسليم، وصندوق واحد ترد منه على ماسنجر وإنستجرام وواتساب وتعليقات البوستات." />
+  <meta property="og:title" content="حلم 7alm — متجرك وكل رسائل عملائك في مكان واحد" />
+  <meta property="og:description" content="صفحة بيع لكل منتج، طلبات وشحن، وصندوق واحد لماسنجر وإنستجرام وواتساب والتعليقات." />
+  <meta property="og:image" content="assets/screens/admin-inbox.webp" />
   <meta name="theme-color" content="#070b16" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2306b6d4'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'%3E7%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/site.css" />
   <script>
-    // Apply the saved theme/language before paint (no flash).
     try {
       const t = localStorage.getItem("site-theme");
       if (t) document.documentElement.dataset.theme = t;
-      const l = localStorage.getItem("site-lang");
-      if (l === "en") { document.documentElement.lang = "en"; document.documentElement.dir = "ltr"; }
+      if (localStorage.getItem("site-lang") === "en") { document.documentElement.lang = "en"; document.documentElement.dir = "ltr"; }
     } catch (_) {}
   </script>
 </head>
@@ -31,141 +29,176 @@
     <div class="container nav-inner">
       <a class="brand" href="#top" aria-label="7alm"><span class="brand-mark">7</span><span>alm</span></a>
       <nav class="nav-links" aria-label="sections">
-        <a href="#features" data-i18n="nav.features">المميزات</a>
         <a href="#inbox" data-i18n="nav.inbox">صندوق الرسائل</a>
-        <a href="#screens" data-i18n="nav.screens">الشاشات</a>
-        <a href="#architecture" data-i18n="nav.arch">المعمارية</a>
-        <a href="#deploy" data-i18n="nav.deploy">التشغيل</a>
+        <a href="#comments" data-i18n="nav.comments">التعليقات</a>
+        <a href="#page" data-i18n="nav.page">صفحة المنتج</a>
+        <a href="#orders" data-i18n="nav.orders">الطلبات</a>
       </nav>
       <div class="nav-actions">
         <button class="chip" id="lang" type="button" aria-label="Switch language">EN</button>
         <button class="chip" id="theme" type="button" aria-label="Toggle theme">◐</button>
-        <a class="btn btn-small" href="https://github.com/mohamedjs/7alm" data-i18n="nav.github">GitHub</a>
+        <a class="btn btn-small" href="https://m.me/1266065906583939" data-i18n="nav.cta">كلّمنا</a>
       </div>
     </div>
   </header>
 
   <main id="main">
     <section class="hero" id="top">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="pill" data-i18n="hero.pill">v2 · NestJS · Kafka · Redis · PostgreSQL</span>
-          <h1 data-i18n="hero.title">متجرك، طلباتك، وكل رسائل عملائك… <em>في مكان واحد</em></h1>
-          <p class="lead" data-i18n="hero.lead">حلم منصة تجارة إلكترونية عربية للبراندات اللي بتبيع من إعلانات فيسبوك وإنستجرام: صفحة هبوط لكل منتج، دورة طلب كاملة مع الشحن، وصندوق رسائل واحد يرد على ماسنجر وإنستجرام وواتساب وتعليقات البوستات.</p>
-          <div class="hero-cta">
-            <a class="btn" href="#demo" data-i18n="hero.watch">شوف الفيديو</a>
-            <a class="btn btn-ghost" href="#deploy" data-i18n="hero.deploy">شغّله على سيرفرك</a>
-          </div>
-          <ul class="stats">
-            <li><b>3</b><span data-i18n="stat.channels">قنوات Meta في صندوق واحد</span></li>
-            <li><b>15</b><span data-i18n="stat.modules">موديول في Modular Monolith</span></li>
-            <li><b>8</b><span data-i18n="stat.services">خدمات Docker جاهزة للإنتاج</span></li>
-          </ul>
+      <div class="container hero-copy">
+        <span class="pill" data-i18n="hero.pill">لكل براند بيبيع من فيسبوك وإنستجرام</span>
+        <h1 data-i18n="hero.title">كل عملائك بيكلموك من مكان مختلف…<br /><em>رد عليهم كلهم من مكان واحد</em></h1>
+        <p class="lead" data-i18n="hero.lead">حلم بيجمعلك رسايل ماسنجر وإنستجرام وواتساب وتعليقات البوستات في شاشة واحدة، ويديك صفحة بيع لكل منتج، ويمشي مع الطلب من أول ما العميل يطلب لحد ما يستلم.</p>
+        <div class="hero-cta">
+          <a class="btn" href="https://m.me/1266065906583939" data-i18n="hero.cta">ابدأ مع حلم</a>
+          <a class="btn btn-ghost" href="#inbox" data-i18n="hero.more">شوف المزايا</a>
         </div>
-        <figure class="hero-shot">
-          <img src="assets/screens/admin-inbox.png" alt="7alm inbox: Messenger, Instagram and WhatsApp conversations" width="1440" height="900" />
+        <ul class="channels" aria-label="channels">
+          <li><span class="dot ms"></span><span data-i18n="ch.messenger">ماسنجر</span></li>
+          <li><span class="dot ig"></span><span data-i18n="ch.instagram">إنستجرام</span></li>
+          <li><span class="dot wa"></span><span data-i18n="ch.whatsapp">واتساب</span></li>
+          <li><span class="dot fb"></span><span data-i18n="ch.comments">تعليقات البوستات</span></li>
+        </ul>
+      </div>
+      <div class="container hero-visual">
+        <figure class="window glow">
+          <div class="window-bar"><i></i><i></i><i></i></div>
+          <img src="assets/screens/admin-inbox.webp" alt="صندوق رسائل حلم" width="2880" height="1360" />
+        </figure>
+        <figure class="phone phone-float" aria-hidden="true">
+          <img src="assets/screens/mobile-landing.webp" alt="" width="1170" height="2532" />
         </figure>
       </div>
     </section>
 
-    <section class="section" id="demo">
-      <div class="container">
-        <h2 data-i18n="demo.title">٤٧ ثانية مع حلم</h2>
-        <p class="section-lead" data-i18n="demo.lead">لقطات حقيقية من التطبيق وهو شغال: المتجر، صفحة الهبوط، الطلبات، وصندوق الرسائل.</p>
-        <div class="video">
-          <video controls preload="metadata" poster="assets/7alm-poster.jpg" playsinline>
-            <source src="assets/7alm-demo.mp4" type="video/mp4" />
-          </video>
-        </div>
+    <section class="numbers">
+      <div class="container numbers-grid">
+        <div><b>1</b><span data-i18n="n1">شاشة واحدة لكل الرسايل والتعليقات</span></div>
+        <div><b>24/7</b><span data-i18n="n2">الرسايل بتوصلك لحظة ما العميل يبعت</span></div>
+        <div><b>0</b><span data-i18n="n3">رسالة أو تعليق يضيع منك</span></div>
+        <div><b>2</b><span data-i18n="n4">لغة: عربي وإنجليزي، ليلي ونهاري</span></div>
       </div>
     </section>
 
-    <section class="section" id="features">
+    <section class="feature" id="inbox">
       <div class="container">
-        <h2 data-i18n="features.title">كل اللي محتاجه عشان تبيع</h2>
-        <div class="cards">
-          <article class="card"><div class="ico">🛍️</div><h3 data-i18n="f1.t">متجر وصفحات هبوط</h3><p data-i18n="f1.d">صفحة لكل منتج على <code>/{slug}</code> جاهزة للإعلان، عروض كميات (قطعتين بسعر خاص)، متجر بأقسام وسلة، عربي وإنجليزي ووضع ليلي.</p></article>
-          <article class="card"><div class="ico">📦</div><h3 data-i18n="f2.t">دورة طلب كاملة</h3><p data-i18n="f2.d">State Machine للطلب: انتظار ← موافقة ← تأكيد ← شحن ← تسليم. حجز المخزون من غير تضارب، شحنة على بوسطة لحظة الموافقة، وتحديثات الشحن لحظيًا عن طريق Webhooks.</p></article>
-          <article class="card"><div class="ico">💬</div><h3 data-i18n="f3.t">صندوق رسائل Meta</h3><p data-i18n="f3.d">ماسنجر وإنستجرام دايركت وواتساب Cloud API في شاشة واحدة، مع ربط تلقائي لرقم الواتساب بالعميل وطلباته.</p></article>
-          <article class="card"><div class="ico">🗨️</div><h3 data-i18n="f4.t">الرد على التعليقات</h3><p data-i18n="f4.d">رد علني على تعليق فيسبوك أو إنستجرام، أو رسالة خاصة واحدة للمعلّق (خلال ٧ أيام كما تشترط Meta)، وإخفاء السبام بضغطة.</p></article>
-          <article class="card"><div class="ico">👥</div><h3 data-i18n="f5.t">CRM وكوبونات ومراجعات</h3><p data-i18n="f5.d">عملاء برقم الموبايل وإحصائياتهم، كوبونات بنسبة أو مبلغ أو شحن مجاني، ومراجعات من مشترين حقيقيين فقط برابط موقّع.</p></article>
-          <article class="card"><div class="ico">✨</div><h3 data-i18n="f6.t">استوديو الذكاء الاصطناعي</h3><p data-i18n="f6.d">كامباينات من تليجرام، صور إعلانية وفيديوهات عن طريق OpenRouter، وكلها محفوظة جوه حلم.</p></article>
+        <div class="feature-head">
+          <span class="kicker" data-i18n="inbox.k">صندوق الرسائل</span>
+          <h2 data-i18n="inbox.t">ماسنجر وإنستجرام وواتساب… في محادثة واحدة</h2>
+          <p data-i18n="inbox.d">بدل ما تفتح ٣ تطبيقات، كل رسالة بتنزل عندك في نفس اللحظة، وجنبها القناة اللي جت منها. ترد من نفس الشاشة، وتعرف مين لسه مستني رد.</p>
         </div>
+        <figure class="window wide">
+          <div class="window-bar"><i></i><i></i><i></i></div>
+          <img src="assets/screens/admin-inbox.webp" alt="محادثات ماسنجر وإنستجرام وواتساب في صندوق واحد" loading="lazy" width="2880" height="1360" />
+        </figure>
+        <ul class="points">
+          <li><b data-i18n="inbox.p1t">رسايل لحظية</b><span data-i18n="inbox.p1d">المحادثة بتتحدث قدامك من غير ما تعمل ريفريش.</span></li>
+          <li><b data-i18n="inbox.p2t">عدّاد غير المقروء</b><span data-i18n="inbox.p2d">تعرف فورًا مين بعت ومحدش رد عليه.</span></li>
+          <li><b data-i18n="inbox.p3t">العميل وطلباته</b><span data-i18n="inbox.p3d">رقم الواتساب بيتربط تلقائي بالعميل وطلباته.</span></li>
+          <li><b data-i18n="inbox.p4t">بحث وفلترة</b><span data-i18n="inbox.p4d">حسب القناة، أو الاسم، أو محادثات مفتوحة ومقفولة.</span></li>
+        </ul>
       </div>
     </section>
 
-    <section class="section alt" id="inbox">
+    <section class="feature alt" id="comments">
       <div class="container split">
-        <div>
-          <h2 data-i18n="inbox.title">مبني على وثائق Meta الرسمية</h2>
+        <div class="feature-head">
+          <span class="kicker" data-i18n="comments.k">التعليقات</span>
+          <h2 data-i18n="comments.t">«بكام؟» تحت البوست… متتسابش من غير رد</h2>
+          <p data-i18n="comments.d">كل تعليقات صفحتك على فيسبوك وإنستجرام في قايمة واحدة. رد علني يشوفه الكل، أو ابعت للمعلّق رسالة في الخاص بضغطة، واخفي السبام من غير ما تمسحه.</p>
           <ul class="checks">
-            <li data-i18n="inbox.c1">Webhook واحد لكل منتجات Meta مع تحقق <code>X-Hub-Signature-256</code> على الـ raw body.</li>
-            <li data-i18n="inbox.c2">رد ٢٠٠ في أقل من ٥ ثواني: الـ webhook بيتسجّل في Outbox ويتعالج في الـ worker عن طريق Kafka.</li>
-            <li data-i18n="inbox.c3">منع التكرار في Redis لأن Meta بتعيد الإرسال.</li>
-            <li data-i18n="inbox.c4">نافذة الـ ٢٤ ساعة: رد حر جواها، Human Agent لحد ٧ أيام في ماسنجر وإنستجرام، وقالب معتمد في واتساب.</li>
-            <li data-i18n="inbox.c5">رد خاص واحد بس لكل تعليق، خلال ٧ أيام — مفروض في الـ domain نفسه.</li>
-            <li data-i18n="inbox.c6">ربط Facebook Login for Business: توكن الصفحة طويل المدى، حساب إنستجرام المرتبط، والاشتراك في الـ webhooks تلقائيًا.</li>
+            <li data-i18n="comments.c1">رد علني أو رد في الخاص</li>
+            <li data-i18n="comments.c2">فلتر «محتاجة رد» عشان متنساش حد</li>
+            <li data-i18n="comments.c3">إخفاء التعليقات المزعجة بضغطة</li>
           </ul>
         </div>
-        <figure class="shot"><img src="assets/screens/admin-comments.png" alt="Replying to Facebook and Instagram comments" loading="lazy" width="1440" height="900" /></figure>
+        <figure class="window">
+          <div class="window-bar"><i></i><i></i><i></i></div>
+          <img src="assets/screens/admin-comments.webp" alt="الرد على تعليقات فيسبوك وإنستجرام" loading="lazy" width="2880" height="1460" />
+        </figure>
       </div>
     </section>
 
-    <section class="section" id="screens">
-      <div class="container">
-        <h2 data-i18n="screens.title">من جوه التطبيق</h2>
-        <div class="gallery">
-          <figure><img src="assets/screens/store-home.png" alt="" loading="lazy" /><figcaption data-i18n="s.store">المتجر</figcaption></figure>
-          <figure><img src="assets/screens/landing.png" alt="" loading="lazy" /><figcaption data-i18n="s.landing">صفحة هبوط المنتج</figcaption></figure>
-          <figure><img src="assets/screens/admin-dashboard.png" alt="" loading="lazy" /><figcaption data-i18n="s.dashboard">لوحة التحكم</figcaption></figure>
-          <figure><img src="assets/screens/admin-orders.png" alt="" loading="lazy" /><figcaption data-i18n="s.orders">الطلبات</figcaption></figure>
-          <figure><img src="assets/screens/admin-customers.png" alt="" loading="lazy" /><figcaption data-i18n="s.customers">العملاء</figcaption></figure>
-          <figure><img src="assets/screens/admin-products.png" alt="" loading="lazy" /><figcaption data-i18n="s.products">المنتجات</figcaption></figure>
+    <section class="feature" id="page">
+      <div class="container split reverse">
+        <div class="feature-head">
+          <span class="kicker" data-i18n="page.k">صفحة المنتج</span>
+          <h2 data-i18n="page.t">صفحة بيع لكل منتج، جاهزة تحطها في الإعلان</h2>
+          <p data-i18n="page.d">العميل يدوس على الإعلان، يشوف الصور والسعر والخصم، ويطلب في خطوة واحدة والدفع عند الاستلام. الشحن بيتحسب حسب منطقته على طول.</p>
+          <ul class="checks">
+            <li data-i18n="page.c1">عروض الكمية: قطعتين بسعر خاص</li>
+            <li data-i18n="page.c2">كوبونات خصم بنسبة أو مبلغ أو شحن مجاني</li>
+            <li data-i18n="page.c3">متجر كامل بأقسام وسلة، عربي وإنجليزي</li>
+          </ul>
         </div>
         <div class="phones">
-          <img src="assets/screens/mobile-landing.png" alt="Landing page on mobile" loading="lazy" />
-          <img src="assets/screens/mobile-store.png" alt="Store on mobile" loading="lazy" />
+          <figure class="phone"><img src="assets/screens/mobile-landing.webp" alt="صفحة المنتج على الموبايل" loading="lazy" width="1170" height="2532" /></figure>
+          <figure class="phone"><img src="assets/screens/mobile-store.webp" alt="المتجر على الموبايل" loading="lazy" width="1170" height="2532" /></figure>
         </div>
       </div>
     </section>
 
-    <section class="section alt" id="architecture">
+    <section class="feature alt" id="orders">
       <div class="container">
-        <h2 data-i18n="arch.title">المعمارية</h2>
-        <p class="section-lead" data-i18n="arch.lead">Modular Monolith في NestJS: كل موديول فيه Domain و Application و Infrastructure و Presentation، والموديولات بتتكلم مع بعض من خلال الـ public API بتاعها أو events.</p>
-        <div class="diagram" dir="ltr" role="img" aria-label="Architecture diagram">
-          <div class="d-row"><div class="d-box edge">Caddy · HTTPS</div></div>
-          <div class="d-row"><div class="d-box web">Next.js 16 — storefront · landing · admin</div><div class="d-box api">NestJS api — REST · webhooks · socket.io</div></div>
-          <div class="d-row"><div class="d-box store">PostgreSQL · Prisma</div><div class="d-box store">Redis · cache · idempotency · socket adapter</div><div class="d-box store">Kafka · outbox relay</div></div>
-          <div class="d-row"><div class="d-box worker">NestJS worker — Meta ingest · Graph API sends · notifications · realtime</div></div>
-          <div class="d-row"><div class="d-box ext">Meta Graph API</div><div class="d-box ext">Bosta</div><div class="d-box ext">Resend</div><div class="d-box ext">n8n</div><div class="d-box ext">OpenRouter</div></div>
+        <div class="feature-head center">
+          <span class="kicker" data-i18n="orders.k">الطلبات والشحن</span>
+          <h2 data-i18n="orders.t">من «اطلب الآن» لحد باب العميل</h2>
+          <p data-i18n="orders.d">كل طلب بيوصلك فيه بيانات العميل ومنطقته والإعلان اللي جه منه. توافق بضغطة فتتحجز الشحنة، وحالة الطلب بتتحدث لوحدها لحد التسليم.</p>
         </div>
-        <div class="modules" dir="ltr">
-          <span>identity</span><span>catalog</span><span>ordering</span><span>shipping</span><span>promotions</span><span>customers</span><span>geo</span><span>reviews</span><span>messaging</span><span>social</span><span>notifications</span><span>ai-studio</span><span>media</span><span>crm</span><span>realtime</span>
+        <ol class="flow">
+          <li><span>1</span><b data-i18n="flow.1">طلب جديد</b></li>
+          <li><span>2</span><b data-i18n="flow.2">موافقة</b></li>
+          <li><span>3</span><b data-i18n="flow.3">تأكيد العميل</b></li>
+          <li><span>4</span><b data-i18n="flow.4">شحن</b></li>
+          <li><span>5</span><b data-i18n="flow.5">تم التسليم</b></li>
+        </ol>
+        <figure class="window wide">
+          <div class="window-bar"><i></i><i></i><i></i></div>
+          <img src="assets/screens/admin-orders.webp" alt="إدارة الطلبات" loading="lazy" width="3360" height="1440" />
+        </figure>
+      </div>
+    </section>
+
+    <section class="feature" id="numbers">
+      <div class="container split">
+        <div class="feature-head">
+          <span class="kicker" data-i18n="dash.k">لوحة التحكم</span>
+          <h2 data-i18n="dash.t">أرقامك قدامك كل يوم</h2>
+          <p data-i18n="dash.d">الإيرادات، عدد الطلبات، متوسط الطلب، وأكتر منتجات ومناطق بتبيع. تعرف إيه اللي شغال وتصرف على الإعلان اللي بيجيب.</p>
+        </div>
+        <figure class="window">
+          <div class="window-bar"><i></i><i></i><i></i></div>
+          <img src="assets/screens/admin-dashboard.webp" alt="لوحة التحكم" loading="lazy" width="2880" height="1440" />
+        </figure>
+      </div>
+    </section>
+
+    <section class="feature alt" id="more">
+      <div class="container">
+        <h2 class="center" data-i18n="more.t">وكمان…</h2>
+        <div class="cards">
+          <article class="card"><div class="ico">👥</div><h3 data-i18n="m1.t">عملاءك برقم الموبايل</h3><p data-i18n="m1.d">كل عميل وعدد طلباته وإجمالي اللي صرفه وآخر مرة طلب.</p></article>
+          <article class="card"><div class="ico">⭐</div><h3 data-i18n="m2.t">تقييمات حقيقية</h3><p data-i18n="m2.d">بعد التسليم العميل بيوصله لينك يقيّم، فالتقييمات كلها من ناس اشترت فعلًا.</p></article>
+          <article class="card"><div class="ico">🎟️</div><h3 data-i18n="m3.t">كوبونات</h3><p data-i18n="m3.d">خصم بنسبة أو مبلغ ثابت أو شحن مجاني، بحد أقصى للاستخدام وتاريخ انتهاء.</p></article>
+          <article class="card"><div class="ico">💬</div><h3 data-i18n="m4.t">تحديثات على واتساب</h3><p data-i18n="m4.d">العميل بيعرف حالة طلبه على واتساب أول بأول.</p></article>
+          <article class="card"><div class="ico">🚚</div><h3 data-i18n="m5.t">شحن تلقائي</h3><p data-i18n="m5.d">الشحنة بتتحجز مع شركة الشحن لحظة ما توافق على الطلب.</p></article>
+          <article class="card"><div class="ico">🌙</div><h3 data-i18n="m6.t">عربي وإنجليزي</h3><p data-i18n="m6.d">المتجر ولوحة التحكم بالعربي والإنجليزي، ووضع ليلي ونهاري.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="section" id="deploy">
-      <div class="container split">
-        <div>
-          <h2 data-i18n="deploy.title">شغّله على سيرفرك في ٣ أوامر</h2>
-          <p data-i18n="deploy.lead">VPS واحد عليه Docker ودومين متوجّه عليه. Caddy بيطلع شهادة HTTPS لوحده، والـ migrations بتتنفذ قبل ما الـ api يبدأ، وفيه نسخة احتياطية يومية للداتابيز.</p>
-        </div>
-        <pre class="code" dir="ltr"><code>git clone https://github.com/mohamedjs/7alm && cd 7alm
-cp .env.production.example .env.production   # domain, secrets, Meta app
-docker compose -f docker-compose.prod.yml \
-  --env-file .env.production up -d --build
-
-# Meta webhook URL:  https://YOUR_DOMAIN/api/webhooks/meta</code></pre>
+    <section class="cta">
+      <div class="container cta-box">
+        <h2 data-i18n="cta.t">جاهز متضيعش ولا عميل؟</h2>
+        <p data-i18n="cta.d">ابعتلنا على ماسنجر ونجهزلك متجرك وصندوق رسايلك.</p>
+        <a class="btn btn-big" href="https://m.me/1266065906583939" data-i18n="cta.b">كلّمنا على ماسنجر</a>
       </div>
     </section>
   </main>
 
   <footer class="footer">
     <div class="container footer-inner">
-      <span>© 2026 7alm</span>
-      <a href="https://github.com/mohamedjs/7alm">github.com/mohamedjs/7alm</a>
+      <span class="brand small"><span class="brand-mark">7</span><span>alm</span></span>
+      <span data-i18n="footer">© 2026 حلم — متجرك وعملاءك في مكان واحد</span>
     </div>
   </footer>
 
