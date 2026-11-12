@@ -10,6 +10,13 @@ export interface PageCredentials {
   instagramAccountId?: string;
 }
 
+export interface InstagramCredentials {
+  igId: string;
+  token: string;
+  /** graph.instagram.com for Instagram-issued tokens (IG...), graph.facebook.com for Page/Business tokens. */
+  host: string;
+}
+
 export interface WhatsAppCredentials {
   phoneNumberId: string;
   token: string;
@@ -50,6 +57,39 @@ export class MetaCredentials {
     } catch (e) {
       this.log.error(`cannot decrypt facebook page token: ${e instanceof Error ? e.message : e}`);
       return null;
+    }
+  }
+
+  /**
+   * Instagram creds: a dedicated Instagram token (Unified login) wins; else
+   * the Page token, when the IG account is linked to the connected Page.
+   */
+  async instagram(): Promise<InstagramCredentials | null> {
+    const token = this.env.META_IG_ACCESS_TOKEN;
+    if (token) {
+      const host = /^IG/.test(token) ? "graph.instagram.com" : "graph.facebook.com";
+      const igId = this.env.META_IG_ACCOUNT_ID ?? (await this.resolveIgId(host, token));
+      if (igId) return { igId, token, host };
+    }
+    const page = await this.page();
+    if (page?.instagramAccountId) return { igId: page.instagramAccountId, token: page.pageToken, host: "graph.facebook.com" };
+    return null;
+  }
+
+  private igIdCache?: string;
+  private async resolveIgId(host: string, token: string): Promise<string | undefined> {
+    if (this.igIdCache) return this.igIdCache;
+    try {
+      const res = await fetch(`https://${host}/${this.env.META_GRAPH_VERSION}/me?fields=user_id,id,username`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(15_000),
+      });
+      const me = (await res.json()) as { user_id?: string | number; id?: string };
+      this.igIdCache = me.user_id ? String(me.user_id) : me.id;
+      return this.igIdCache;
+    } catch (e) {
+      this.log.warn(`could not resolve Instagram account id: ${e instanceof Error ? e.message : e}`);
+      return undefined;
     }
   }
 

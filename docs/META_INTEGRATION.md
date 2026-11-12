@@ -49,3 +49,12 @@ All Graph calls use `graph.facebook.com` (Facebook Login for Business) with the 
 - `node --env-file=.env backend/test/meta-smoke.mjs` signs and posts webhooks to a running stack and walks the whole inbox flow. Without a Page token the final send fails cleanly with "Facebook Page is not connected" — the expected result until credentials exist.
 
 **Not verified end to end:** real sends to Meta. That needs a Meta app, a Page / IG account / WhatsApp number with a role on the app, and (for public use) App Review.
+
+## Instagram via the legacy app (2026-11-12)
+
+The owner's Meta business portfolios are restricted from advertising, so the new "7alm" app (Unified login) could not share the Instagram account, and the account could not be linked to a Page. Instagram therefore runs on the older app **7elm-pro-messages** (App ID 3964115497217081), which still offers **API setup with Instagram login** (no Page, no portfolio):
+
+- Instagram app: 7elm-pro-messages-IG, Instagram App ID `885451210838763`; account @mohamed7elm12 (`17841439246212022`).
+- Backend env: `META_IG_ACCESS_TOKEN` (Instagram-login token, starts with `IG` → host `graph.instagram.com`), `INSTAGRAM_APP_SECRET` (webhook signatures from this app are signed with it).
+- Its Instagram webhook was previously `https://n8n-production-7712.up.railway.app/webhook/instagram-webhook` (n8n on Railway). Switch back there if 7alm stops handling Instagram.
+- Long-lived Instagram tokens last 60 days; refresh with `GET https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=…` before they expire.

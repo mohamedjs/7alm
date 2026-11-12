@@ -39,8 +39,8 @@ export class MetaWebhookController {
   @HttpCode(200)
   @RawResponse()
   async receive(@Req() req: AppRequest, @Headers("x-hub-signature-256") signature: string | undefined, @Body() body: Record<string, unknown>) {
-    const secret = this.env.META_APP_SECRET ?? this.env.FACEBOOK_APP_SECRET;
-    if (!verifyMetaSignature(req.rawBody, signature, secret)) {
+    const secrets = [this.env.META_APP_SECRET, this.env.FACEBOOK_APP_SECRET, this.env.INSTAGRAM_APP_SECRET].filter((s): s is string => !!s);
+    if (!secrets.some((secret) => verifyMetaSignature(req.rawBody, signature, secret))) {
       this.log.warn("rejected Meta webhook with a bad or missing signature");
       throw new ForbiddenException("Invalid signature");
     }

@@ -21,11 +21,16 @@ const appUrl = hostOf(process.env.NEXT_PUBLIC_APP_URL);
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  // `next dev` behind a tunnel (Meta OAuth/webhooks need HTTPS): NEXT_DEV_ORIGINS=host1,host2
+  allowedDevOrigins: (process.env.NEXT_DEV_ORIGINS ?? "").split(",").map((h) => h.trim()).filter(Boolean),
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },
       { protocol: "https", hostname: "api.dicebear.com" },
+      // Connected-account avatars (Facebook / Instagram CDNs)
+      { protocol: "https", hostname: "**.fbcdn.net" },
+      { protocol: "https", hostname: "**.cdninstagram.com" },
       { protocol: "http", hostname: "localhost" },
       { protocol: "http", hostname: "127.0.0.1" },
       ...(appUrl ? [{ protocol: appUrl.protocol.replace(":", "") as "http" | "https", hostname: appUrl.hostname }] : []),

@@ -74,6 +74,8 @@ export const envSchema = z.object({
   META_PAGE_ID: optionalString,
   META_PAGE_ACCESS_TOKEN: optionalString,
   META_IG_ACCOUNT_ID: optionalString,
+  /** Instagram token from "API setup with Unified login" → Generate access tokens (no Facebook Page needed). */
+  META_IG_ACCESS_TOKEN: optionalString,
   META_WHATSAPP_PHONE_NUMBER_ID: optionalString,
   META_WHATSAPP_TOKEN: optionalString,
   META_WHATSAPP_FALLBACK_TEMPLATE: optionalString,

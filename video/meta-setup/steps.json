@@ -1,0 +1,213 @@
+[
+ {
+  "kind": "title",
+  "title": "ربط 7alm بـ Meta",
+  "sub": "فيسبوك ماسنجر + تعليقات الصفحة + إنستجرام — خطوة بخطوة"
+ },
+ {
+  "shot": "1794479167401-1nfaz5",
+  "n": 1,
+  "title": "افتح developers.facebook.com",
+  "sub": "My Apps ← Create App. كان عندك تطبيقين قدام (7elm-pro و 7elm-pro-messages)، وعملنا تطبيق جديد اسمه 7alm"
+ },
+ {
+  "shot": "1794479261821-rup3b5",
+  "n": 2,
+  "title": "اختار الـ Use cases",
+  "sub": "Business messaging ← علّم Messenger و Instagram"
+ },
+ {
+  "shot": "1794479289920-0km7fe",
+  "n": 3,
+  "title": "إدارة الصفحة والتعليقات",
+  "sub": "Content management ← Manage everything on your Page (عشان الرد على تعليقات البوستات)"
+ },
+ {
+  "shot": "1794479400285-16qu2g",
+  "n": 4,
+  "title": "اختار الـ Business portfolio",
+  "sub": "اخترنا 7alm. خلي بالك تختار الصح — أول مرة اتعلّم 7elm-pro بالغلط ورجعنا صلحناه"
+ },
+ {
+  "shot": "1794479474056-ab2dbf",
+  "n": 5,
+  "title": "Create app",
+  "sub": "فيسبوك بيطلب الباسورد تاني للأمان — بتكتبه إنت بنفسك"
+ },
+ {
+  "shot": "1794479580342-5rejo0",
+  "n": 6,
+  "title": "التطبيق اتعمل",
+  "sub": "App ID: 2889349264784346. من هنا: Use cases ← Customize لكل use case"
+ },
+ {
+  "shot": "1794479654254-4x3ysq",
+  "n": 7,
+  "title": "ضيف الصلاحيات",
+  "sub": "pages_messaging, pages_read_engagement, instagram_manage_messages, Human Agent… كل Add بيطلع تأكيد ← Add"
+ },
+ {
+  "shot": "1794480712268-aslgvl",
+  "n": 8,
+  "title": "Facebook Login for Business ← Settings",
+  "sub": "هنا بنحط روابط الرجوع (Valid OAuth Redirect URIs) اللي فيسبوك بيرجّع عليها بعد الموافقة"
+ },
+ {
+  "shot": "1794480726810-m1zajm",
+  "n": 9,
+  "title": "روابط الرجوع",
+  "sub": "…/api/connections/facebook/callback و …/instagram/callback (على رابط الـ tunnel دلوقتي، والدومين بعدين)"
+ },
+ {
+  "shot": "1794480822637-uaqad6",
+  "n": 10,
+  "title": "Save Changes",
+  "sub": "لازم تظهر «Changes saved» — أول مرة ما اتحفظش والـ Validator قال invalid، فعدنا الإضافة"
+ },
+ {
+  "kind": "note",
+  "title": "الـ Webhook (Messenger API Settings)",
+  "sub": "Callback URL = https://<الرابط>/api/webhooks/meta\nVerify token = قيمة META_WEBHOOK_VERIFY_TOKEN من backend/.env ← Verify and save\nوبعدين فعّل الحقول: messages · message_echoes · message_deliveries · message_reads · feed\n(من غير الحقول دي ولا رسالة بتوصل — دي كانت أول مشكلة)"
+ },
+ {
+  "kind": "note",
+  "title": "الـ App Secret",
+  "sub": "App settings ← Basic ← App secret ← Show\nحطه في backend/.env:\nFACEBOOK_APP_SECRET=…  و  META_APP_SECRET=…\nو SOCIAL_MOCK_MODE=0 ثم أعد تشغيل الباك إند"
+ },
+ {
+  "shot": "1794480918266-aozzzs",
+  "n": 11,
+  "title": "عمل صفحة فيسبوك",
+  "sub": "facebook.com/pages/create — الرسايل والتعليقات محتاجة Page، مش بروفايل شخصي ولا جروب"
+ },
+ {
+  "shot": "1794480942282-sexwfl",
+  "n": 12,
+  "title": "اسم الصفحة والقسم",
+  "sub": "«حلم - 7alm» ← Shopping & retail ← Create Page"
+ },
+ {
+  "shot": "1794480979796-bjyguv",
+  "n": 13,
+  "title": "الصفحة اتعملت",
+  "sub": "خطوات «Finish setting up» اختيارية — سبناها"
+ },
+ {
+  "shot": "1794481170115-tkbw41",
+  "n": 14,
+  "title": "ادخل أدمن 7alm على الرابط العام",
+  "sub": "لازم الربط يبدأ من نفس الرابط اللي فيسبوك هيرجع عليه (HTTPS)"
+ },
+ {
+  "shot": "1794481329878-v6yfdp",
+  "n": 15,
+  "title": "Admin ← Connections",
+  "sub": "دوس «ربط الحساب» تحت فيسبوك"
+ },
+ {
+  "shot": "1794481349395-jcvlzj",
+  "n": 16,
+  "title": "مشكلة: Invalid Scopes",
+  "sub": "صلاحيات مش مضافة للتطبيق. الحل: ضفنا pages_manage_engagement و pages_read_user_content و instagram_manage_comments وجربنا تاني"
+ },
+ {
+  "shot": "1794481505545-6jio4w",
+  "n": 17,
+  "title": "Continue as …",
+  "sub": "الموافقة دي بتاعتك إنت ← Continue"
+ },
+ {
+  "shot": "1794481611245-op7co3",
+  "n": 18,
+  "title": "اختار الـ Business",
+  "sub": "Opt in to current Businesses only ← علّم 7alm بس ← Continue ← اختار الصفحة ← Save"
+ },
+ {
+  "shot": "1794482291119-phag2f",
+  "n": 19,
+  "title": "ماسنجر شغال لايف ✅",
+  "sub": "رسالة حقيقية من m.me/1266065906583939 ظهرت في صندوق الرسائل باسم وصورة المرسل"
+ },
+ {
+  "shot": "1794482734550-emeqj5",
+  "n": 20,
+  "title": "إنستجرام: Connect to Facebook",
+  "sub": "Settings ← Edit profile ← Facebook ← Connect (لازم الضغطة تكون منك عشان الـ popup)"
+ },
+ {
+  "shot": "1794482918045-kksb5j",
+  "n": 21,
+  "title": "اختار الصفحة",
+  "sub": "«حلم - 7alm» مكتوب جنبها can't connect لأنها جديدة — اخترنا 7alm"
+ },
+ {
+  "shot": "1794482941030-0refai",
+  "n": 22,
+  "title": "مشكلة: Business Account Not Allowed to Advertise",
+  "sub": "الـ portfolio عليه قيد إعلانات، فـ Meta رفضت ربط إنستجرام بالصفحة"
+ },
+ {
+  "shot": "1794483344335-st6v8f",
+  "n": 23,
+  "title": "الحل: Instagram Tester",
+  "sub": "App roles ← Roles ← Add People ← Instagram Tester"
+ },
+ {
+  "shot": "1794483373516-hye6lc",
+  "n": 24,
+  "title": "اكتب يوزر إنستجرام",
+  "sub": "mohamed7elm12 ← Add"
+ },
+ {
+  "shot": "1794483394523-o5xp7y",
+  "n": 25,
+  "title": "الدعوة Pending",
+  "sub": "لازم تتقبل من جوه إنستجرام"
+ },
+ {
+  "shot": "1794483428666-4ez2zs",
+  "n": 26,
+  "title": "اقبل الدعوة في إنستجرام",
+  "sub": "instagram.com/accounts/manage_access ← Tester Invites ← Accept"
+ },
+ {
+  "shot": "1794483454774-sf4wd5",
+  "n": 27,
+  "title": "الدعوة اتقبلت",
+  "sub": "7alm-IG بقى Authorized"
+ },
+ {
+  "shot": "1794483645098-bxtk2t",
+  "n": 28,
+  "title": "Webhook إنستجرام (Unified login)",
+  "sub": "Callback URL + Verify token ← Verify and save ← فعّل messages و comments"
+ },
+ {
+  "shot": "1794499409195-t0wr22",
+  "n": 29,
+  "title": "مشكلة: الـ portfolio رمادي",
+  "sub": "توكن Unified login محتاج portfolio — وكل الـ portfolios عليها نفس القيد"
+ },
+ {
+  "shot": "1794500070401-jqkza8",
+  "n": 30,
+  "title": "«You can't use this business portfolio to advertise»",
+  "sub": "القيد على حسابك كمعلن. الحل الدائم: طلب مراجعة من business.facebook.com/accountquality"
+ },
+ {
+  "shot": "1794501961847-dmyywo",
+  "n": 31,
+  "title": "الحل الشغال: التطبيق القديم 7elm-pro-messages",
+  "sub": "Instagram ← API setup with Instagram login (من غير صفحة ولا portfolio): Webhook Subscription = On، والحقول كلها Subscribed"
+ },
+ {
+  "kind": "note",
+  "title": "إعدادات إنستجرام في 7alm",
+  "sub": "غيّرنا رابط الـ Callback من n8n (Railway) إلى 7alm\n(الرابط القديم محفوظ في docs/META_INTEGRATION.md)\nبـ backend/.env:\nINSTAGRAM_APP_ID=885451210838763\nINSTAGRAM_APP_SECRET=… (Instagram app secret ← Show)\nMETA_IG_ACCESS_TOKEN=… (Generate token — صالح 60 يوم)\nMETA_IG_ACCOUNT_ID=17841439246212022"
+ },
+ {
+  "kind": "note",
+  "title": "الخلاصة",
+  "sub": "✅ ماسنجر + تعليقات الصفحة: شغالين لايف\n✅ إنستجرام: متوصل ومتأكد (webhook 200 + التوكن شغال)\n⏳ فاضل: تجربة دايركت حقيقية من حساب تاني\n⏳ طلب مراجعة قيد الإعلانات · App Review · الدومين الحقيقي بدل الـ tunnel"
+ }
+]

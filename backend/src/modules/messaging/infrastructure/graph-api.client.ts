@@ -25,8 +25,8 @@ export class GraphApiClient {
 
   constructor(private readonly creds: MetaCredentials) {}
 
-  private async call<T = Json>(method: "GET" | "POST" | "DELETE", path: string, token: string, body?: Json, query?: Record<string, string>): Promise<T> {
-    const url = new URL(`https://graph.facebook.com/${this.creds.graphVersion}/${path.replace(/^\//, "")}`);
+  private async call<T = Json>(method: "GET" | "POST" | "DELETE", path: string, token: string, body?: Json, query?: Record<string, string>, host = "graph.facebook.com"): Promise<T> {
+    const url = new URL(`https://${host}/${this.creds.graphVersion}/${path.replace(/^\//, "")}`);
     for (const [k, v] of Object.entries(query ?? {})) url.searchParams.set(k, v);
     const res = await fetch(url, {
       method,
@@ -43,6 +43,12 @@ export class GraphApiClient {
     return data as T;
   }
 
+  private async igCreds() {
+    const c = await this.creds.instagram();
+    if (!c) throw new GraphError("Instagram is not connected (set META_IG_ACCESS_TOKEN, or link the IG account to the connected Page).", 503, undefined, true);
+    return c;
+  }
+
   private async pageCreds() {
     const c = await this.creds.page();
     if (!c) throw new GraphError("Facebook Page is not connected (set META_PAGE_ID + META_PAGE_ACCESS_TOKEN or connect it in Admin → Connections).", 503, undefined, true);
@@ -51,16 +57,19 @@ export class GraphApiClient {
 
   /** Messenger or Instagram DM. `humanAgent` adds the HUMAN_AGENT tag for replies 24 h–7 d after the last message. */
   async sendDirect(channel: "messenger" | "instagram", recipientId: string, text: string, humanAgent: boolean): Promise<string> {
-    const c = await this.pageCreds();
-    const senderId = channel === "instagram" ? c.instagramAccountId : c.pageId;
-    if (!senderId) throw new GraphError("Instagram account id is unknown (META_IG_ACCOUNT_ID).", 503, undefined, true);
     const body: Json = {
       recipient: { id: recipientId },
       message: { text },
       messaging_type: humanAgent ? "MESSAGE_TAG" : "RESPONSE",
       ...(humanAgent ? { tag: "HUMAN_AGENT" } : {}),
     };
-    const res = await this.call<{ message_id?: string }>("POST", `${senderId}/messages`, c.pageToken, body);
+    if (channel === "instagram") {
+      const ig = await this.igCreds();
+      const res = await this.call<{ message_id?: string }>("POST", `${ig.igId}/messages`, ig.token, body, undefined, ig.host);
+      return res.message_id ?? "";
+    }
+    const c = await this.pageCreds();
+    const res = await this.call<{ message_id?: string }>("POST", `${c.pageId}/messages`, c.pageToken, body);
     return res.message_id ?? "";
   }
 
@@ -76,26 +85,38 @@ export class GraphApiClient {
 
   /** Public reply under the comment. FB: `/{comment-id}/comments`; IG: `/{ig-comment-id}/replies`. */
   async replyPublic(platform: "facebook" | "instagram", commentId: string, text: string): Promise<string> {
+    if (platform === "instagram") {
+      const ig = await this.igCreds();
+      const res = await this.call<{ id?: string }>("POST", `${commentId}/replies`, ig.token, { message: text }, undefined, ig.host);
+      return res.id ?? "";
+    }
     const c = await this.pageCreds();
-    const edge = platform === "facebook" ? "comments" : "replies";
-    const res = await this.call<{ id?: string }>("POST", `${commentId}/${edge}`, c.pageToken, { message: text });
+    const res = await this.call<{ id?: string }>("POST", `${commentId}/comments`, c.pageToken, { message: text });
     return res.id ?? "";
   }
 
   /** One private DM to the commenter (Messenger for FB, IG Direct for IG). */
   async replyPrivate(platform: "facebook" | "instagram", commentId: string, text: string): Promise<string> {
+    const body = { recipient: { comment_id: commentId }, message: { text } };
+    if (platform === "instagram") {
+      const ig = await this.igCreds();
+      const res = await this.call<{ message_id?: string }>("POST", `${ig.igId}/messages`, ig.token, body, undefined, ig.host);
+      return res.message_id ?? "";
+    }
     const c = await this.pageCreds();
-    const senderId = platform === "instagram" ? c.instagramAccountId : c.pageId;
-    if (!senderId) throw new GraphError("Instagram account id is unknown (META_IG_ACCOUNT_ID).", 503, undefined, true);
-    const res = await this.call<{ message_id?: string }>("POST", `${senderId}/messages`, c.pageToken, { recipient: { comment_id: commentId }, message: { text } });
+    const res = await this.call<{ message_id?: string }>("POST", `${c.pageId}/messages`, c.pageToken, body);
     return res.message_id ?? "";
   }
 
   /** Hide/unhide. FB uses the `is_hidden` field; IG uses the `hide` query parameter. */
   async setHidden(platform: "facebook" | "instagram", commentId: string, hidden: boolean): Promise<void> {
+    if (platform === "instagram") {
+      const ig = await this.igCreds();
+      await this.call("POST", commentId, ig.token, undefined, { hide: String(hidden) }, ig.host);
+      return;
+    }
     const c = await this.pageCreds();
-    if (platform === "facebook") await this.call("POST", commentId, c.pageToken, { is_hidden: hidden });
-    else await this.call("POST", commentId, c.pageToken, undefined, { hide: String(hidden) });
+    await this.call("POST", commentId, c.pageToken, { is_hidden: hidden });
   }
 
   async deleteComment(commentId: string): Promise<void> {
@@ -106,9 +127,10 @@ export class GraphApiClient {
   /** Name + avatar for a Messenger PSID / IG IGSID (best effort, cached by the caller). */
   async profile(channel: "messenger" | "instagram", id: string): Promise<{ name?: string; username?: string; avatar?: string } | null> {
     try {
-      const c = await this.pageCreds();
       const fields = channel === "instagram" ? "name,username,profile_pic" : "first_name,last_name,profile_pic";
-      const p = await this.call<Json>("GET", id, c.pageToken, undefined, { fields });
+      const auth = channel === "instagram" ? await this.igCreds() : null;
+      const page = auth ? null : await this.pageCreds();
+      const p = await this.call<Json>("GET", id, auth ? auth.token : page!.pageToken, undefined, { fields }, auth ? auth.host : undefined);
       const name = channel === "instagram" ? (p.name as string) : [p.first_name, p.last_name].filter(Boolean).join(" ");
       return { name: name || undefined, username: p.username as string | undefined, avatar: p.profile_pic as string | undefined };
     } catch (e) {
