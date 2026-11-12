@@ -1,5 +1,5 @@
+import { catalogServer } from "@/features/store/store.server";
 import { notFound } from "next/navigation";
-import { productService } from "@/features/products/products.service";
 import ProductCheckoutFunnel from "@/components/landing/ProductCheckoutFunnel";
 import Footer from "@/components/landing/Footer";
 import type { Metadata } from "next";
@@ -15,7 +15,7 @@ interface PageProps {
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await productService.getProductBySlug(slug);
+  const product = await catalogServer.getProductBySlug(slug);
   if (!product) return { title: "منتج غير موجود" };
 
   const title = `${product.name} | حلم 7alm`;
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  */
 export default async function ProductLandingPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = await productService.getProductBySlug(slug);
+  const product = await catalogServer.getProductBySlug(slug);
 
   if (!product) {
     notFound();

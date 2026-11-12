@@ -6,6 +6,20 @@
 >
 > Entry format is fixed — keep it so the SessionStart hook can parse it (each entry starts with `## `).
 
+## 2026-11-12 — v2: NestJS modular monolith (Postgres/Prisma, Kafka, Redis, Docker), Meta inbox, GitHub Pages site + launch video
+**By:** Claude (Opus 5.5)
+**Summary:** Owner asked to plan in Notion first (hub "7alm" + "7alm Tasks" DB, modelled on Lura), then replace Supabase + Next API routes with a NestJS modular monolith, add a Meta inbox (FB/IG/WhatsApp messages + comments), make it production-ready with Docker, and ship a GitHub Pages product site with a video. Owner choices: own VPS + domain, start fresh (no Supabase data migration), no Meta app yet, GitHub Pages yes.
+**Changes:**
+- `backend/` (new): NestJS 11, 15 modules with domain/application/infrastructure/presentation layers; Prisma 7 schema + init migration (constraints, `customer_stats` view, `outbox_events`); transactional outbox → Kafka (worker process) with retries + DLQ; Redis cache/idempotency/throttle/socket adapter; v1 `/api/*` contract preserved (envelope interceptor + exception filter).
+- Meta inbox (`messaging`): `GET/POST /api/webhooks/meta` (verify token, HMAC over raw body), parser for Messenger / IG DM / IG comments (both id shapes) / FB feed / WhatsApp (incl. BSUID), 24 h / 7 d HUMAN_AGENT / WhatsApp template rules, one private reply per comment, Graph API client (v27.0 default). Admin UI `/admin/inbox` (AR/EN).
+- `social` upgraded: FB login → long-lived Page token + linked IG + `subscribed_apps`; WhatsApp WABA/phone discovery.
+- Frontend: all `src/app/api`, services, repositories, `lib/supabase*` removed; `store.server.ts` for Server Components; socket.io realtime; middleware checks `/api/auth/session`; next.config rewrites + standalone.
+- Ops: `docker-compose.yml` (dev infra), `docker-compose.prod.yml` (Caddy TLS, migrate, backups), Dockerfiles, `.env.production.example`, CI/Pages/release workflows, lockfiles un-ignored.
+- `site/` product page + `video/` (slides → ffmpeg) → `site/assets/7alm-demo.mp4` (copied to motion-graphic/product-videos/7alm/).
+- Docs: AGENTS.md/CLAUDE.md/README rewritten for v2; docs/ARCHITECTURE.md, INFRASTRUCTURE.md, META_INTEGRATION.md; specs/017.
+**Verified:** backend typecheck + 40 vitest (incl. architecture rules); web tsc + next build (Docker); prod stack healthy via Caddy/HTTPS; `backend/test/smoke.mjs` 14/14 and `meta-smoke.mjs` 14/14; admin forms clicked through.
+**Open:** real Meta sends (needs app + App Review), VPS deploy, enable Pages, re-import n8n with new domain, pre-existing lint findings. Nothing committed yet (branch `feature/v2-nestjs-backend`).
+
 ## 2026-07-26 — Campaign image generation (spec 014): OpenRouter images, stored as public URLs, generated from Telegram or the dashboard
 **By:** Claude (Opus 5)
 **Summary:** Added AI-generated campaign visuals to the campaign builder shipped earlier the same day. Scope settled with the user across several rounds: from-scratch generation only (no owner-sent photos), OpenRouter only (explicitly not Gemini — one billing relationship), one image per campaign, ad-quality mockups with print-ready UV files ruled out entirely. CTO agent specced it, then backend was built directly and frontend/n8n delegated in parallel.

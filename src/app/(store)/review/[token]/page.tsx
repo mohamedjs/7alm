@@ -1,5 +1,5 @@
+import { categoriesServer } from "@/features/store/store.server";
 import type { Metadata } from "next";
-import { categoryService } from "@/features/categories/categories.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import StoreFooter from "@/components/store/master/StoreFooter";
 import ReviewSubmitForm from "@/components/store/review/ReviewSubmitForm";
@@ -24,7 +24,7 @@ interface PageProps {
  */
 export default async function ReviewTokenPage({ params }: PageProps) {
   const { token } = await params;
-  const categories = await categoryService.getActiveCategories();
+  const categories = await categoriesServer.getActiveCategories();
 
   return (
     <main className="min-h-screen bg-surface transition-colors">

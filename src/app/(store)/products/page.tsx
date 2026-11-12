@@ -1,6 +1,5 @@
+import { catalogServer, categoriesServer } from "@/features/store/store.server";
 import type { Metadata } from "next";
-import { productService } from "@/features/products/products.service";
-import { categoryService } from "@/features/categories/categories.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import ProductGrid from "@/components/store/product/ProductGrid";
 import StoreFooter from "@/components/store/master/StoreFooter";
@@ -27,8 +26,8 @@ export const metadata: Metadata = {
  */
 export default async function AllProductsPage() {
   const [products, categories] = await Promise.all([
-    productService.getAllActiveProducts(),
-    categoryService.getActiveCategories(),
+    catalogServer.getAllActiveProducts(),
+    categoriesServer.getActiveCategories(),
   ]);
 
   const byCategory = new Map<string, Product[]>();

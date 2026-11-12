@@ -9,57 +9,31 @@
 ## Quick Context for Claude
 
 ### What is this project?
-**7alm** is an Arabic E-commerce platform with:
-- A **public checkout funnel** (RTL landing pages at `/` and `/[slug]`)
-- A **protected admin dashboard** (bilingual: Arabic default / English available; RTL default / LTR available via a runtime toggle, at `/admin/*`)
-- **Server-side business logic** via Next.js API routes + Supabase
-- **Client-side state** via Redux Toolkit Query (RTK Query)
+**7alm** is an Arabic e-commerce platform, v2 since 2026-11:
+- **backend/** — NestJS 11 modular monolith: PostgreSQL (Prisma 7), Kafka (outbox → consumers), Redis, Docker. Two processes from one image: `api` and `worker`.
+- **src/** — Next.js 16 presentation: RTL landing pages (`/` and `/[slug]`), bilingual storefront, bilingual admin (`/admin/*`, incl. the Meta **Inbox**).
+- **site/** — product landing site on GitHub Pages; **video/** — launch-video tooling.
 
 ### Architecture in 30 Seconds
 ```
-Client Components → RTK Query (*.api.ts) → API Routes → Services → Repositories → Supabase
+Client Components → RTK Query (*.api.ts) → /api/* → NestJS controller → use case → domain → repository (Prisma) → PostgreSQL
+Server Components → store.server.ts (serverGet) → same /api/*
+Side effects → domain events → outbox_events → worker → Kafka → consumers (notifications, Meta sends, realtime)
 ```
-- **Never** import `supabase.ts`, `*.repository.ts`, or `*.service.ts` in client code.
-- **Always** create API routes as the bridge between client and server.
-- **Always** use hooks (`*.hooks.ts`) for UI logic — components should be declarative.
-
-### Design Patterns You Must Follow
-1. **Repository Pattern** — Data access is isolated in `*.repository.ts` files
-2. **Service Pattern** — Business orchestration in `*.service.ts` files
-3. **Factory Pattern** — Shipping providers via `shipping.factory.ts`
-4. **State Machine** — Order status transitions via `orderStateMachine.ts`
-5. **RTK Query** — Client data fetching with automatic cache invalidation
-
-### File Naming Convention
-| Suffix | Layer | Runs On | Purpose |
-|---|---|---|---|
-| `*.repository.ts` | Data | Server | Raw Supabase queries |
-| `*.service.ts` | Domain | Server | Business logic orchestration |
-| `*.api.ts` | Client State | Client | RTK Query API definitions |
-| `*.hooks.ts` | UI Logic | Client | React hooks for components |
-| `*.slice.ts` | Client State | Client | Redux state slices |
+- **Never** add Next API routes, services, repositories or database clients to `src/`.
+- **Always** put business rules in `backend/src/modules/<module>/domain/` and test them.
+- **Always** import another module through its `index.ts`.
 
 ### Critical Don'ts
-- ❌ Don't put business logic in components or pages
-- ❌ Don't import Supabase in client components
-- ❌ Don't create monolithic components — split into List + Form
-- ❌ Don't hardcode product data — fetch from the database
-- ❌ Don't skip TypeScript checks before committing
-- ❌ Don't break RTL layout on landing pages
+- ❌ Business logic in components, pages or controllers
+- ❌ Prisma outside `infrastructure/`; Nest/Prisma inside `domain/`
+- ❌ Calling an external API inside a webhook request (write to the outbox, let the worker do it)
+- ❌ Changing the `/api/*` response envelope or field names
+- ❌ Hardcoded UI strings (use `t(key)` with `en` + `ar`), physical CSS directions, breaking landing-page RTL
 
-### Adding a New Feature (Template)
-1. Define types in `src/features/shared/types.ts`
-2. Create `src/features/<domain>/<domain>.repository.ts` (Supabase queries)
-3. Create `src/features/<domain>/<domain>.service.ts` (business logic)
-4. Create `src/app/api/<domain>/route.ts` (API routes)
-5. Create `src/features/<domain>/<domain>.api.ts` (RTK Query)
-6. Create `src/features/<domain>/<domain>.hooks.ts` (UI hooks)
-7. Register the API in `src/lib/redux/store.ts`
-8. Create components in `src/components/<context>/`
-9. Create pages in `src/app/(<group>)/<route>/page.tsx`
-
-### Type Checking
+### Type checking / tests
 ```bash
-npx tsc --noEmit   # Must pass before any commit
-npm run build       # Must pass for deployment readiness
+npx tsc --noEmit                                # web
+cd backend && npm run typecheck && npm test     # backend + architecture rules
+node --env-file=backend/.env backend/test/smoke.mjs        # e2e against a running api
 ```

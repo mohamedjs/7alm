@@ -1,5 +1,5 @@
+import { categoriesServer } from "@/features/store/store.server";
 import type { Metadata } from "next";
-import { categoryService } from "@/features/categories/categories.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import StoreFooter from "@/components/store/master/StoreFooter";
 import StoreCheckoutForm from "@/components/store/cart/StoreCheckoutForm";
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const categories = await categoryService.getActiveCategories();
+  const categories = await categoriesServer.getActiveCategories();
 
   return (
     <main className="min-h-screen">

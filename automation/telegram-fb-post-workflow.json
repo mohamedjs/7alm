@@ -555,7 +555,7 @@
         -1712
       ],
       "typeVersion": 4.4,
-      "notes": "AI tool: POST /api/n8n/ai-studio/images. Same x-n8n-access-token header pattern as save_campaign/Load Active Products. Route generates via OpenRouter, stores in Supabase Storage (bucket 7alm, prefix ai-studio/), and returns { success, url, cost } — never image bytes. See specs/014-campaign-image-generation/spec.md."
+      "notes": "AI tool: POST /api/n8n/ai-studio/images. Same x-n8n-access-token header pattern as save_campaign/Load Active Products. Route generates via OpenRouter, stores it on the 7alm uploads volume (prefix ai-studio/), and returns { success, url, cost } — never image bytes. See specs/014-campaign-image-generation/spec.md."
     },
     {
       "parameters": {
@@ -590,7 +590,7 @@
         -2384
       ],
       "typeVersion": 2.2,
-      "notes": "UNVERIFIED without a live n8n run (spec 014 §4): condition is $('generate_campaign_image').last().json.response.url existing. If it does not resolve against a real execution, replace both this condition's leftValue and Send Campaign Photo's file value with the regex fallback: {{ ($json.output.match(/https:\\/\\/zuajkdttqzgwwdnsjmjk\\.supabase\\.co\\/storage\\/v1\\/object\\/public\\/7alm\\/ai-studio\\/[^\\s)\\]\"']+/g) || []).pop() }}"
+      "notes": "UNVERIFIED without a live n8n run (spec 014 §4): condition is $('generate_campaign_image').last().json.response.url existing. If it does not resolve against a real execution, replace both this condition's leftValue and Send Campaign Photo's file value with the regex fallback: {{ ($json.output.match(/https:\\/\\/[^\\s)\\]\"'\\/]+\\/(?:uploads\\/)?ai-studio\\/[^\\s)\\]\"']+/g) || []).pop() }}"
     },
     {
       "parameters": {

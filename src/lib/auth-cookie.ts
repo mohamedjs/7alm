@@ -1,7 +1,6 @@
 /**
- * Name of the httpOnly cookie carrying the admin's Supabase access token.
- * Shared between the login/logout API routes and the middleware — the cookie
- * is the only auth signal the middleware can see (localStorage is invisible
- * to the server).
+ * Name of the httpOnly cookie carrying the admin's access token (set by the
+ * NestJS `POST /api/auth/login`). The middleware reads it; localStorage is
+ * invisible to the server.
  */
 export const ADMIN_TOKEN_COOKIE = "7alm_admin_token";

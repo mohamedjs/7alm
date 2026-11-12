@@ -1,0 +1,492 @@
+// 7alm v2 — PostgreSQL schema (Prisma 7).
+//
+// Field names are the database column names (snake_case) so a row read by an
+// infrastructure repository already matches the public `/api/*` JSON contract
+// the Next frontend and the n8n workflows depend on. Domain entities live in
+// `src/modules/<module>/domain/` and never import this generated client.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────── identity ───────────────────────────────
+
+model Admin {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
+  password_hash String
+  full_name     String?
+  is_active     Boolean   @default(true)
+  last_login_at DateTime? @db.Timestamptz
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  social_connections SocialConnection[]
+
+  @@map("admins")
+}
+
+// ─────────────────────────────── geo ───────────────────────────────
+
+model Country {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String   @unique
+  created_at DateTime @default(now()) @db.Timestamptz
+  cities     City[]
+
+  @@map("countries")
+}
+
+model City {
+  id         String   @id @default(uuid()) @db.Uuid
+  country_id String   @db.Uuid
+  name       String
+  created_at DateTime @default(now()) @db.Timestamptz
+  country    Country  @relation(fields: [country_id], references: [id], onDelete: Cascade)
+  zones      Zone[]
+
+  @@unique([country_id, name])
+  @@map("cities")
+}
+
+model Zone {
+  id             String    @id @default(uuid()) @db.Uuid
+  city_id        String    @db.Uuid
+  english_name   String
+  arabic_name    String
+  shipping_price Decimal   @default(0) @db.Decimal(10, 2)
+  created_at     DateTime  @default(now()) @db.Timestamptz
+  city           City      @relation(fields: [city_id], references: [id], onDelete: Cascade)
+  addresses      Address[]
+
+  @@unique([city_id, english_name])
+  @@map("zones")
+}
+
+// ─────────────────────────────── customers ───────────────────────────────
+
+model Customer {
+  id         String   @id @default(uuid()) @db.Uuid
+  phone      String   @unique
+  email      String?  @unique
+  full_name  String
+  notes      String?
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  addresses          Address[]
+  orders             Order[]
+  reviews            ProductReview[]
+  coupon_redemptions CouponRedemption[]
+  whatsapp_messages  WhatsappMessage[]
+  inbox_contacts     InboxContact[]
+
+  @@map("customers")
+}
+
+model Address {
+  id             String   @id @default(uuid()) @db.Uuid
+  customer_id    String   @db.Uuid
+  zone_id        String   @db.Uuid
+  street_details String
+  created_at     DateTime @default(now()) @db.Timestamptz
+  customer       Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  zone           Zone     @relation(fields: [zone_id], references: [id], onDelete: Restrict)
+  orders         Order[]
+
+  @@index([customer_id])
+  @@map("addresses")
+}
+
+// ─────────────────────────────── catalog ───────────────────────────────
+
+model Category {
+  id            String     @id @default(uuid()) @db.Uuid
+  parent_id     String?    @db.Uuid
+  slug          String     @unique
+  name_ar       String
+  name_en       String
+  is_active     Boolean    @default(true)
+  sort_order    Int        @default(0)
+  image         String?
+  created_at    DateTime   @default(now()) @db.Timestamptz
+  updated_at    DateTime   @default(now()) @updatedAt @db.Timestamptz
+  parent        Category?  @relation("CategoryTree", fields: [parent_id], references: [id], onDelete: SetNull)
+  subcategories Category[] @relation("CategoryTree")
+  products      Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id               String    @id @default(uuid()) @db.Uuid
+  category_id      String?   @db.Uuid
+  name             String
+  slug             String    @unique
+  description      String?
+  price            Decimal   @default(0) @db.Decimal(10, 2)
+  compare_at_price Decimal?  @db.Decimal(10, 2)
+  /// JSONB array of { min_quantity, price, compare_at_price, label, is_special }
+  quantity_prices  Json?
+  sku              String?   @unique
+  qrcode           String?
+  quantity         Int       @default(0)
+  stock_status     String    @default("in_stock")
+  main_image       String?
+  gallery          Json      @default("[]")
+  video_url        String?
+  is_active        Boolean   @default(true)
+  theme_color      String    @default("#06b6d4")
+  is_featured      Boolean   @default(false)
+  featured_sort    Int?
+  created_at       DateTime  @default(now()) @db.Timestamptz
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz
+  category         Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
+
+  orders      Order[]
+  order_items OrderItem[]
+  reviews     ProductReview[]
+
+  @@index([is_active])
+  @@index([category_id])
+  @@map("products")
+}
+
+// ─────────────────────────────── ordering ───────────────────────────────
+
+model Order {
+  id                    String    @id @default(uuid()) @db.Uuid
+  customer_id           String    @db.Uuid
+  address_id            String    @db.Uuid
+  product_id            String?   @db.Uuid
+  quantity              Int       @default(1)
+  total_price           Decimal   @default(0) @db.Decimal(10, 2)
+  subtotal              Decimal   @default(0) @db.Decimal(10, 2)
+  discount_amount       Decimal   @default(0) @db.Decimal(10, 2)
+  shipping_cost         Decimal   @default(0) @db.Decimal(10, 2)
+  coupon_code           String?
+  platform_source       String?
+  ip_address            String?
+  ip_country            String?
+  ip_city               String?
+  status                String    @default("pending")
+  shipping_provider     String?
+  shipping_tracking_id  String?
+  requires_confirmation Boolean   @default(true)
+  last_notified_status  String?
+  last_notified_at      DateTime? @db.Timestamptz
+  created_at            DateTime  @default(now()) @db.Timestamptz
+  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  customer           Customer           @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  address            Address            @relation(fields: [address_id], references: [id], onDelete: Restrict)
+  product            Product?           @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  order_items        OrderItem[]
+  reviews            ProductReview[]
+  coupon_redemptions CouponRedemption[]
+
+  @@index([status, created_at])
+  @@index([customer_id])
+  @@index([shipping_tracking_id])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  order_id    String   @db.Uuid
+  product_id  String?  @db.Uuid
+  quantity    Int
+  unit_price  Decimal  @db.Decimal(10, 2)
+  total_price Decimal  @db.Decimal(10, 2)
+  created_at  DateTime @default(now()) @db.Timestamptz
+  order       Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [product_id], references: [id], onDelete: SetNull)
+
+  @@index([order_id])
+  @@map("order_items")
+}
+
+// ─────────────────────────────── reviews ───────────────────────────────
+
+model ProductReview {
+  id          String   @id @default(uuid()) @db.Uuid
+  product_id  String   @db.Uuid
+  customer_id String   @db.Uuid
+  order_id    String?  @db.Uuid
+  rating      Int      @db.SmallInt
+  title       String?
+  body        String?
+  status      String   @default("pending")
+  created_at  DateTime @default(now()) @db.Timestamptz
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  order       Order?   @relation(fields: [order_id], references: [id], onDelete: SetNull)
+
+  @@unique([product_id, customer_id])
+  @@index([product_id, status])
+  @@map("product_reviews")
+}
+
+// ─────────────────────────────── promotions ───────────────────────────────
+
+model Coupon {
+  id                 String             @id @default(uuid()) @db.Uuid
+  code               String             @unique
+  type               String
+  value              Decimal            @default(0) @db.Decimal(10, 2)
+  min_order_total    Decimal            @default(0) @db.Decimal(10, 2)
+  max_discount       Decimal?           @db.Decimal(10, 2)
+  first_order_only   Boolean            @default(false)
+  per_customer_limit Int?
+  usage_limit        Int?
+  used_count         Int                @default(0)
+  starts_at          DateTime?          @db.Timestamptz
+  expires_at         DateTime?          @db.Timestamptz
+  is_active          Boolean            @default(true)
+  created_at         DateTime           @default(now()) @db.Timestamptz
+  updated_at         DateTime           @default(now()) @updatedAt @db.Timestamptz
+  redemptions        CouponRedemption[]
+
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id          String   @id @default(uuid()) @db.Uuid
+  coupon_id   String   @db.Uuid
+  customer_id String   @db.Uuid
+  order_id    String?  @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamptz
+  coupon      Coupon   @relation(fields: [coupon_id], references: [id], onDelete: Cascade)
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  order       Order?   @relation(fields: [order_id], references: [id], onDelete: SetNull)
+
+  @@index([coupon_id, customer_id])
+  @@map("coupon_redemptions")
+}
+
+// ─────────────────────────────── social ───────────────────────────────
+
+model SocialConnection {
+  id               String    @id @default(uuid()) @db.Uuid
+  platform         String    @unique
+  account_id       String?
+  account_name     String?
+  avatar_url       String?
+  /// AES-256-GCM encrypted, never returned to a client
+  access_token     String?
+  /// AES-256-GCM encrypted, never returned to a client
+  refresh_token    String?
+  token_expires_at DateTime? @db.Timestamptz
+  scopes           String[]  @default([])
+  status           String    @default("disconnected")
+  error_message    String?
+  metadata         Json      @default("{}")
+  connected_by     String?   @db.Uuid
+  connected_at     DateTime? @db.Timestamptz
+  created_at       DateTime  @default(now()) @db.Timestamptz
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz
+  admin            Admin?    @relation(fields: [connected_by], references: [id], onDelete: SetNull)
+
+  @@map("social_connections")
+}
+
+// ─────────────────────────────── messaging (Meta inbox) ───────────────────────────────
+
+/// A person on a Meta channel: a Messenger PSID, an Instagram IGSID or a WhatsApp wa_id.
+model InboxContact {
+  id              String              @id @default(uuid()) @db.Uuid
+  channel         String
+  /// The business side: Page id, IG account id, or WhatsApp phone_number_id.
+  account_id      String
+  /// The person's id on that channel.
+  external_id     String
+  name            String?
+  username        String?
+  avatar_url      String?
+  customer_id     String?             @db.Uuid
+  created_at      DateTime            @default(now()) @db.Timestamptz
+  updated_at      DateTime            @default(now()) @updatedAt @db.Timestamptz
+  customer        Customer?           @relation(fields: [customer_id], references: [id], onDelete: SetNull)
+  conversations   InboxConversation[]
+
+  @@unique([channel, account_id, external_id])
+  @@map("inbox_contacts")
+}
+
+model InboxConversation {
+  id                   String         @id @default(uuid()) @db.Uuid
+  channel              String
+  account_id           String
+  contact_id           String         @db.Uuid
+  status               String         @default("open")
+  unread_count         Int            @default(0)
+  last_message_at      DateTime?      @db.Timestamptz
+  last_message_preview String?
+  /// Start of the 24 h customer-service window (last message from the customer).
+  last_inbound_at      DateTime?      @db.Timestamptz
+  created_at           DateTime       @default(now()) @db.Timestamptz
+  updated_at           DateTime       @default(now()) @updatedAt @db.Timestamptz
+  contact              InboxContact   @relation(fields: [contact_id], references: [id], onDelete: Cascade)
+  messages             InboxMessage[]
+
+  @@unique([channel, account_id, contact_id])
+  @@index([status, last_message_at])
+  @@map("inbox_conversations")
+}
+
+model InboxMessage {
+  id                String            @id @default(uuid()) @db.Uuid
+  conversation_id   String            @db.Uuid
+  direction         String
+  /// Meta's id: Messenger/IG `mid`, WhatsApp `wamid`. Null until an outbound send succeeds.
+  external_id       String?           @unique
+  type              String            @default("text")
+  body              String?
+  attachments       Json              @default("[]")
+  status            String
+  error             String?
+  sent_by_admin_id  String?           @db.Uuid
+  sent_at           DateTime          @default(now()) @db.Timestamptz
+  created_at        DateTime          @default(now()) @db.Timestamptz
+  updated_at        DateTime          @default(now()) @updatedAt @db.Timestamptz
+  conversation      InboxConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+
+  @@index([conversation_id, sent_at])
+  @@map("inbox_messages")
+}
+
+/// A comment on one of our Facebook Page posts or Instagram media.
+model SocialComment {
+  id                    String         @id @default(uuid()) @db.Uuid
+  platform              String
+  account_id            String
+  external_id           String         @unique
+  parent_external_id    String?
+  post_id               String?
+  author_id             String?
+  author_name           String?
+  body                  String?
+  permalink             String?
+  is_hidden             Boolean        @default(false)
+  is_from_business      Boolean        @default(false)
+  status                String         @default("open")
+  private_reply_sent_at DateTime?      @db.Timestamptz
+  replied_at            DateTime?      @db.Timestamptz
+  commented_at          DateTime       @db.Timestamptz
+  created_at            DateTime       @default(now()) @db.Timestamptz
+  updated_at            DateTime       @default(now()) @updatedAt @db.Timestamptz
+  replies               CommentReply[]
+
+  @@index([platform, status, commented_at])
+  @@map("social_comments")
+}
+
+model CommentReply {
+  id          String        @id @default(uuid()) @db.Uuid
+  comment_id  String        @db.Uuid
+  kind        String
+  body        String
+  external_id String?
+  status      String        @default("pending")
+  error       String?
+  admin_id    String?       @db.Uuid
+  created_at  DateTime      @default(now()) @db.Timestamptz
+  updated_at  DateTime      @default(now()) @updatedAt @db.Timestamptz
+  comment     SocialComment @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+
+  @@index([comment_id])
+  @@map("comment_replies")
+}
+
+/// Legacy CRM log for the Evolution API / n8n WhatsApp integration (spec 012).
+model WhatsappMessage {
+  id                   String   @id @default(uuid()) @db.Uuid
+  customer_id          String   @db.Uuid
+  admin_id             String?  @db.Uuid
+  direction            String
+  body                 String
+  media_url            String?
+  media_type           String?
+  status               String
+  evolution_message_id String?  @unique
+  phone                String
+  created_at           DateTime @default(now()) @db.Timestamptz
+  updated_at           DateTime @default(now()) @updatedAt @db.Timestamptz
+  customer             Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+
+  @@index([customer_id, created_at])
+  @@map("whatsapp_messages")
+}
+
+// ─────────────────────────────── ai studio ───────────────────────────────
+
+model AdCampaign {
+  id                   String       @id @default(uuid()) @db.Uuid
+  name                 String?
+  niche                String?
+  objective            String?
+  research_summary     String?
+  headline             String?
+  primary_text         String?
+  cta                  String?
+  hashtags             String?
+  platform             String?
+  status               String       @default("draft")
+  image_url            String?
+  target_audience      Json?
+  daily_budget         Decimal?     @db.Decimal(10, 2)
+  external_campaign_id String?
+  telegram_chat_id     String?
+  created_at           DateTime     @default(now()) @db.Timestamptz
+  updated_at           DateTime     @default(now()) @updatedAt @db.Timestamptz
+  video_jobs           AiVideoJob[]
+
+  @@index([status])
+  @@map("ad_campaigns")
+}
+
+model AiVideoJob {
+  id                 String      @id @default(uuid()) @db.Uuid
+  campaign_id        String?     @db.Uuid
+  prompt             String
+  previous_video_url String?
+  openrouter_job_id  String?
+  status             String      @default("pending")
+  video_url          String?
+  cost               Decimal?    @db.Decimal(10, 4)
+  error              String?
+  telegram_chat_id   String?
+  created_at         DateTime    @default(now()) @db.Timestamptz
+  updated_at         DateTime    @default(now()) @updatedAt @db.Timestamptz
+  completed_at       DateTime?   @db.Timestamptz
+  campaign           AdCampaign? @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([openrouter_job_id])
+  @@map("ai_video_jobs")
+}
+
+// ─────────────────────────────── shared: transactional outbox ───────────────────────────────
+
+/// Domain events written in the same transaction as the state change, then
+/// relayed to Kafka by the worker. Guarantees "published iff committed".
+model OutboxEvent {
+  id           String    @id @default(uuid()) @db.Uuid
+  topic        String
+  key          String
+  type         String
+  payload      Json
+  attempts     Int       @default(0)
+  last_error   String?
+  created_at   DateTime  @default(now()) @db.Timestamptz
+  published_at DateTime? @db.Timestamptz
+
+  @@index([published_at, created_at])
+  @@map("outbox_events")
+}

@@ -1,383 +1,116 @@
 # 🏪 7alm — AI Agent Entrypoint
 
-> **7alm** is a production-ready, Arabic-first E-commerce platform built with Next.js 16 (App Router), TypeScript, Tailwind CSS, and Supabase. It powers a high-conversion product landing page funnel, a full-featured admin dashboard, and a public storefront. The landing pages are RTL/Arabic-only and fixed. Both the public storefront (`(store)`) and the admin dashboard (`(admin)`) are bilingual (Arabic default / English available), direction-aware (RTL default / LTR available), and theme-aware (dark default / light available) via runtime toggles with independent `localStorage` keys.
+> **7alm** is a production-ready, Arabic-first e-commerce platform. **v2 (2026-11)**: a **NestJS 11 modular monolith** in `backend/` (PostgreSQL via Prisma 7, Kafka, Redis, Docker) owns all business logic and data; the **Next.js 16** app in `src/` is presentation only (storefront, RTL landing pages, admin dashboard). Supabase was removed. It powers a landing-page funnel, a storefront, an admin dashboard, an order lifecycle with shipping, and a **Meta inbox** (Messenger, Instagram DM, WhatsApp Cloud API, FB/IG comments). The landing pages are RTL/Arabic-only and fixed. Both the public storefront (`(store)`) and the admin dashboard (`(admin)`) are bilingual (Arabic default / English available), direction-aware (RTL default / LTR available), and theme-aware (dark default / light available) via runtime toggles with independent `localStorage` keys.
+
+Full docs: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/INFRASTRUCTURE.md`](docs/INFRASTRUCTURE.md) · [`docs/META_INTEGRATION.md`](docs/META_INTEGRATION.md) · [`backend/README.md`](backend/README.md)
 
 ---
 
 ## ⚠️ Critical Rules — Read Before Writing Any Code
 
-1. **Next.js 16 (Turbopack)**: This project uses Next.js 16 with the App Router. APIs, conventions, and file structure may differ from your training data. Check `node_modules/next/dist/docs/` if unsure about any API.
-2. **Server vs Client Boundary**: All database operations happen server-side through API routes. Components in `(landing)` use `"use client"` and talk to the backend via RTK Query. Never import Supabase directly in client components.
-3. **Arabic RTL**: The landing pages are fully RTL (`dir="rtl"`, `lang="ar"`), fixed — no toggle. Both the admin dashboard (`(admin)/admin/*`) and the public storefront (`(store)/*`) are bilingual and direction-aware: they default to Arabic/RTL but support a runtime EN/AR + LTR/RTL toggle (`src/features/i18n/i18n.hooks.tsx`, `useLocale()`), persisted per-browser in `localStorage` under independent keys (`admin-locale` / `store-locale`). Both also support a dark/light theme toggle (`src/features/theme/theme.hooks.ts`, `useTheme()`), persisted independently (`admin-theme` / `store-theme`). Any admin or store UI you add must use logical CSS properties (`ms-*`/`me-*`/`ps-*`/`pe-*`/`start-*`/`end-*`/`text-start`/`text-end`) — never physical `ml-*`/`mr-*`/`pl-*`/`pr-*`/`text-left`/`text-right`/`left-*`/`right-*` — and every first-party string must go through `t(key)` against `src/features/i18n/dictionary.ts` (admin keys under `nav.*`/`action.*`/etc., store keys under `store.*`), not a hardcoded literal.
-4. **TypeScript Strict**: The project enforces strict TypeScript. Run `npx tsc --noEmit` before committing.
-5. **Feature-First Architecture**: All business logic lives in `src/features/<domain>/`. UI components live in `src/components/`. Never put business logic in components or pages.
+1. **Next.js 16 (Turbopack)**: App Router; APIs may differ from your training data. Check `node_modules/next/dist/docs/` if unsure.
+2. **Web tier has no data access**: the Next app never talks to a database and holds no server secrets. Client components → RTK Query (`src/features/*/*.api.ts`) → `/api/*`. Server Components → `src/features/store/store.server.ts` (`serverGet` → `BACKEND_URL/api/*`). There are **no** Next API routes, services or repositories any more — add backend behaviour in `backend/src/modules/<module>/`.
+3. **Arabic RTL**: The landing pages are fully RTL (`dir="rtl"`, `lang="ar"`), fixed — no toggle. Both the admin dashboard (`(admin)/admin/*`) and the public storefront (`(store)/*`) are bilingual and direction-aware: they default to Arabic/RTL but support a runtime EN/AR + LTR/RTL toggle (`src/features/i18n/i18n.hooks.tsx`, `useLocale()`), persisted per-browser in `localStorage` under independent keys (`admin-locale` / `store-locale`). Both also support a dark/light theme toggle (`src/features/theme/theme.hooks.ts`, `useTheme()`), persisted independently (`admin-theme` / `store-theme`). Any admin or store UI you add must use logical CSS properties (`ms-*`/`me-*`/`ps-*`/`pe-*`/`start-*`/`end-*`/`text-start`/`text-end`) — never physical `ml-*`/`mr-*`/`pl-*`/`pr-*`/`text-left`/`text-right`/`left-*`/`right-*` — and every first-party string must go through `t(key)` against `src/features/i18n/dictionary.ts` (admin keys under `nav.*`/`action.*`/`inbox.*`/etc., store keys under `store.*`), not a hardcoded literal.
+4. **TypeScript strict, both sides**: `npx tsc --noEmit` (root) and `cd backend && npm run typecheck && npm test` must pass before committing.
+5. **Backend layering** (enforced by `backend/test/architecture.spec.ts`): inside a module `domain/` (pure rules, ports) → `application/` (use cases, facades) → `infrastructure/` (Prisma, HTTP clients) → `presentation/` (controllers, webhooks). Other modules are imported **only via their `index.ts`**. Only `infrastructure/` touches Prisma. Cross-module side effects go through **domain events → outbox → Kafka**, not direct calls.
+6. **Keep the `/api/*` contract**: responses are `{ success: true, data }` / `{ success: false, error }`, snake_case, money as numbers, ISO dates. The frontend, n8n workflows and provider webhooks depend on it.
 
 ---
 
-## 🏗️ Architecture Overview
-
-### Layered Architecture (per domain)
-
-Each feature domain follows a strict 4-layer architecture:
+## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│  Pages (App Router)     — Route entry points     │
-├─────────────────────────────────────────────────┤
-│  Components             — UI rendering only      │
-├─────────────────────────────────────────────────┤
-│  Features (Hooks/API)   — State & data access    │
-│  ├── *.api.ts           — RTK Query endpoints    │
-│  ├── *.hooks.ts         — Custom React hooks     │
-│  ├── *.service.ts       — Business logic (SSR)   │
-│  └── *.repository.ts    — Supabase queries (SSR) │
-├─────────────────────────────────────────────────┤
-│  Lib                    — Shared infra           │
-│  ├── supabase.ts        — Supabase client        │
-│  ├── auth.ts            — JWT verification       │
-│  ├── orderStateMachine  — State Machine pattern  │
-│  └── redux/             — Store config           │
-└─────────────────────────────────────────────────┘
+Browser → Caddy ─┬─ /api, /socket.io, /uploads → api (NestJS) → PostgreSQL · Redis
+                 └─ everything else          → web (Next.js) ─(Server Components)→ api
+webhooks (Meta, Bosta, OpenRouter, n8n) → api → outbox_events → worker → Kafka → consumers
+worker → Graph API · Resend · n8n · socket.io (via Redis emitter)
 ```
 
-### Key Principle: Service ↔ Repository Separation
+| Module (`backend/src/modules/`) | Owns |
+| --- | --- |
+| `identity` | Admin auth (argon2id + JWT), `AdminGuard`, `N8nGuard` |
+| `catalog` | Products, categories, price tiers, stock (atomic SQL), cached reads |
+| `geo`, `customers` | Zones + shipping prices; customers by phone, `customer_stats` view |
+| `promotions` | Coupons: `evaluateCoupon` rules, atomic redemption |
+| `ordering` | Checkout, `Order` aggregate + state machine, courier/n8n webhooks |
+| `shipping` | Courier Strategy + Factory (Bosta, ABS, Mylerz, `test` simulator) |
+| `reviews` | Verified-buyer reviews via signed links |
+| `notifications` | Worker: customer WhatsApp via n8n, admin e-mail via Resend |
+| `messaging` | Meta inbox: webhook ingest, conversations, comments, replies |
+| `social` | OAuth connect (Facebook Page + IG, WhatsApp WABA, TikTok), encrypted tokens |
+| `ai-studio`, `media`, `crm`, `realtime` | AI campaigns/images/videos; uploads; CRM composition + Evolution WhatsApp; socket.io gateway |
 
-| Layer | Runs On | Purpose | Example |
-|---|---|---|---|
-| `*.repository.ts` | Server only | Raw Supabase queries. No business logic. | `productRepository.getProductBySlug(slug)` |
-| `*.service.ts` | Server only | Business orchestration. Calls repositories. | `orderService.approveOrder(id, provider)` |
-| `*.api.ts` | Client only | RTK Query endpoints. Calls API routes via HTTP. | `useGetProductsQuery()` |
-| `*.hooks.ts` | Client only | UI-specific logic, form state, modal control. | `useProductsManager()` |
-
-> **Never import a Repository or Service in a client component.** They use the Supabase server client and will crash.
+### Design patterns
+1. **State Machine** — `ordering/domain/order-status.ts` (`ORDER_TRANSITIONS`) + `Order` aggregate. The frontend copy `src/lib/orderStateMachine.ts` holds only UI labels/colors/actions.
+2. **Strategy + Factory** — couriers (`shipping/`), OAuth providers (`social/`).
+3. **Repository + Ports** — repositories implement domain ports (`CATALOG_STORE`, `ORDER_STORE`, `INBOX_STORE`, …).
+4. **Unit of Work + Transactional Outbox** — `shared/infrastructure/prisma/unit-of-work.ts`, relay `shared/infrastructure/outbox/outbox-relay.service.ts`.
+5. **RTK Query + tag invalidation** on the client; `useRealtime(table)` (socket.io) refetches on `orders:changed`, `catalog:changed`, `crm:whatsapp`, `inbox:*`.
 
 ---
 
-## 📁 File Structure
+## 📁 Where things live
 
 ```
-src/
-├── app/
-│   ├── layout.tsx                        # Root layout (ReduxProvider)
-│   ├── (landing)/                        # Public storefront (RTL, Arabic)
-│   │   ├── layout.tsx                    # Landing layout (Cairo font, dark bg)
-│   │   ├── page.tsx                      # Default landing (active product)
-│   │   └── [slug]/page.tsx               # Dynamic product landing page
-│   ├── (admin)/admin/                    # Protected admin dashboard — bilingual (AR default/EN), RTL default/LTR via runtime toggle
-│   │   ├── layout.tsx                    # Admin layout (top bar + auth guard, no-FOUC theme + locale init)
-│   │   ├── page.tsx                      # Dashboard overview (stats)
-│   │   ├── products/
-│   │   │   ├── page.tsx                  # Product list + CRUD
-│   │   │   └── create/page.tsx           # Dedicated create page
-│   │   └── orders/page.tsx               # Order management + state machine
-│   └── api/                              # Next.js API routes (server-side)
-│       ├── auth/login/route.ts           # Supabase auth (returns JWT)
-│       ├── admin/products/route.ts       # GET/POST products (auth required)
-│       ├── admin/products/[id]/route.ts  # PUT/DELETE product (auth required)
-│       ├── admin/upload/route.ts         # Media upload (local filesystem)
-│       ├── orders/route.ts               # GET/POST orders
-│       ├── orders/[id]/status/route.ts   # PATCH order status
-│       ├── products/active/route.ts      # GET active product (public)
-│       ├── products/[slug]/route.ts      # GET product by slug (public)
-│       ├── webhooks/shipping/route.ts    # Shipping provider webhooks
-│       ├── webhooks/whatsapp/route.ts   # Inbound WhatsApp event logger (from n8n)
-│       └── zones/route.ts               # GET zones for checkout form
-│
-├── components/
-│   ├── admin/
-│   │   ├── AdminLayoutClient.tsx         # Sidebar + auth persistence
-│   │   ├── LoginForm.tsx                 # Admin login form
-│   │   ├── OrdersTable.tsx               # Orders table + state machine actions
-│   │   ├── ProductsManager.tsx           # Legacy combined manager (use products/ instead)
-│   │   └── products/
-│   │       ├── ProductList.tsx           # Product table with "Copy Landing Link" action
-│   │       └── ProductForm.tsx           # Create/Edit product modal form
-│   └── landing/
-│       ├── CheckoutForm.tsx              # Order form (accepts optional productId)
-│       ├── CheckoutSummary.tsx           # Static product summary (legacy)
-│       ├── DynamicCheckoutSummary.tsx     # Dynamic product summary (from DB)
-│       ├── Hero.tsx / Features.tsx / Footer.tsx
-│       └── ProductShowcase.tsx / ProductDetails.tsx
-│
-├── features/
-│   ├── shared/types.ts                   # All shared TypeScript interfaces
-│   ├── auth/
-│   │   ├── auth.api.ts                   # RTK Query login endpoint
-│   │   ├── auth.hooks.ts                 # useAuth hook
-│   │   └── auth.slice.ts                 # Redux slice (token + user state)
-│   ├── products/
-│   │   ├── products.api.ts               # RTK Query CRUD endpoints
-│   │   ├── products.hooks.ts             # useProductsManager hook
-│   │   ├── products.service.ts           # Product business logic (SSR)
-│   │   └── products.repository.ts        # Supabase queries (SSR)
-│   ├── orders/
-│   │   ├── orders.api.ts                 # RTK Query endpoints
-│   │   ├── orders.hooks.ts               # useOrders hook
-│   │   ├── orders.service.ts             # Order orchestration (SSR)
-│   │   └── orders.repository.ts          # Supabase queries (SSR)
-│   ├── customers/
-│   │   ├── customers.service.ts          # Find-or-create customer logic
-│   │   └── customers.repository.ts       # Supabase queries
-│   ├── geo/
-│   │   ├── geo.api.ts / geo.hooks.ts     # Zone dropdown data (client)
-│   │   ├── geo.service.ts                # Zone business logic (SSR)
-│   │   └── geo.repository.ts             # Supabase queries
-│   ├── checkout/
-│   │   ├── checkout.hooks.ts             # useCheckoutForm, useIpInfo
-│   │   └── checkout-summary.hooks.ts     # useUrgencyBanner, useProductGallery
-│   ├── media/
-│   │   ├── media.api.ts                  # Upload endpoint
-│   │   └── media.hooks.ts               # useMediaUpload hook
-│   ├── shipping/
-│   │   ├── shipping.interface.ts          # IShippingProvider contract
-│   │   ├── shipping.factory.ts            # Factory Pattern (Bosta, ABS, Mylerz)
-│   │   └── providers/
-│   │       ├── bosta.provider.ts          # Bosta implementation
-│   │       ├── abs.provider.ts            # ABS placeholder
-│   │       └── mylerz.provider.ts         # Mylerz placeholder
-│   └── whatsapp/
-│       ├── whatsapp.service.ts            # WhatsApp messaging orchestration (SSR)
-│       └── n8n-whatsapp.service.ts        # Thin HTTP client → n8n webhook for CRM sends
-│
-└── lib/
-    ├── supabase.ts                       # Supabase client singleton
-    ├── auth.ts                           # verifyAdmin + extractToken (SSR)
-    ├── orderStateMachine.ts              # State Machine for order statuses
-    └── redux/
-        ├── store.ts                      # Redux store config
-        ├── hooks.ts                      # useAppDispatch, useAppSelector
-        ├── ReduxProvider.tsx             # Client provider wrapper
-        └── api/baseQuery.ts              # RTK Query base query with auth
+backend/
+  prisma/schema.prisma, prisma/migrations/    # PostgreSQL schema (snake_case = API contract)
+  src/main.ts, src/app.module.ts              # api process
+  src/worker.ts, src/worker.module.ts         # worker process (outbox relay + Kafka consumers)
+  src/shared/                                 # kernel: config, prisma, uow/outbox, kafka, redis, storage, http
+  src/modules/<module>/{domain,application,infrastructure,presentation}, index.ts
+  test/ (architecture.spec.ts, smoke.mjs, meta-smoke.mjs, demo-activity.mjs)
+src/                                          # Next.js presentation
+  app/(landing) (store) (admin)/admin/…       # pages; admin/inbox = Meta inbox UI
+  features/*/*.api.ts, *.hooks.ts, *.slice.ts # RTK Query + UI hooks
+  features/store/store.server.ts              # Server Component reads
+  lib/api/server-fetch.ts, lib/realtime/socket.ts, middleware.ts
+site/                                         # product landing site (GitHub Pages)
+video/                                        # launch-video tooling (slides → ffmpeg)
+deploy/Caddyfile, deploy/backup.sh, docker-compose.yml (dev), docker-compose.prod.yml
+automation/                                   # n8n workflows (call the same /api/* endpoints)
 ```
 
-automation/
-├── ecommerce-workflow.json               # n8n: AI agent for FB + IG (WhatsApp removed)
-├── whatsapp-ai-workflow.json             # n8n: Consolidated WhatsApp AI agent + CRM send webhook
-├── order-notifications-workflow.json     # n8n: Order status → WhatsApp notifications (Evolution plugin)
-└── order-confirmation-workflow.json      # DEPRECATED — merged into whatsapp-ai-workflow
-```
+## Adding a backend feature
+
+1. Model in `backend/prisma/schema.prisma` → `npx prisma migrate dev --name <x>`.
+2. `domain/`: types, rules, a port interface. Unit-test the rules.
+3. `infrastructure/`: repository implementing the port (map Decimal → number, Date → ISO).
+4. `application/`: use case; return domain events to the `UnitOfWork` for side effects.
+5. `presentation/`: controller with zod schemas and `AdminGuard` / `N8nGuard`.
+6. Export what others need from the module's `index.ts`; register the module in `app.module.ts` (and `worker.module.ts` if it consumes events).
+7. Frontend: `src/features/<domain>/<domain>.api.ts` + hooks, register in `src/lib/redux/store.ts`, i18n keys in both `en` and `ar`.
 
 ---
 
-## 🎯 Design Patterns in Use
+## 🔐 Authentication
 
-### 1. State Machine Pattern (Orders)
-- File: `src/lib/orderStateMachine.ts`
-- Maps each `OrderStatus` to valid transitions and available actions.
-- The `OrdersTable` component reads from this machine to render action buttons.
-- **Status flow**: `pending → approved → shipped → delivered` (with `cancelled` and `returned` branching)
+`POST /api/auth/login` (argon2 check against `admins`) → `{ token, refresh_token, expires_in, user }` + httpOnly cookie `7alm_admin_token`. RTK Query sends `Authorization: Bearer`; `src/middleware.ts` validates the cookie via `GET /api/auth/session`. `POST /api/auth/refresh` renews. The first admin comes from `ADMIN_SEED_EMAIL` / `ADMIN_SEED_PASSWORD` when the table is empty. n8n uses `x-n8n-access-token`.
 
-### 2. Factory Pattern (Shipping)
-- File: `src/features/shipping/shipping.factory.ts`
-- Interface: `src/features/shipping/shipping.interface.ts`
-- All providers implement `IShippingProvider` (createDelivery, trackDelivery, cancelDelivery, mapStatus).
-- To add a new provider:
-  1. Create `src/features/shipping/providers/<name>.provider.ts` implementing `IShippingProvider`
-  2. Register it in `shipping.factory.ts`
-  3. Add the name to `ShippingProviderName` type in `shared/types.ts`
+## 🌐 Landing pages
 
-### 3. Repository Pattern (Data Access)
-- Every domain has a `*.repository.ts` that is the **only** file that touches Supabase.
-- Services call repositories, never Supabase directly.
-- This keeps database concerns isolated and testable.
-
-### 4. RTK Query + Tag Invalidation (Client State)
-- File: `src/lib/redux/store.ts`
-- Each domain has an RTK Query API slice (`productsApi`, `ordersApi`, `geoApi`, etc.).
-- Uses `providesTags` / `invalidatesTags` for automatic cache management.
-- All API slices use `baseQueryWithAuth` which injects the Bearer token from Redux state.
-
-### 5. WhatsApp CRM Messaging (via n8n)
-
-The backend **never calls Evolution API directly**. All WhatsApp sends go through n8n:
-
-```
-Backend (whatsapp.service.ts)
-  → POST n8n webhook (N8N_WHATSAPP_SEND_WEBHOOK_URL)
-    → n8n validates X-N8n-Send-Secret
-      → Evolution API plugin (sendText)
-        → { messageId, status } returned synchronously
-```
-
-- **Inbound**: Evolution API → n8n webhook → normalize → AI agent / order handler → reply via plugin
-- **Outbound (CRM)**: Admin UI → RTK Query → API route → `whatsapp.service.ts` → n8n webhook → plugin
-- **Notifications**: Order status change → n8n workflow → Evolution plugin (5 status templates)
-- All outbound nodes use `n8n-nodes-evolution-api` plugin (resource: `messages-api`, operation: `send-text`)
-- Inbound triggers use standard `n8n-nodes-base.webhook` (the plugin has no trigger node)
+`/{slug}` renders a product (Server Component → `GET /api/products/:slug`). Reserved slugs (`products`, `category`, `cart`, `checkout`, `admin`, `review`, `api`, `uploads`, …) are rejected by `catalog/domain/product.ts`.
 
 ---
 
-## 🔐 Authentication Flow
-
-1. Admin logs in via `POST /api/auth/login` (email + password → Supabase Auth).
-2. Server returns a JWT access token.
-3. Token is stored in Redux state (`auth.slice.ts`) and `localStorage`.
-4. All admin API routes extract the token via `extractToken()` and verify via `verifyAdmin()`.
-5. `verifyAdmin()` checks both JWT validity AND membership in the `admins` Supabase table.
-6. `AdminLayoutClient` restores the token from `localStorage` on mount.
-
----
-
-## 🌐 Dynamic Product Landing Pages
-
-Products have a `slug` field. When an admin creates a product with slug `mobile-case`, the landing page is served at:
-
-```
-https://yourdomain.com/mobile-case
-```
-
-The `(landing)/[slug]/page.tsx` Server Component:
-1. Fetches the product by slug from Supabase
-2. Returns `notFound()` if the product doesn't exist or is inactive
-3. Renders `DynamicCheckoutSummary` (gallery, price, discount) + `CheckoutForm`
-4. Generates dynamic SEO metadata from the product data
-
-The admin's `ProductList` has a **"Copy Link"** button that copies `{origin}/{slug}` to clipboard.
-
----
-
-## 📦 Database Schema (Supabase)
-
-| Table | Key Fields | Notes |
-|---|---|---|
-| `products` | id, name, slug, price, compare_at_price, quantity_prices, quantity, stock_status, main_image, gallery[], is_active | `slug` is unique, used for landing page URLs. `quantity_prices` is a JSONB array of `{ min_quantity, price, compare_at_price, label, is_special }` for tiered/bulk pricing (buy 2 = special price, buy 3 = better price). |
-| `orders` | id, customer_id, address_id, product_id, quantity, total_price, status, shipping_provider, shipping_tracking_id | Status managed by State Machine |
-| `customers` | id, phone, email, full_name | Unique by phone number |
-| `addresses` | id, customer_id, zone_id, street_details | |
-| `zones` | id, city_id, english_name, arabic_name | |
-| `cities` | id, country_id, name | |
-| `countries` | id, name | |
-| `admins` | id | References Supabase Auth user IDs |
-| `whatsapp_messages` | id, customer_id, direction, body, wa_message_id, status | CRM message log (inbound/outbound WhatsApp messages) |
-
----
-
-## 🧑‍💻 Development Commands
+## 🧑‍💻 Commands
 
 ```bash
-npm run dev      # Start dev server (Turbopack)
-npm run build    # Production build
-npx tsc --noEmit # Type check without emitting
+docker compose up -d                                   # dev infra: postgres :5433, redis :6380, kafka :9094
+cd backend && npm run start:dev                        # api :4000   (npm run start:worker:dev for the worker)
+BACKEND_URL=http://localhost:4000 NEXT_PUBLIC_API_WS_URL=http://localhost:4000 npx next dev -p 3001
+npx tsc --noEmit && (cd backend && npm run typecheck && npm test)
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build   # production
 ```
 
-### Database Migration: quantity_prices column
-
-Run this SQL in Supabase to add the quantity-tier pricing column:
-
-```sql
-ALTER TABLE products
-  ADD COLUMN IF NOT EXISTS quantity_prices JSONB DEFAULT NULL;
-
--- Example: set tiered pricing for a product
-UPDATE products
-  SET quantity_prices = '[
-    { "min_quantity": 1, "price": 299, "compare_at_price": 499, "label": "قطعة واحدة", "is_special": false },
-    { "min_quantity": 2, "price": 275, "compare_at_price": 499, "label": "قطعتين", "is_special": true },
-    { "min_quantity": 3, "price": 249, "compare_at_price": 499, "label": "3 قطع", "is_special": true }
-  ]'::jsonb
-  WHERE slug = 'your-product-slug';
-```
-
-### Realtime
-
-The app uses Supabase Realtime for live updates. The client-side hook
-`useRealtime(table, options)` subscribes to `postgres_changes` events
-(INSERT/UPDATE/DELETE/`*`). It requires these public env vars:
-
-```
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-```
-
-Usage:
-```ts
-import { useRealtime, useRealtimeRefetch } from "@/features/realtime/realtime.hooks";
-
-// Auto-refetch an RTK Query when a table changes:
-const { refetch } = useGetOrdersQuery("all");
-useRealtimeRefetch("orders", refetch);
-
-// Or listen to events directly:
-const { lastEvent, isConnected } = useRealtime("orders", {
-  event: "*",
-  onEvent: (payload) => console.log("order changed:", payload),
-});
-```
-
-You must also enable Realtime on the table in Supabase:
-```sql
-ALTER PUBLICATION supabase_realtime ADD TABLE orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE products;
-```
-
-### Environment Variables (`.env.local`)
-
-```env
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co   # Client-side realtime (public)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...               # Client-side realtime (public)
-NEXT_PUBLIC_IPINFO_TOKEN=xxx          # Optional, for IP geolocation
-DEFAULT_SHIPPING_PROVIDER=bosta       # Default shipping provider
-BOSTA_API_KEY=xxx                     # Bosta API credentials
-BOSTA_BUSINESS_ID=xxx
-N8N_WHATSAPP_SEND_WEBHOOK_URL=https://n8n.example.com/webhook/whatsapp-crm-send  # n8n webhook for CRM WhatsApp sends
-N8N_SEND_WEBHOOK_SECRET=xxx           # Shared secret for n8n CRM send webhook auth
-RESEND_API_KEY=re_xxx                 # Resend API key — admin new-order alert emails (order-cycle-redesign §3/§8)
-ADMIN_ALERT_EMAIL=mohamedjs408@gmail.com  # Recipient of the "new order" admin alert email
-EMAIL_FROM=onboarding@resend.dev      # Verified sender; falls back to Resend's sandbox address until a domain is verified
-SHIPPING_WEBHOOK_SECRET=xxx           # Shared secret validated by /api/webhooks/shipping (required by all providers incl. `test`)
-NEXT_PUBLIC_APP_URL=http://localhost:3000  # Base URL used for admin email links + the `test` shipping provider's self-simulated webhook calls
-```
-
-#### n8n Environment Variables
-
-These are set in the n8n instance (not `.env.local`):
-
-| Variable | Purpose |
-|---|---|
-| `N8N_SEND_WEBHOOK_SECRET` | Validates CRM send requests (must match backend value) |
-| `N8N_ACCESS_TOKEN` | Auth token for 7alm API calls from n8n workflows |
-| `N8N_WEBHOOK_SECRET` | Auth token for order-action webhook calls |
-
-
-#### Social Connections Environment Variables
-
-Admin "connect accounts" OAuth foundation (Facebook, Instagram, TikTok,
-WhatsApp Cloud API — link + status only, see `docs/specs/social-connections.md`).
-Add to `.env.local`:
-
-```env
-SOCIAL_MOCK_MODE=1                      # 1 = force the mock connector for all platforms (no real creds needed)
-SOCIAL_OAUTH_REDIRECT_BASE=http://localhost:3000   # base URL used to build the OAuth callback + redirect targets
-SOCIAL_TOKEN_ENCRYPTION_KEY=<32-byte hex/base64, or any placeholder string for the demo>
-                                         # AES-256-GCM key for encrypting stored tokens (src/lib/crypto.ts)
-                                         # also used to HMAC-sign the OAuth state cookie (social.service.ts)
-FACEBOOK_APP_ID=
-FACEBOOK_APP_SECRET=
-INSTAGRAM_APP_ID=
-INSTAGRAM_APP_SECRET=
-TIKTOK_CLIENT_ID=                       # sent to TikTok as the `client_key` OAuth param
-TIKTOK_CLIENT_SECRET=
-WHATSAPP_APP_ID=                        # WhatsApp Cloud API (Meta) — separate from the Evolution/n8n WhatsApp integration
-WHATSAPP_APP_SECRET=
-```
-
-A platform's real provider is only selected over the mock connector when
-its `_APP_ID`/`_APP_SECRET` (or `TIKTOK_CLIENT_ID`/`_SECRET`) pair is set
-AND `SOCIAL_MOCK_MODE` is not `1`.
+Environment: backend → `backend/.env.example` (dev) and `.env.production.example` (prod, every variable documented). Web needs only `BACKEND_URL`, `NEXT_PUBLIC_APP_URL`, optional `NEXT_PUBLIC_API_WS_URL`, `NEXT_PUBLIC_IPINFO_TOKEN`.
 
 ---
 
-## ✅ Conventions Checklist
+## ✅ Checklist before submitting
 
-Before submitting any change, verify:
-
-- [ ] TypeScript passes: `npx tsc --noEmit`
-- [ ] Production build succeeds: `npm run build`
-- [ ] No Supabase imports in client components
-- [ ] New features follow the 4-layer pattern (Repository → Service → API Route → RTK Query)
-- [ ] Shared types are defined in `src/features/shared/types.ts`
-- [ ] UI components are thin — logic lives in hooks or services
-- [ ] RTL/Arabic direction is preserved in landing page changes
+- [ ] `npx tsc --noEmit` (web) and `cd backend && npm run typecheck && npm test` pass
+- [ ] `npx next build` and `cd backend && npx nest build` succeed
+- [ ] New backend code respects the layer rules (architecture test green)
+- [ ] No database access, secrets or business rules in `src/`
+- [ ] `/api/*` envelope and field names unchanged for existing endpoints
+- [ ] New UI strings in both `en` and `ar`; logical CSS only; landing pages stay RTL

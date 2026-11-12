@@ -1,216 +1,62 @@
-# 🏪 7alm — Modern Arabic E-commerce Platform
+# 🏪 7alm — حلم
 
 <div align="center">
 
-**7alm** (حلم) is a production-grade, Arabic-first E-commerce platform featuring a high-conversion product landing page funnel and a fully-featured admin dashboard.
+**Arabic-first e-commerce with one inbox for Facebook, Instagram and WhatsApp.**
+Storefront and RTL landing pages, a full order lifecycle with shipping, and replies to customer messages and post comments — in one app.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase)](https://supabase.com/)
+[![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs)](https://nestjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql)](https://www.postgresql.org/)
+[![Kafka](https://img.shields.io/badge/Kafka-3.9-231F20?logo=apachekafka)](https://kafka.apache.org/)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker)](https://docs.docker.com/compose/)
+
+[Product site](https://mohamedjs.github.io/7alm/) · [Demo video](site/assets/7alm-demo.mp4) · [Architecture](docs/ARCHITECTURE.md) · [Deploy](docs/INFRASTRUCTURE.md) · [Meta setup](docs/META_INTEGRATION.md)
 
 </div>
 
----
+![7alm inbox](site/assets/screens/admin-inbox.png)
 
-## ✨ Features
+## What's inside
 
-### 🛍️ Customer-Facing Landing Pages
-- **Dynamic Product Pages** — Each product gets a unique landing page at `/{product-slug}`
-- **RTL Arabic Design** — Fully right-to-left layout with Cairo font family
-- **Urgency Engine** — Countdown timer + live viewer simulation for conversion optimization
-- **Product Gallery** — Image gallery with thumbnail navigation
-- **Cash-on-Delivery Checkout** — Streamlined order form with zone-based address selection
-- **Mobile-First Responsive** — Optimized for all screen sizes
+| | |
+| --- | --- |
+| **Store & landing pages** | One ad-ready page per product (`/{slug}`), quantity offers, storefront with categories and cart. AR/EN, RTL/LTR, dark/light. |
+| **Orders** | State machine `pending → approved → confirmed → shipped → delivered` (+ cancelled/returned), race-free stock reservation, Bosta booking, courier webhooks, coupons, admin e-mail, customer WhatsApp via n8n. |
+| **Meta inbox** | Messenger, Instagram Direct and WhatsApp Cloud API conversations; public and private replies to Facebook/Instagram comments; hide spam. Follows Meta's 24 h / 7-day rules. |
+| **CRM** | Customers by phone with order stats, WhatsApp history, verified-buyer reviews. |
+| **AI Studio** | Campaigns, ad images and videos through OpenRouter, driven from Telegram (n8n). |
 
-### 🔧 Admin Dashboard
-- **Product Management** — Full CRUD with media upload (images + videos)
-- **Order Processing** — State Machine-powered order status management
-- **Copy Landing Link** — One-click link generation for product-specific landing pages
-- **Dashboard Analytics** — Revenue, pending orders, and approved orders overview
-- **Protected Routes** — JWT-based authentication with Supabase
+## Stack
 
-### 🏗️ Architecture Highlights
-- **Domain-Driven Design** — Feature-based module organization
-- **Repository Pattern** — Isolated data access layer
-- **Factory Pattern** — Pluggable shipping provider system (Bosta, ABS, Mylerz)
-- **State Machine Pattern** — Deterministic order status transitions
-- **RTK Query** — Automatic cache management with tag-based invalidation
+- **backend/** — NestJS 11 **modular monolith** (domain / application / infrastructure / presentation per module), PostgreSQL 17 via **Prisma 7**, **Kafka** with a transactional outbox, **Redis** (cache, idempotency, rate limits, socket.io adapter). Two processes: `api` and `worker`.
+- **src/** — Next.js 16 App Router, RTK Query, Tailwind 4. Presentation only.
+- **Ops** — Docker Compose, Caddy (automatic HTTPS), daily `pg_dump`, GitHub Actions (CI, Pages, GHCR release).
 
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- [Supabase](https://supabase.com/) project
-
-### Installation
+## Run it
 
 ```bash
-# Clone the repository
-git clone https://github.com/mohamedjs/7alm.git
-cd 7alm
+# development
+docker compose up -d                                  # postgres, redis, kafka
+cd backend && cp .env.example .env && npm ci && npx prisma migrate deploy && npm run seed:dev
+npm run start:dev & npm run start:worker:dev &
+cd .. && npm ci && BACKEND_URL=http://localhost:4000 NEXT_PUBLIC_API_WS_URL=http://localhost:4000 npx next dev -p 3001
 
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.example .env.local
+# production (one VPS)
+cp .env.production.example .env.production            # domain, secrets, Meta app
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
 
-### Environment Variables
+Admin: `/admin` (first admin from `ADMIN_SEED_EMAIL` / `ADMIN_SEED_PASSWORD`). Meta webhook URL: `https://<domain>/api/webhooks/meta`.
 
-Create a `.env.local` file with the following:
-
-```env
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Optional
-NEXT_PUBLIC_IPINFO_TOKEN=your-ipinfo-token
-DEFAULT_SHIPPING_PROVIDER=bosta
-BOSTA_API_KEY=your-bosta-key
-BOSTA_BUSINESS_ID=your-bosta-business-id
-```
-
-### Run Development Server
+## Quality gates
 
 ```bash
-npm run dev
+npx tsc --noEmit                               # web
+cd backend && npm run typecheck && npm test    # domain, Meta parser, signature + architecture tests
+node --env-file=.env test/smoke.mjs            # e2e checkout → delivered
+node --env-file=.env test/meta-smoke.mjs       # e2e Meta webhooks → inbox → replies
 ```
 
-Open [http://localhost:3000](http://localhost:3000) for the landing page, or [http://localhost:3000/admin](http://localhost:3000/admin) for the admin dashboard.
-
----
-
-## 📁 Project Structure
-
-```
-src/
-├── app/                          # Next.js App Router pages
-│   ├── (landing)/                # Public storefront (RTL, Arabic)
-│   │   ├── page.tsx              # Default landing (active product)
-│   │   └── [slug]/page.tsx       # Dynamic product landing
-│   ├── (admin)/admin/            # Protected admin dashboard
-│   │   ├── page.tsx              # Stats overview
-│   │   ├── products/             # Product management
-│   │   └── orders/               # Order management
-│   └── api/                      # Server-side API routes
-│
-├── components/                   # UI components (presentation only)
-│   ├── admin/                    # Admin dashboard components
-│   │   └── products/             # ProductList, ProductForm
-│   └── landing/                  # Landing page components
-│
-├── features/                     # Domain-driven feature modules
-│   ├── products/                 # Product CRUD (api, hooks, service, repository)
-│   ├── orders/                   # Order processing
-│   ├── customers/                # Customer management
-│   ├── shipping/                 # Shipping factory + providers
-│   ├── checkout/                 # Checkout form hooks
-│   ├── geo/                      # Zones & geography
-│   ├── auth/                     # Authentication
-│   └── shared/types.ts           # All shared TypeScript interfaces
-│
-└── lib/                          # Shared infrastructure
-    ├── supabase.ts               # Supabase client
-    ├── auth.ts                   # JWT verification
-    ├── orderStateMachine.ts      # Order state machine
-    └── redux/                    # Redux store & RTK Query config
-```
-
-### Architecture Layers
-
-Each feature domain follows a strict layered architecture:
-
-| Layer | File Suffix | Runs On | Purpose |
-|---|---|---|---|
-| Repository | `*.repository.ts` | Server | Raw Supabase queries |
-| Service | `*.service.ts` | Server | Business logic orchestration |
-| API | `*.api.ts` | Client | RTK Query endpoint definitions |
-| Hooks | `*.hooks.ts` | Client | React hooks for UI logic |
-
----
-
-## 🎯 Design Patterns
-
-### State Machine (Orders)
-Order status transitions are governed by a deterministic state machine:
-
-```
-pending → approved → shipped → delivered
-  ↓                    ↓          ↓
-cancelled           returned   returned
-```
-
-### Factory Pattern (Shipping)
-Shipping providers are plug-and-play via `IShippingProvider` interface:
-
-```typescript
-const provider = shippingFactory.getProvider('bosta');
-const result = await provider.createDelivery(input);
-```
-
-### Dynamic Landing Pages
-Each product generates a unique landing page via its `slug`:
-- Admin creates product with slug `mobile-case`
-- Landing page is served at `yourdomain.com/mobile-case`
-- Server Component fetches product data and renders checkout funnel
-
----
-
-## 🗄️ Database Schema
-
-| Table | Purpose |
-|---|---|
-| `products` | Product catalog (name, slug, price, gallery, stock) |
-| `orders` | Order records with status tracking |
-| `customers` | Customer profiles (unique by phone) |
-| `addresses` | Delivery addresses linked to zones |
-| `zones` | Delivery zones with Arabic/English names |
-| `cities` | Cities linked to countries |
-| `countries` | Country list |
-| `admins` | Admin user IDs (references Supabase Auth) |
-
----
-
-## 🔐 Authentication
-
-- Admin login via Supabase Auth (email + password)
-- JWT tokens stored in Redux state + `localStorage`
-- All admin API routes verify tokens via `verifyAdmin()`
-- Token is injected automatically by RTK Query's `baseQueryWithAuth`
-
----
-
-## 🛠️ Tech Stack
-
-| Technology | Purpose |
-|---|---|
-| **Next.js 16** | React framework (App Router, Turbopack) |
-| **TypeScript** | Type safety |
-| **Tailwind CSS** | Styling |
-| **Supabase** | Database + Auth |
-| **Redux Toolkit (RTK Query)** | Client-side state & API calls |
-| **Bosta / ABS / Mylerz** | Shipping integrations |
-
----
-
-## 📝 AI Agent Documentation
-
-This project includes comprehensive documentation for AI coding agents:
-
-- **[AGENTS.md](./AGENTS.md)** — Full architecture, file structure, design patterns, and conventions
-- **[CLAUDE.md](./CLAUDE.md)** — Claude-specific quick reference and instructions
-
-These files ensure any AI agent can understand and contribute to this codebase following established patterns.
-
----
-
-## 📄 License
-
-This project is proprietary software. All rights reserved.
+For contributors and AI agents: [`AGENTS.md`](AGENTS.md).

@@ -1,0 +1,31 @@
+# 7alm edge: automatic HTTPS (Let's Encrypt) for {$DOMAIN}.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# API, webhooks, realtime and uploaded media go straight to NestJS.
+	@api path /api/* /socket.io/* /uploads/* /health /health/*
+	handle @api {
+		reverse_proxy api:4000
+	}
+
+	# Everything else is the Next.js storefront / landing / admin.
+	handle {
+		reverse_proxy web:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

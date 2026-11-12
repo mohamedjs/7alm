@@ -66,6 +66,7 @@ export default function AdminLayoutClient({
   const navLinks: { key: DictKey; path: string }[] = [
     { key: "nav.dashboard", path: "/admin" },
     { key: "nav.orders", path: "/admin/orders" },
+    { key: "nav.inbox", path: "/admin/inbox" },
     { key: "nav.customers", path: "/admin/customers" },
     { key: "nav.products", path: "/admin/products" },
     { key: "nav.categories", path: "/admin/categories" },

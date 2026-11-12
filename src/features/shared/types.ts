@@ -660,3 +660,75 @@ export interface VideoJobInput {
   campaign_id?: string | null;
   telegram_chat_id?: string | null;
 }
+
+// ============================================================
+// Meta inbox (v2) — Messenger, Instagram DM, WhatsApp Cloud API,
+// Facebook/Instagram comments. Served by the NestJS `messaging` module.
+// ============================================================
+
+export type InboxChannel = "messenger" | "instagram" | "whatsapp";
+export type CommentPlatform = "facebook" | "instagram";
+export type InboxMessageStatus = "received" | "pending" | "sent" | "delivered" | "read" | "failed";
+
+export interface InboxContact {
+  id: string;
+  channel: InboxChannel;
+  external_id: string;
+  name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  customer: { id: string; full_name: string; phone: string } | null;
+}
+
+export interface InboxConversation {
+  id: string;
+  channel: InboxChannel;
+  account_id: string;
+  status: "open" | "closed";
+  unread_count: number;
+  last_message_at: string | null;
+  last_message_preview: string | null;
+  last_inbound_at: string | null;
+  contact: InboxContact;
+}
+
+export interface InboxMessage {
+  id: string;
+  conversation_id: string;
+  direction: "inbound" | "outbound";
+  external_id: string | null;
+  type: string;
+  body: string | null;
+  status: InboxMessageStatus;
+  error: string | null;
+  sent_at: string;
+}
+
+export interface InboxThread extends InboxConversation {
+  messages: InboxMessage[];
+}
+
+export interface SocialCommentReply {
+  id: string;
+  kind: "public" | "private";
+  body: string;
+  status: "pending" | "sent" | "failed";
+  error: string | null;
+  created_at: string;
+}
+
+export interface SocialComment {
+  id: string;
+  platform: CommentPlatform;
+  external_id: string;
+  post_id: string | null;
+  author_name: string | null;
+  body: string | null;
+  permalink: string | null;
+  is_hidden: boolean;
+  status: "open" | "done" | "deleted";
+  private_reply_sent_at: string | null;
+  replied_at: string | null;
+  commented_at: string;
+  replies: SocialCommentReply[];
+}

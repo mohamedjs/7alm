@@ -1,7 +1,6 @@
+import { catalogServer, categoriesServer } from "@/features/store/store.server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { productService } from "@/features/products/products.service";
-import { categoryService } from "@/features/categories/categories.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import ProductDetail from "@/components/store/product/ProductDetail";
 import StoreFooter from "@/components/store/master/StoreFooter";
@@ -14,7 +13,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await productService.getProductBySlug(slug);
+  const product = await catalogServer.getProductBySlug(slug);
   if (!product) return { title: "منتج غير موجود" };
   return {
     title: `${product.name} | حلم`,
@@ -31,8 +30,8 @@ export default async function StoreProductPage({ params }: PageProps) {
   const { slug } = await params;
 
   const [product, categories] = await Promise.all([
-    productService.getProductBySlug(slug),
-    categoryService.getActiveCategories(),
+    catalogServer.getProductBySlug(slug),
+    categoriesServer.getActiveCategories(),
   ]);
 
   if (!product) {

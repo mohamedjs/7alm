@@ -1,7 +1,6 @@
+import { catalogServer, categoriesServer } from "@/features/store/store.server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { categoryService } from "@/features/categories/categories.service";
-import { productService } from "@/features/products/products.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import StoreFooter from "@/components/store/master/StoreFooter";
 import CategoryLabel from "@/components/store/category/CategoryLabel";
@@ -15,7 +14,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await categoryService.getCategoryBySlug(slug);
+  const category = await categoriesServer.getCategoryBySlug(slug);
   if (!category || !category.is_active) return { title: "قسم غير موجود | حلم" };
   return {
     title: `${category.name_ar} | حلم`,
@@ -36,15 +35,15 @@ export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
 
   const [category, categories] = await Promise.all([
-    categoryService.getCategoryBySlug(slug),
-    categoryService.getActiveCategories(),
+    categoriesServer.getCategoryBySlug(slug),
+    categoriesServer.getActiveCategories(),
   ]);
 
   if (!category || !category.is_active) {
     notFound();
   }
 
-  const products = await productService.getActiveProductsByCategory(category.id);
+  const products = await catalogServer.getActiveProductsByCategory(category.id);
 
   return (
     <main className="min-h-screen">

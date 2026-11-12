@@ -1,7 +1,5 @@
+import { catalogServer, categoriesServer, reviewsServer } from "@/features/store/store.server";
 import type { Metadata } from "next";
-import { productService } from "@/features/products/products.service";
-import { categoryService } from "@/features/categories/categories.service";
-import { reviewsService } from "@/features/reviews/reviews.service";
 import StoreNavbar from "@/components/store/master/StoreNavbar";
 import LookbookHero from "@/components/store/home/LookbookHero";
 import BestSellersSection from "@/components/store/home/BestSellersSection";
@@ -30,11 +28,11 @@ export const metadata: Metadata = {
  */
 export default async function StoreHomePage() {
   const [featuredProducts, categories, bestSellers, allProducts, showcase] = await Promise.all([
-    productService.getFeaturedProducts(),
-    categoryService.getActiveCategories(),
-    productService.getBestSellerProducts(8),
-    productService.getAllActiveProducts(),
-    reviewsService.getShowcaseReviews({ minRating: 4, limit: 12 }),
+    catalogServer.getFeaturedProducts(),
+    categoriesServer.getActiveCategories(),
+    catalogServer.getBestSellerProducts(8),
+    catalogServer.getAllActiveProducts(),
+    reviewsServer.getShowcaseReviews({ minRating: 4, limit: 12 }),
   ]);
 
   return (

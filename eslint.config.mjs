@@ -15,6 +15,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // v2: the backend, the static product site and the video tooling lint separately.
+    "backend/**",
+    "site/**",
+    "video/**",
+    "scripts/**",
   ]),
   ...storybook.configs["flat/recommended"]
 ]);

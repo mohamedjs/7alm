@@ -39,11 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-\n# Package lock\npackage-lock.json
 .agents
-package-lock.json
 *storybook.log
 storybook-static
 
 # Local pre-edit workflow snapshots (git already holds the committed versions)
 automation/.backups/
+!.env.example
+!.env.production.example
+video/frames/
+
+# v2: lockfiles are committed — Docker builds and CI use `npm ci`.
