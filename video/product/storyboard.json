@@ -1,0 +1,26 @@
+{
+ "brand": { "logo": "img/logo.png", "accent": "#0891b2", "dark": "#1e2440", "flow": "#7c3aed" },
+ "scenes": [
+  { "id": "problem", "type": "bullets", "vo": ["n1", "n2", "n3"], "title": "الساعة ١٢ بالليل", "icon": "moon-clear",
+    "items": [
+      { "icon": "messenger", "text": "رسالة على ماسنجر", "sub": "«الزجاجة متاحة بالأسود؟»" },
+      { "icon": "whatsapp", "text": "وتانية على واتساب", "sub": "«الأوردر هيوصل امتى؟»" },
+      { "icon": "chat-quote", "text": "وتعليق تحت البوست", "sub": "«بكام؟»" },
+      { "icon": "user-unfollow", "text": "وكل تأخير", "sub": "عميل بيروح لغيرك" } ] },
+  { "id": "title", "type": "title", "vo": "n4", "title": "حلم", "sub": "كل ده… في شاشة واحدة",
+    "tiles": [ { "icon": "messenger", "text": "ماسنجر" }, { "icon": "instagram", "text": "إنستجرام" }, { "icon": "whatsapp", "text": "واتساب" }, { "icon": "chat-quote", "text": "التعليقات" } ] },
+  { "id": "inbox", "type": "shot", "vo": "n5", "clip": "inbox", "fps": 15, "frame": "screen", "title": "صندوق رسائل واحد", "icon": "inbox-2",
+    "points": [ { "icon": "flashlight", "text": "الرسالة بتوصل لحظتها" }, { "icon": "reply", "text": "ترد من نفس الشاشة" } ] },
+  { "id": "comments", "type": "shot", "vo": "n6", "clip": "comments", "fps": 15, "frame": "screen", "title": "ولا تعليق من غير رد", "icon": "chat-quote",
+    "points": [ { "icon": "megaphone", "text": "رد علني يشوفه الكل" }, { "icon": "mail-send", "text": "أو رسالة في الخاص" }, { "icon": "eye-off", "text": "والسبام تخفيه" } ] },
+  { "id": "landing", "type": "shot", "vo": "n7", "clip": "landing", "fps": 15, "frame": "phone", "title": "صفحة بيع لكل منتج", "icon": "shopping-bag-3",
+    "points": [ { "icon": "advertisement", "text": "جاهزة تحطها في الإعلان" }, { "icon": "price-tag-3", "text": "العرض والخصم قدام العميل" }, { "icon": "hand-coin", "text": "طلب في خطوة، والدفع عند الاستلام" } ] },
+  { "id": "orders", "type": "shot", "vo": "n8", "clip": "orders", "fps": 15, "frame": "screen", "title": "من الطلب لباب البيت", "icon": "truck",
+    "points": [ { "icon": "checkbox-circle", "text": "موافقة بضغطة" }, { "icon": "truck", "text": "الشحنة بتتحجز لوحدها" } ] },
+  { "id": "dashboard", "type": "shot", "vo": "n9", "clip": "dashboard", "fps": 15, "frame": "screen", "title": "أرقامك قدامك", "icon": "line-chart",
+    "points": [ { "icon": "money-dollar-circle", "text": "الإيرادات والطلبات" }, { "icon": "fire", "text": "إيه اللي بيبيع أكتر" } ] },
+  { "id": "outro", "type": "outro", "vo": ["n10", "n11"], "title": "حلم", "sub": "متجرك، طلباتك، وكل عملاءك في مكان واحد",
+    "tiles": [ { "icon": "inbox-2", "text": "رسايل" }, { "icon": "chat-quote", "text": "تعليقات" }, { "icon": "shopping-bag-3", "text": "متجر" }, { "icon": "truck", "text": "شحن" } ],
+    "url": "mohamedjs.github.io/7alm" }
+ ]
+}

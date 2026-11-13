@@ -1,0 +1,9 @@
+{
+ "fps": 15, "size": [450, 800], "url": "http://localhost:3001",
+ "clips": [
+  { "id": "landing", "seconds": 10, "path": "/7alm-smart-bottle",
+    "setup": [ { "eval": "const s=document.createElement(\"style\");s.textContent=\"nextjs-portal{display:none!important}\";document.head.appendChild(s)" }, { "wait": 1500 } ],
+    "steps": [ { "wait": 700 }, { "move": "text=349 >> nth=0" }, { "wait": 600 }, { "scroll": 520 }, { "wait": 500 }, { "scroll": 600 },
+      { "type": ["input >> nth=0", "نور عادل"] }, { "wait": 400 }, { "move": "button:has-text('تأكيد الطلب')" }, { "wait": 900 } ] }
+ ]
+}

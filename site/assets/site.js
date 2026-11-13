@@ -20,6 +20,8 @@
     n2: "messages arrive the moment they are sent",
     n3: "messages or comments missed",
     n4: "languages: Arabic and English, dark and light",
+    "video.k": "A minute with 7alm",
+    "video.t": "See 7alm in action",
     "inbox.k": "Inbox",
     "inbox.t": "Messenger, Instagram and WhatsApp… in one conversation list",
     "inbox.d": "Instead of three apps, every message lands here instantly, labelled with the channel it came from. Reply from the same screen and see who is still waiting for an answer.",

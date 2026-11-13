@@ -1,0 +1,22 @@
+{
+ "fps": 15, "size": [1440, 810], "url": "http://localhost:3001",
+ "clips": [
+  { "id": "inbox", "seconds": 11, "path": "/admin/inbox",
+    "setup": [ { "eval": "const s=document.createElement(\"style\");s.textContent=\"nextjs-portal{display:none!important}\";document.head.appendChild(s)" }, { "wait": 800 } ],
+    "steps": [ { "wait": 500 }, { "click": "ul li:nth-child(1) button" }, { "wait": 900 },
+      { "move": "text=طب بكام لو أخدت اتنين؟" }, { "wait": 700 }, { "move": "text=تمام، هطلب دلوقتي" }, { "wait": 500 },
+      { "type": ["textarea", "تحت أمرك يا نور 💙 الأوردر هيوصلك بكرة"] }, { "wait": 800 }, { "move": "ul li:nth-child(3) button" } ] },
+  { "id": "comments", "seconds": 10, "path": "/admin/inbox",
+    "setup": [ { "eval": "const s=document.createElement(\"style\");s.textContent=\"nextjs-portal{display:none!important}\";document.head.appendChild(s)" }, { "click": "[role=tab] >> nth=1" }, { "wait": 1200 } ],
+    "steps": [ { "wait": 400 }, { "move": "text=بكام الزجاجة؟" }, { "wait": 500 },
+      { "type": ["input[placeholder^='اكتب ردك'] >> nth=0", "السعر 349 جنيه بس 😍 والشحن لحد البيت"] }, { "wait": 500 },
+      { "hover": "button:has-text('رد علني') >> nth=0" }, { "wait": 700 }, { "hover": "button:has-text('رد في الخاص') >> nth=0" }, { "wait": 900 } ] },
+  { "id": "orders", "seconds": 9, "path": "/admin/orders",
+    "setup": [ { "eval": "const s=document.createElement(\"style\");s.textContent=\"nextjs-portal{display:none!important}\";document.head.appendChild(s)" }, { "click": "button:has-text('كل الطلبات')" }, { "wait": 1200 } ],
+    "steps": [ { "wait": 400 }, { "move": "text=نور عادل" }, { "wait": 600 }, { "hover": "button:has-text('موافقة وشحن') >> nth=0" }, { "wait": 1200 },
+      { "move": "text=تم التوصيل >> nth=0" }, { "wait": 1000 } ] },
+  { "id": "dashboard", "seconds": 8, "path": "/admin",
+    "setup": [ { "eval": "const s=document.createElement(\"style\");s.textContent=\"nextjs-portal{display:none!important}\";document.head.appendChild(s)" }, { "wait": 1500 } ],
+    "steps": [ { "wait": 400 }, { "move": "text=الإيرادات >> nth=1" }, { "wait": 900 }, { "move": "text=الطلبات يوميًا" }, { "wait": 700 }, { "scroll": 380 }, { "move": "text=أفضل المنتجات" }, { "wait": 900 } ] }
+ ]
+}
