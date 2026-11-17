@@ -1,0 +1,26 @@
+{
+ "brand": { "logo": "img/logo.png" },
+ "scenes": [
+  { "id": "problem", "type": "bullets", "vo": ["n1", "n2", "n3"], "kicker": "a real night", "title": "Midnight, and it won't stop", "icon": "moon-clear",
+    "items": [
+      { "icon": "messenger", "text": "A message on Messenger", "sub": "\"Is the bottle in black?\"" },
+      { "icon": "whatsapp", "text": "Another on WhatsApp", "sub": "\"When will my order arrive?\"" },
+      { "icon": "chat-quote", "text": "A comment under the post", "sub": "\"How much?\"" },
+      { "icon": "user-unfollow", "text": "Every late reply", "sub": "a customer gone elsewhere" } ] },
+  { "id": "title", "type": "title", "vo": "n4", "title": "7alm", "sub": "all of it... on one screen",
+    "tiles": [ { "icon": "messenger", "text": "Messenger" }, { "icon": "instagram", "text": "Instagram" }, { "icon": "whatsapp", "text": "WhatsApp" }, { "icon": "chat-quote", "text": "Comments" } ] },
+  { "id": "inbox", "type": "shot", "vo": "n5", "clip": "inbox", "fps": 15, "frame": "screen", "kicker": "inbox", "title": "One inbox for everything", "icon": "inbox-2",
+    "points": [ { "icon": "flashlight", "text": "Messages arrive instantly" }, { "icon": "reply", "text": "Reply from the same screen" } ] },
+  { "id": "comments", "type": "shot", "vo": "n6", "clip": "comments", "fps": 15, "frame": "screen", "kicker": "comments", "title": "No comment left unanswered", "icon": "chat-quote",
+    "points": [ { "icon": "megaphone", "text": "A public reply everyone sees" }, { "icon": "mail-send", "text": "Or a private message" }, { "icon": "eye-off", "text": "And hide the spam" } ] },
+  { "id": "landing", "type": "shot", "vo": "n7", "clip": "landing", "fps": 15, "frame": "phone", "kicker": "product page", "title": "A sales page for every product", "icon": "shopping-bag-3",
+    "points": [ { "icon": "advertisement", "text": "Ready to drop into your ads" }, { "icon": "price-tag-3", "text": "The offer and discount up front" }, { "icon": "hand-coin", "text": "Order in one step, cash on delivery" } ] },
+  { "id": "orders", "type": "shot", "vo": "n8", "clip": "orders", "fps": 15, "frame": "screen", "kicker": "orders", "title": "From order to doorstep", "icon": "truck",
+    "points": [ { "icon": "checkbox-circle", "text": "Approve in one click" }, { "icon": "truck", "text": "The shipment books itself" } ] },
+  { "id": "dashboard", "type": "shot", "vo": "n9", "clip": "dashboard", "fps": 15, "frame": "screen", "kicker": "dashboard", "title": "Your numbers, right there", "icon": "line-chart",
+    "points": [ { "icon": "money-dollar-circle", "text": "Revenue and orders" }, { "icon": "fire", "text": "What sells best" } ] },
+  { "id": "outro", "type": "outro", "vo": ["n10", "n11"], "title": "7alm", "sub": "your store, your orders and all your customers in one place",
+    "tiles": [ { "icon": "inbox-2", "text": "Messages" }, { "icon": "chat-quote", "text": "Comments" }, { "icon": "shopping-bag-3", "text": "Store" }, { "icon": "truck", "text": "Shipping" } ],
+    "url": "mohamedjs.github.io/7alm", "credit": "Built with AI · idea, architecture & release by Mohamed Mahmoud" }
+ ]
+}

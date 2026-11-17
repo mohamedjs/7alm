@@ -1,0 +1,11 @@
+node_modules/
+clips/
+raw/
+vo/
+vo-placeholder/
+audio/
+hf/
+out/
+*.mp4
+timing.json
+__pycache__/

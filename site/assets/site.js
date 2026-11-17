@@ -96,6 +96,16 @@
     root.dir = lang === "en" ? "ltr" : "rtl";
     document.title = lang === "en" ? "7alm — sell more and answer every customer from one place" : "حلم — بيع أكتر ورد على كل عملائك من مكان واحد";
     langBtn.textContent = lang === "en" ? "ع" : "EN";
+    // The product video has an Arabic and an English cut: swap it with the language.
+    const video = document.getElementById("product-video");
+    const src = video && video.dataset["src" + (lang === "en" ? "En" : "Ar")];
+    const source = video && video.querySelector("source");
+    if (src && source && source.getAttribute("src") !== src) {
+      video.pause();
+      source.setAttribute("src", src);
+      video.setAttribute("poster", video.dataset["poster" + (lang === "en" ? "En" : "Ar")]);
+      video.load();
+    }
   }
 
   applyLang(root.lang === "en" ? "en" : "ar");
